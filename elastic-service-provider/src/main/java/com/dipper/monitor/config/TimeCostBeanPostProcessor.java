@@ -22,7 +22,7 @@ public class TimeCostBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-//        log.info("准备初始化bean:{} class:{}",beanName,bean.getClass().getCanonicalName());
+        log.info("准备初始化bean:{} class:{}",beanName,bean.getClass().getCanonicalName());
         costMap.put(beanName, System.currentTimeMillis());
         return bean;
     }

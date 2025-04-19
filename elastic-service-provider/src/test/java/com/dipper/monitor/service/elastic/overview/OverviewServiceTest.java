@@ -6,6 +6,8 @@ import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+
 import static org.junit.Assert.*;
 
 public class OverviewServiceTest extends BaseMonitorTest {
@@ -41,11 +43,47 @@ public class OverviewServiceTest extends BaseMonitorTest {
         ClusterStatusView clusterStatus = overviewService.getClusterStatus();
     }
 
+    /**
+     *   "index" : "ailpha-baas-event-202503-000002",
+     *       "managed" : true,
+     *       "policy" : "security-event-policy",
+     *       "lifecycle_date_millis" : 1741760730949,
+     *       "age" : "38.06d",
+     *       "phase" : "hot",
+     *       "phase_time_millis" : 1741760731205,
+     *       "action" : "rollover",
+     *       "action_time_millis" : 1741760731405,
+     *       "step" : "check-rollover-ready",
+     *       "step_time_millis" : 1741760731405,
+     *       "phase_execution" : {
+     *         "policy" : "security-event-policy",
+     *         "phase_definition" : {
+     *           "min_age" : "0ms",
+     *           "actions" : {
+     *             "rollover" : {
+     *               "max_size" : "200gb"
+     *             },
+     *             "set_priority" : {
+     *               "priority" : 100
+     *             }
+     *           }
+     *         },
+     *         "version" : 1,
+     *         "modified_date_in_millis" : 1741574723190
+     *       }
+     */
     @Test
     public void clusterError() {
         PageReq pageReq = new PageReq();
         pageReq.setPageNum(1);
         pageReq.setPageSize(10);
          overviewService.getLifeCycleError(pageReq);
+    }
+
+    @Test
+    public void repairLifeCycleError() throws IOException {
+        String s = overviewService.repairLifeCycleError();
+        System.out.println("==========================================");
+        System.out.println(s);
     }
 }

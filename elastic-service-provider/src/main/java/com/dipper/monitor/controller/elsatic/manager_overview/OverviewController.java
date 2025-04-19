@@ -81,6 +81,59 @@ public class OverviewController {
         }
     }
 
+    /**
+     * 生命周期异常修复
+     */
+    @Operation(summary = "生命周期异常修复",
+            description = "生命周期异常修复",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/repairLifeCycleError")
+    public JSONObject repairLifeCycleError() {
+        try {
+            String  clusterError = overviewService.repairLifeCycleError();
+            return ResultUtils.onSuccess(clusterError);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("异常", e);
+            return ResultUtils.onFail("操作异常");
+        }
+    }
+
+
+
+    /**
+     * 获取集群shard异常列表
+     */
+    @Operation(summary = "获取集群shard异常列表",
+            description = "获取集群shard异常列表",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/getShardError")
+    public JSONObject getShardError(PageReq pageReq) {
+        try {
+            List<JSONObject>  clusterError = overviewService.getShardError(pageReq);
+            return ResultUtils.onSuccess(clusterError);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("异常", e);
+            return ResultUtils.onFail("操作异常");
+        }
+    }
 
 
 

@@ -5,6 +5,7 @@ import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -21,4 +22,6 @@ public interface ElasticClientService {
 
      public String executeGetApi(String api) throws IOException;
 
+
+     public String executePostApi(String api, HttpEntity entity) throws IOException;
 }

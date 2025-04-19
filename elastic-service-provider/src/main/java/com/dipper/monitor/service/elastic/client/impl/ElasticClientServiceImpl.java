@@ -14,13 +14,18 @@ import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.dipper.monitor.utils.plugins.PluginConfigUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.apache.http.message.BasicHeader;
+import com.dipper.client.proxy.params.elasticsearch.RequestOptions ;
 
 import java.io.IOException;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
@@ -34,6 +39,17 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             .concurrencyLevel(7)
             .build();
 
+    private Header[] commonHeaders = new Header[1];
+
+
+    @PostConstruct
+    public synchronized void postInit() {
+
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader("Content-Type", "application/json"));
+
+        this.commonHeaders = headers.toArray(this.commonHeaders);
+    }
 
     @Override
     public ElasticClientProxyService getInstance(CurrentClusterEntity currentCluster) {
@@ -73,4 +89,38 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         return httpResult;
     }
 
+
+
+    @Override
+    public String executePostApi(String api, HttpEntity entity) throws IOException {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+        Response response = null;
+        if (entity != null) {
+            Request request = buildRequest(RequestMethod.POST.name(), api,
+                    Collections.emptyMap(), entity, this.commonHeaders);
+            response = elasticClientProxyService.performRequest(request);
+        } else {
+            response = elasticClientProxyService.performRequest(new Request(RequestMethod.POST.name(), api));
+        }
+        String responseData = EntityUtils.toString(response.getEntity());
+        return responseData;
+    }
+
+    private Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
+                                 HttpEntity entity, Header... headers) {
+        Request request = new Request(method, endPoint);
+        request.setEntity(entity);
+        RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();
+        if (paramMap != null && !paramMap.isEmpty()) {
+            paramMap.forEach(builder::addParameter);
+        }
+        if (headers != null && headers.length > 0) {
+            for (Header header : headers) {
+                builder.addHeader(header.getName(), header.getValue());
+            }
+        }
+        request.setOptions(builder);
+        return request;
+    }
 }
