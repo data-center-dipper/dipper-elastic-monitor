@@ -3,17 +3,23 @@ package com.dipper.monitor.service.elastic.client.impl;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.config.ElasticsearchBaseProxyConfig;
 import com.dipper.client.proxy.config.PluginConfig;
+import com.dipper.client.proxy.params.elasticsearch.Request;
+import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.config.plugins.PluginsClientLoader;
 import com.dipper.monitor.config.plugins.PluginsConfigUtils;
 import com.dipper.monitor.constants.PluginConstants;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.dipper.monitor.utils.plugins.PluginConfigUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +62,15 @@ public class ElasticClientServiceImpl implements ElasticClientService {
 
         ElasticClientProxyService elasticClientProxyService = PluginsClientLoader.loadComponentClient(pluginConfig, ElasticClientProxyService.class, elasticsearchBaseProxyConfig);
         return elasticClientProxyService;
+    }
+
+
+    public String executeGetApi(String api) throws IOException {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+        Response response = elasticClientProxyService.performRequest(new Request(RequestMethod.GET.name(), api));
+        String httpResult = EntityUtils.toString(response.getEntity(), "UTF-8");
+        return httpResult;
     }
 
 }

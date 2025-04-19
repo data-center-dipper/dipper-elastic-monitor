@@ -66,8 +66,8 @@ public class OverviewController {
     @GetMapping("/clusterError")
     public JSONObject clusterError() {
         try {
-            overviewService.clusterError();
-            return ResultUtils.onSuccess();
+            String clusterError = overviewService.clusterError();
+            return ResultUtils.onSuccess(clusterError);
         } catch (IllegalArgumentException e) {
             log.error("异常", e);
             return ResultUtils.onFail(e.getMessage());

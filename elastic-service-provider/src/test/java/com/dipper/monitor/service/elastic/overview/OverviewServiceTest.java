@@ -39,4 +39,9 @@ public class OverviewServiceTest extends BaseMonitorTest {
     public void getClusterStatus() {
         ClusterStatusView clusterStatus = overviewService.getClusterStatus();
     }
+
+    @Test
+    public void clusterError() {
+         overviewService.clusterError();
+    }
 }

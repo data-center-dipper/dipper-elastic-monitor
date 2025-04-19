@@ -30,4 +30,11 @@ public class ElasticBeanUtils {
         ElasticClientProxyService elasticClientProxyService = elasticClientService.getInstance(currentCluster);
         return elasticClientProxyService;
     }
+
+    public static ElasticClientService getElasticClentService(CurrentClusterEntity currentCluster) {
+        if(elasticClientService == null){
+            elasticClientService = SpringUtil.getBean(ElasticClientService.class);
+        }
+        return elasticClientService;
+    }
 }

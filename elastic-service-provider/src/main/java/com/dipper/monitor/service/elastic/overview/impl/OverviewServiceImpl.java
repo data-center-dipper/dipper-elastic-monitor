@@ -45,9 +45,10 @@ public class OverviewServiceImpl implements OverviewService {
      * 获取集群信息是否异常
      */
     @Override
-    public void clusterError() {
+    public String clusterError() {
         ClusterErrorService clusterErrorService = new ClusterErrorService();
-        clusterErrorService.getClusterError();
+        String clusterError = clusterErrorService.getClusterError();
+        return clusterError;
     }
 
 

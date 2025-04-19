@@ -15,5 +15,5 @@ public interface OverviewService {
     /**
      * 获取集群是否存在异常
      */
-    void clusterError();
+    String clusterError();
 }
