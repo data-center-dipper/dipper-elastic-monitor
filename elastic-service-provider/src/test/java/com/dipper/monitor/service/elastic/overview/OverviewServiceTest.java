@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.elastic.overview;
 
 import com.dipper.monitor.BaseMonitorTest;
+import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class OverviewServiceTest extends BaseMonitorTest {
 
     @Test
     public void clusterError() {
-         overviewService.clusterError();
+        PageReq pageReq = new PageReq();
+        pageReq.setPageNum(1);
+        pageReq.setPageSize(10);
+         overviewService.getLifeCycleError(pageReq);
     }
 }

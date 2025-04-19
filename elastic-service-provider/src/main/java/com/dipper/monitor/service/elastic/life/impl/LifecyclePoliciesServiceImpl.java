@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.life.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -11,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -22,19 +21,31 @@ public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
     @Autowired
     private ElasticClientService elasticClientService;
 
-    public Map<String, Object> getLifeCycleList() {
+    public List<JSONObject> getLifeCycleList() {
         try {
             // 创建请求并设置空请求体
-            String ilmExplainResult = elasticClientService.executeGetApi("/_ilm/explain?pretty");
+            String ilmExplainResult = elasticClientService.executeGetApi("/*/_ilm/explain?pretty");
             log.info("索引生命周期管理状态：{}", ilmExplainResult);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> explainMap = objectMapper.readValue(ilmExplainResult, Map.class);
-
-            return explainMap;
+           List<JSONObject> result = new ArrayList<>();
+            JSONObject jsonObject = JSONObject.parseObject(ilmExplainResult);
+            JSONObject indices = jsonObject.getJSONObject("indices");
+            for (String index : indices.keySet()) {
+                JSONObject indexInfo = indices.getJSONObject(index);
+                String step = indexInfo.getString("c");
+                Boolean managed = indexInfo.getBoolean("managed");
+              if ("false".equals(managed)) {
+                    continue;
+                   }
+               if (!"ERROR".equalsIgnoreCase(step)) {
+                   continue;
+                }
+                result.add(indexInfo);
+            }
+            return result;
         } catch (Exception e) {
             log.error("检查ILM问题时发生错误", e);
         }
-        return Collections.emptyMap();
+        return Collections.emptyList();
     }
 }

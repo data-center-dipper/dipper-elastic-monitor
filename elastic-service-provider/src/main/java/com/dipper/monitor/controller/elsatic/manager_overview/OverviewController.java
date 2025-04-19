@@ -2,6 +2,7 @@ package com.dipper.monitor.controller.elsatic.manager_overview;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
+import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
 import com.dipper.monitor.service.elastic.overview.OverviewService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -13,6 +14,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 集群预览控制器类
@@ -52,10 +56,10 @@ public class OverviewController {
     }
 
     /**
-     * 获取集群异常信息
+     * 获取集群生命周期异常列表
      */
-    @Operation(summary = "获取集群异常信息",
-            description = "获取集群异常信息",
+    @Operation(summary = "获取集群生命周期异常列表",
+            description = "获取集群生命周期异常列表",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successful operation",
@@ -63,10 +67,10 @@ public class OverviewController {
                                     schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping("/clusterError")
-    public JSONObject clusterError() {
+    @PostMapping("/getLifeCycleError")
+    public JSONObject getLifeCycleError(PageReq pageReq) {
         try {
-            String clusterError = overviewService.clusterError();
+            List<JSONObject>  clusterError = overviewService.getLifeCycleError(pageReq);
             return ResultUtils.onSuccess(clusterError);
         } catch (IllegalArgumentException e) {
             log.error("异常", e);

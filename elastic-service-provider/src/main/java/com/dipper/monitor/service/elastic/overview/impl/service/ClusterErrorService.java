@@ -38,8 +38,8 @@ public class ClusterErrorService {
 
     private Integer getLifeError() {
         try {
-            Map<String, Object> lifeCycleList = lifecyclePoliciesService.getLifeCycleList();
-            return lifeCycleList.size();
+//            Map<String, Object> lifeCycleList = lifecyclePoliciesService.getLifeCycleList();
+//            return lifeCycleList.size();
         } catch (Exception e) {
             log.error("检查ILM问题时发生错误", e);
         }
