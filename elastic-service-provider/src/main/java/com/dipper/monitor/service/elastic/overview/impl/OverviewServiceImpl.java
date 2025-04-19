@@ -95,9 +95,8 @@ public class OverviewServiceImpl implements OverviewService {
 
     @Override
     public String repairLifeCycleError() throws IOException {
-        ResultWithLogs<String> lifeCycleList = lifecyclePoliciesService.repairLifeCycleError();
-        List<String> logs = lifeCycleList.getLogs();
-        return  StringUtils.join(logs, "\n");
+        String lifeCycleList = lifecyclePoliciesService.repairLifeCycleError();
+        return  lifeCycleList;
     }
 
 }

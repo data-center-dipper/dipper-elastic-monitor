@@ -29,11 +29,11 @@ public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
 
     @Autowired
     private ElasticClientService elasticClientService;
-    @Autowired
-    @Lazy
-    private RepairLifeCycleErrorService repairLifeCycleErrorService;
+//    @Autowired
+//    @Lazy
+//    private RepairLifeCycleErrorService repairLifeCycleErrorService;
 
-    @CollectLogs // 自定义注解，用于标记需要收集日志的方法
+//    @CollectLogs // 自定义注解，用于标记需要收集日志的方法
     public List<JSONObject> getLifeCycleList() {
         try {
             // 创建请求并设置空请求体
@@ -63,9 +63,10 @@ public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
     }
 
     @Override
-    public ResultWithLogs<String> repairLifeCycleError() throws IOException {
-        boolean cglibProxy = AopUtils.isCglibProxy(repairLifeCycleErrorService);
-        log.info("cglibProxy:{}",cglibProxy);
+    public String repairLifeCycleError() throws IOException {
+//        boolean cglibProxy = AopUtils.isCglibProxy(repairLifeCycleErrorService);
+//        log.info("cglibProxy:{}",cglibProxy);
+        RepairLifeCycleErrorService repairLifeCycleErrorService = new RepairLifeCycleErrorService();
         return repairLifeCycleErrorService.repairLifeCycleError();
     }
 

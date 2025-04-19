@@ -12,13 +12,13 @@
         </encoder>
     </appender>
 
-    <appender name="IN_MEMORY" class="com.dipper.monitor.config.log.method.InMemoryAppender">
-        <!-- 这里可以添加过滤器或其他配置 -->
-    </appender>
+<!--    <appender name="IN_MEMORY" class="com.dipper.monitor.config.log.method.InMemoryAppender">-->
+<!--        &lt;!&ndash; 这里可以添加过滤器或其他配置 &ndash;&gt;-->
+<!--    </appender>-->
 
-    <logger name="com.dipper.monitor" level="INFO" additivity="false">
-        <appender-ref ref="IN_MEMORY"/>
-    </logger>
+<!--    <logger name="com.dipper.monitor" level="INFO" additivity="false">-->
+<!--        <appender-ref ref="IN_MEMORY"/>-->
+<!--    </logger>-->
 
     <!-- 滚动文件输出 -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

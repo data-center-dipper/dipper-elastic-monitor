@@ -20,7 +20,7 @@ public interface LifecyclePoliciesService {
      * 生命周期异常 修复
      * @return
      */
-    ResultWithLogs<String> repairLifeCycleError() throws IOException;
+    String repairLifeCycleError() throws IOException;
 
     /**
      * 开启生命周期
