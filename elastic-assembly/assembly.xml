@@ -1,0 +1,102 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/2.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/2.2.0
+                              https://maven.apache.org/xsd/assembly-2.2.0.xsd">
+    <id>${project.version}</id>
+    <formats>
+        <format>tgz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <!-- 统一文件集合 -->
+    <fileSets>
+        <!-- sbin目录 -->
+        <fileSet>
+            <directory>${project.basedir}/bin</directory>
+            <outputDirectory>${assembly.name}/bin</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
+        </fileSet>
+
+        <!-- doc文档 -->
+        <fileSet>
+            <directory>${project.parent.basedir}/doc</directory>
+            <outputDirectory>${assembly.name}/doc</outputDirectory>
+            <includes>
+                <include>*</include>
+                <include>*/*</include>
+                <include>*/*/*</include>
+                <include>*/*/*/*</include>
+            </includes>
+        </fileSet>
+
+        <!-- 版本文件 -->
+        <fileSet>
+            <directory>${project.basedir}/version</directory>
+            <outputDirectory>${assembly.name}/</outputDirectory>
+            <includes>
+                <include>version.txt</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.parent.basedir}/monitor-service-provider/src/main/resources/</directory>
+            <outputDirectory>${assembly.name}/conf</outputDirectory>
+            <includes>
+                <include>*</include>
+                <include>*/*</include>
+                <include>*/*/*</include>
+                <include>*/*/*/*</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.parent.basedir}/monitor-service-provider/src/main/resources/</directory>
+            <outputDirectory>${assembly.name}/conf</outputDirectory>
+            <includes>
+                <include>logback.xml</include>
+            </includes>
+        </fileSet>
+
+        <!-- 主程序JAR -->
+        <fileSet>
+            <directory>${project.parent.basedir}/monitor-service-provider/target</directory>
+            <outputDirectory>${assembly.name}/jars</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+            <!-- 排除lib目录避免重复 -->
+            <excludes>
+                <exclude>**/lib/*.jar</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.parent.basedir}/monitor-common/target/lib</directory>
+            <outputDirectory>${assembly.name}/jars</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+
+        <!-- 第三方依赖（从target/lib收集） -->
+        <fileSet>
+            <directory>${project.parent.basedir}/monitor-service-provider/target/lib</directory>
+            <outputDirectory>${assembly.name}/jars</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.parent.basedir}/plugins</directory>
+            <outputDirectory>${assembly.name}/plugins</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
+        </fileSet>
+
+
+    </fileSets>
+
+</assembly>

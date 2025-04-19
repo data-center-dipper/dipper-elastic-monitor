@@ -1,0 +1,5 @@
+org.springframework.boot.SpringApplicationRunListener=\
+com.dipper.monitor.config.listeners.StartSpringApplicationRunListeners
+
+org.springframework.context.ApplicationContextInitializer=\
+com.dipper.monitor.config.listeners.StartApplicationContextInitializer

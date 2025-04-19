@@ -22,3 +22,10 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+/elastic-service-provider/target/
+/elastic-service-api/target/
+/elastic-deploy/target/
+/elastic-common/target/
+/elastic-assembly/target/
+/.idea/
+/elastic-service-provider/LOG_PATH_IS_UNDEFINED/

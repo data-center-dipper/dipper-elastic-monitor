@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.BrokerStoreMapper">
+    <!-- 批量插入 -->
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_broker_store (
+        cluster_code, broker_host, host_ip, host_port,jmx_port,
+        store_path, status, last_check_time,network_rate
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.clusterCode}, #{item.brokerHost}, #{item.hostIp}, #{item.hostPort},#{item.jmxPort},
+            #{item.storePath}, #{item.status}, #{item.lastCheckTime},#{item.networkRate})
+        </foreach>
+    </insert>
+
+    <!-- 根据集群编码删除 -->
+    <delete id="deleteByClusterCode">
+        DELETE FROM t_broker_store
+        WHERE cluster_code = #{clusterCode}
+    </delete>
+
+    <!-- 查询集群存储信息 -->
+    <select id="selectByClusterCode" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_broker_store
+        WHERE cluster_code = #{clusterCode}
+    </select>
+
+    <!-- 选择性更新 -->
+    <update id="updateByPrimaryKeySelective">
+        UPDATE t_broker_store
+        <set>
+            <if test="totalCapacity != null">total_capacity = #{totalCapacity},</if>
+            <if test="usedCapacity != null">used_capacity = #{usedCapacity},</if>
+            <if test="usageRate != null">usage_rate = #{usageRate},</if>
+            <if test="status != null">status = #{status},</if>
+            last_check_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="listByPage" parameterType="map" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_broker_store
+        WHERE cluster_code = #{clusterCode}
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="totalNodes" resultType="int">
+        SELECT COUNT(1)
+        FROM t_broker_store
+        WHERE cluster_code = #{clusterCode}
+    </select>
+
+    <select id="getBrokerByNodeName"  resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_broker_store
+        WHERE cluster_code = #{clusterCode}
+        AND broker_host = #{brokerName}
+    </select>
+
+    <select id="getBrokerByNodeAndPort"  resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_broker_store
+        WHERE cluster_code = #{clusterCode}
+        AND broker_host = #{hostName}
+        AND host_port = #{port}
+    </select>
+
+    <update id="updateBroker">
+        UPDATE t_broker_store
+        <set>
+            <if test="clusterCode != null">cluster_code = #{clusterCode},</if>
+            <if test="brokerHost != null">broker_host = #{brokerHost},</if>
+            <if test="hostIp != null">host_ip = #{hostIp},</if>
+            <if test="hostPort != null">host_port = #{hostPort},</if>
+            <if test="jmxPort != null">jmx_port = #{jmxPort},</if>
+            <if test="storePath != null">store_path = #{storePath},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="lastCheckTime != null">last_check_time = #{lastCheckTime},</if>
+            <if test="networkRate != null">network_rate = #{networkRate},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

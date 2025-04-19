@@ -1,0 +1,1 @@
+java -Xms512m -Xmx512m  -jar ./spring-blog-provider-1.0-SNAPSHOT.jar com.neo.BlogApplication --spring.config.location=D:\soft\config\application.properties
