@@ -30,5 +30,16 @@ public interface OverviewService {
      */
     List<JSONObject> getShardError(PageReq pageReq) throws IOException;
 
+    /**
+     * 修复生命周期错误
+     * @return
+     * @throws IOException
+     */
     String repairLifeCycleError() throws IOException;
+
+    /**
+     * 修复分片错误
+     * @return
+     */
+    String repairShardError() throws Exception;
 }

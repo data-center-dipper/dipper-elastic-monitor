@@ -21,20 +21,14 @@ import java.util.List;
 @Slf4j
 public class RepairLifeCycleErrorService {
 
-    @Autowired
     private LifecyclePoliciesService lifecyclePoliciesService;
-    @Autowired
-    private ShardService shardService;
-    @Autowired
     private ElasticClientService elasticClientService;
-    @Autowired
     private ElasticAliansService elasticAliansService;
 
     private StringBuilder builder = new StringBuilder(3000);
 
     public RepairLifeCycleErrorService(){
         lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
-        shardService = SpringUtil.getBean(ShardService.class);
         elasticClientService = SpringUtil.getBean(ElasticClientService.class);
         elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
     }

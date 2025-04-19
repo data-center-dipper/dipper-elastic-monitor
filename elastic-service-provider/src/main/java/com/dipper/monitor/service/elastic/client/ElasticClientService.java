@@ -24,4 +24,6 @@ public interface ElasticClientService {
 
 
      public String executePostApi(String api, HttpEntity entity) throws IOException;
+
+     String executePutApi(String api, HttpEntity nStringEntity);
 }

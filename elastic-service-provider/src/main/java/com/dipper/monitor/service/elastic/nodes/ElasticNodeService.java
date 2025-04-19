@@ -2,6 +2,8 @@ package com.dipper.monitor.service.elastic.nodes;
 
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
+import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
+import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -10,7 +12,6 @@ import java.util.List;
 public interface ElasticNodeService {
     /**
      * 刷新节点存储信息
-     * @param currentCluster
      */
     public void refreshNodes();
 
@@ -34,4 +35,10 @@ public interface ElasticNodeService {
     void updateNode(NodeUpdateReq nodeUpdateReq);
 
     LineChartDataResponse getLineChartData(NodeCharReq nodeCharReq);
+
+    Integer getClusterNodesCount() throws IOException;
+
+    List<EsNodeInfo> getEsNodes()  throws IOException ;
+
+    EsNodeFailed getEsNodeFailed() throws IOException;
 }

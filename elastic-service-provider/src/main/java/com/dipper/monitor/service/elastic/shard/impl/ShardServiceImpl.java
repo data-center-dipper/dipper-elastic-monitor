@@ -6,6 +6,7 @@ import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.shard.ShardService;
+import com.dipper.monitor.service.elastic.shard.impl.service.RepairShardErrorHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.EntityUtils;
@@ -42,5 +43,12 @@ public class ShardServiceImpl implements ShardService {
         }
         log.info("分片错误：\n{}", shardError.size());
         return shardError;
+    }
+
+    @Override
+    public String repairShardError() throws Exception {
+        RepairShardErrorHandler repairShardErrorHandler = new RepairShardErrorHandler();
+        String s = repairShardErrorHandler.repairShardError();
+        return s;
     }
 }

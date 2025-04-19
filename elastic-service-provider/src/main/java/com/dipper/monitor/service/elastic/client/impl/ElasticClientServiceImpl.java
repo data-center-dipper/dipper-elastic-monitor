@@ -107,6 +107,26 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         return responseData;
     }
 
+    @Override
+    public String executePutApi(String api, HttpEntity entity) {
+        try {
+            CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+            ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+            Response response;
+            if (entity != null) {
+                response = elasticClientProxyService.performRequest(buildRequest(RequestMethod.PUT.name(),
+                        api, Collections.emptyMap(), entity, this.commonHeaders));
+            } else {
+                response = elasticClientProxyService.performRequest(new Request(RequestMethod.PUT.name(), api));
+            }
+            String responseData = EntityUtils.toString(response.getEntity());
+            return responseData;
+        } catch (Exception e) {
+            log.error("执行异常",  e );
+            return e.getMessage();
+        }
+    }
+
     private Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
                                  HttpEntity entity, Header... headers) {
         Request request = new Request(method, endPoint);

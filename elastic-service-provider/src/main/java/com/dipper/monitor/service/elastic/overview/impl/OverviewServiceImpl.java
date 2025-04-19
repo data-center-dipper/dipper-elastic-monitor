@@ -99,4 +99,10 @@ public class OverviewServiceImpl implements OverviewService {
         return  lifeCycleList;
     }
 
+    @Override
+    public String repairShardError() throws Exception {
+        String lifeCycleList = shardService.repairShardError();
+        return  lifeCycleList;
+    }
+
 }

@@ -1,6 +1,10 @@
 package com.dipper.monitor.service.elastic.nodes.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.common.lib.utils.TelnetUtils;
 import com.dipper.monitor.beans.SpringUtil;
@@ -8,8 +12,10 @@ import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.JvmInfo;
+import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
@@ -74,7 +80,8 @@ public class ElasticNodeServiceImpl implements ElasticNodeService {
         }
     }
 
-    private List<EsNodeInfo> getEsNodes() throws IOException {
+    @Override
+    public List<EsNodeInfo> getEsNodes() throws IOException {
         ElasticClusterManagerService managerService = SpringUtil.getBean(ElasticClusterManagerService.class);
         CurrentClusterEntity currentCluster = managerService.getCurrentCluster();
 
@@ -83,6 +90,21 @@ public class ElasticNodeServiceImpl implements ElasticNodeService {
         NodeInfoService nodeInfoService = new NodeInfoService(clientProxyService);
         List<EsNodeInfo> esNodes = nodeInfoService.getEsNodes();
         return esNodes;
+    }
+
+    @Override
+    public EsNodeFailed getEsNodeFailed() throws IOException {
+        String nodeState = elasticClientService.executeGetApi(ElasticRestApi.NODES_LIST.getApiPath());
+        JSONObject nodeStateJson = JSON.parseObject(nodeState);
+        Integer nodesTotal = (Integer) JSONPath.eval(nodeStateJson, "$._nodes.total");
+        Integer nodesSuccessful = (Integer)JSONPath.eval(nodeStateJson, "$._nodes.successful");
+        Integer nodesFailed = (Integer)JSONPath.eval(nodeStateJson, "$._nodes.failed");
+
+        EsNodeFailed esNodeFailed = new EsNodeFailed();
+        esNodeFailed.setNodesTotal(nodesTotal);
+        esNodeFailed.setNodesSuccessful(nodesSuccessful);
+        esNodeFailed.setNodesFailed(nodesFailed);
+        return esNodeFailed;
     }
 
     @Override
@@ -187,6 +209,12 @@ public class ElasticNodeServiceImpl implements ElasticNodeService {
         return null;
     }
 
+    @Override
+    public Integer getClusterNodesCount() throws IOException {
+        String result = elasticClientService.executeGetApi(ElasticRestApi.NODES_SIMPLE_LIST.getApiPath());
+        JSONArray array = JSONArray.parseArray(result);
+        return Integer.valueOf(array.size());
+    }
 
 
 }

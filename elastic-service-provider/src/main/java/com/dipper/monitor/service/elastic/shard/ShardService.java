@@ -12,4 +12,10 @@ public interface ShardService {
      * @throws IOException
      */
     List<JSONObject> getShardError() throws IOException;
+
+    /**
+     * 修复分片异常
+     * @return
+     */
+    String repairShardError() throws Exception;
 }

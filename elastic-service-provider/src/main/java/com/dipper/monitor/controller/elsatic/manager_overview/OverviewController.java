@@ -135,6 +135,31 @@ public class OverviewController {
         }
     }
 
+    /**
+     * shard异常修复
+     */
+    @Operation(summary = "shard异常修复",
+            description = "shard异常修复",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/repairShardError")
+    public JSONObject repairShardError() {
+        try {
+            String  clusterError = overviewService.repairShardError();
+            return ResultUtils.onSuccess(clusterError);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("异常", e);
+            return ResultUtils.onFail("操作异常");
+        }
+    }
 
 
 
