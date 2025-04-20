@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.FieldMapper">
+
+    <!-- 插入字段记录 -->
+    <insert id="insertField" parameterType="com.dipper.monitor.entity.elastic.dic.Field">
+        INSERT INTO t_field (dic_id, zh_name, en_name, field_type, es_mapping_type)
+        VALUES (#{dicId}, #{zhName}, #{enName}, #{fieldType}, #{esMappingType})
+    </insert>
+
+    <!-- 更新字段记录 -->
+    <update id="updateField" parameterType="com.dipper.monitor.entity.elastic.dic.Field">
+        UPDATE t_field
+        SET dic_id = #{dicId},
+        zh_name = #{zhName},
+        en_name = #{enName},
+        field_type = #{fieldType},
+        es_mapping_type = #{esMappingType}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除字段记录通过ID -->
+    <delete id="deleteFieldById" parameterType="int">
+        DELETE FROM t_field WHERE id = #{id}
+    </delete>
+
+    <!-- 获取字段记录通过ID -->
+    <select id="getFieldById" resultType="com.dipper.monitor.entity.elastic.dic.Field" parameterType="int">
+        SELECT id, dic_id AS dicId, zh_name AS zhName, en_name AS enName, field_type AS fieldType, es_mapping_type AS esMappingType
+        FROM t_field
+        WHERE id = #{id}
+    </select>
+
+    <!-- 获取指定字典ID的所有字段记录 -->
+    <select id="getFieldsByDicId" resultType="com.dipper.monitor.entity.elastic.dic.Field" parameterType="int">
+        SELECT id, dic_id AS dicId, zh_name AS zhName, en_name AS enName, field_type AS fieldType, es_mapping_type AS esMappingType
+        FROM t_field
+        WHERE dic_id = #{dicId}
+    </select>
+
+    <!-- 删除指定字典ID的所有字段记录 -->
+    <delete id="deleteWordsByDicId" parameterType="int">
+        DELETE FROM t_field
+        WHERE dic_id = #{dicId}
+    </delete>
+</mapper>

@@ -85,7 +85,7 @@ public class ElasticNodeController {
      * @param nodeId 节点 ID
      * @return 节点详情响应数据
      */
-    @GetMapping("/getOneNodeView")
+    @GetMapping("/getOneNodeOriginal")
     public Map<String, Object> getOneNodeOriginal(@RequestParam Integer nodeId) {
         try {
             JSONObject nodeStatus = elasticRealNodeService.getOneNodeOriginal(nodeId);

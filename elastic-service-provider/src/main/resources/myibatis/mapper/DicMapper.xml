@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.DicMapper">
+
+    <!-- 插入字典记录 -->
+    <insert id="insertDic" parameterType="com.dipper.monitor.entity.elastic.dic.Dic">
+        INSERT INTO t_dic (zh_name, en_name, business_attribute)
+        VALUES (#{zhName}, #{enName}, #{businessAttribute})
+    </insert>
+
+    <!-- 更新字典记录 -->
+    <update id="updateDic" parameterType="com.dipper.monitor.entity.elastic.dic.Dic">
+        UPDATE t_dic
+        SET zh_name = #{zhName},
+        en_name = #{enName},
+        business_attribute = #{businessAttribute}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除字典记录通过ID -->
+    <delete id="deleteDicById" parameterType="int">
+        DELETE FROM t_dic WHERE id = #{id}
+    </delete>
+
+    <!-- 获取字典记录通过ID -->
+    <select id="getDicById" resultType="com.dipper.monitor.entity.elastic.dic.Dic" parameterType="int">
+        SELECT id, zh_name AS zhName, en_name AS enName, business_attribute AS businessAttribute
+        FROM t_dic
+        WHERE id = #{id}
+    </select>
+
+    <!-- 获取所有字典记录 -->
+    <select id="getAllDics" resultType="com.dipper.monitor.entity.elastic.dic.Dic">
+        SELECT id, zh_name AS zhName, en_name AS enName, business_attribute AS businessAttribute
+        FROM t_dic
+    </select>
+</mapper>

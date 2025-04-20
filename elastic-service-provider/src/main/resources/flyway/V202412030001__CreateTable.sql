@@ -23,6 +23,21 @@ CREATE TABLE t_elastic_node_store (
     UNIQUE KEY unique_host (host_name, host_ip, host_port)
 );
 
+CREATE TABLE t_dic (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    zh_name VARCHAR(255) NOT NULL COMMENT '字典中文名称',
+    en_name VARCHAR(255) NOT NULL COMMENT '字典英文名称',
+    business_attribute TEXT COMMENT '业务属性'
+) COMMENT='字典表';
+
+CREATE TABLE t_field (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    field_type VARCHAR(255) NOT NULL COMMENT '字段类型',
+    zh_name VARCHAR(255) NOT NULL COMMENT '字段中文名称',
+    en_name VARCHAR(255) NOT NULL COMMENT '字段英文名称',
+    es_mapping_type VARCHAR(255) NOT NULL COMMENT '映射到ES字典的类型',
+    dic_id INT
+) COMMENT='字段表';
 
 CREATE TABLE t_module_task_map (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
