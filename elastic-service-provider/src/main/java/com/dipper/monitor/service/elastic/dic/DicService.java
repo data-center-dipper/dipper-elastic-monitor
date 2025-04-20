@@ -10,4 +10,8 @@ public interface DicService {
     void deleteDic(Integer id);
     Dic getDic(Integer id);
     List<Dic> getAllDics();
+
+    boolean existDic(Integer dicId);
+
+    public boolean existDicByName(String dicName);
 }

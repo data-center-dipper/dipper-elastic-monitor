@@ -10,4 +10,6 @@ public interface DicMapper {
     int deleteDicById(Integer id);
     Dic getDicById(Integer id);
     List<Dic> getAllDics();
+
+    Dic getDicByName(String enName);
 }
