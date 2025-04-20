@@ -39,6 +39,17 @@ CREATE TABLE t_field (
     dic_id INT
 ) COMMENT='字段表';
 
+CREATE TABLE t_es_template (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键ID
+    cluster_code VARCHAR(255) NOT NULL, -- 集群代码
+    zh_name VARCHAR(255) NOT NULL, -- 中文名称
+    en_name VARCHAR(255) NOT NULL, -- 英文名称
+    template_content TEXT NOT NULL, -- 模板内容(JSON)
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 更新时间，默认当前时间，并随更新自动更改
+    UNIQUE KEY unique_cluster_code_en_name (cluster_code, en_name) -- 唯一性约束，确保组合(cluster_code, zh_name, en_name)唯一
+);
+
 CREATE TABLE t_module_task_map (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     `cluster_code` varchar(191) COLLATE utf8mb4_bin NOT NULL,

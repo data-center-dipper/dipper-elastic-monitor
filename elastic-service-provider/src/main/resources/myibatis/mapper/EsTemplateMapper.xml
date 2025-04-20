@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.EsTemplateMapper">
+    <insert id="insertTemplate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_es_template(cluster_code, zh_name, en_name, template_content, create_time, update_time)
+        VALUES(#{clusterCode}, #{zhName}, #{enName}, #{templateContent}, NOW(), NOW())
+    </insert>
+
+    <select id="getTemplateById" resultType="com.dipper.monitor.entity.elastic.EsTemplate">
+        SELECT * FROM t_es_template WHERE id = #{id}
+    </select>
+
+    <update id="updateTemplate">
+        UPDATE t_es_template SET cluster_code=#{clusterCode}, zh_name=#{zhName}, en_name=#{enName},
+        template_content=#{templateContent}, update_time=NOW() WHERE id=#{id}
+    </update>
+
+    <delete id="deleteTemplateById">
+        DELETE FROM t_es_template WHERE id = #{id}
+    </delete>
+
+    <select id="getAllTemplates" resultType="com.dipper.monitor.entity.elastic.EsTemplate">
+        SELECT * FROM t_es_template
+    </select>
+</mapper>
