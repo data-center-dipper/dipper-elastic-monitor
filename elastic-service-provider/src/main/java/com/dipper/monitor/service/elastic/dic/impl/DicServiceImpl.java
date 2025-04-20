@@ -5,6 +5,7 @@ import com.dipper.monitor.mapper.DicMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class DicServiceImpl implements DicService {
     @Autowired
     private DicMapper dicMapper;
     @Autowired
+    @Lazy
     private WordService wordService;
 
     @Override
@@ -68,6 +70,15 @@ public class DicServiceImpl implements DicService {
         }
         Dic dicByName = dicMapper.getDicByName(dicName);
         return dicByName != null;
+    }
+
+    @Override
+    public Dic getDicByName(String dicName) {
+        if (dicName == null || dicName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Dictionary name cannot be null or empty.");
+        }
+        Dic dicByName = dicMapper.getDicByName(dicName);
+        return dicByName;
     }
 
     private void check(Dic dic) {

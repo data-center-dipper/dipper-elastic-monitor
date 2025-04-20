@@ -34,7 +34,7 @@ public class DicController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PostMapping
+    @PostMapping("/addDic")
     public JSONObject addDic(@RequestBody Dic dic) {
         try {
             Dic addedDic = dicService.addDic(dic);
@@ -123,7 +123,7 @@ public class DicController {
                                     schema = @Schema(implementation = Dic.class, type = "array"))),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping
+    @GetMapping("/getAllDics")
     public JSONObject getAllDics() {
         try {
             List<Dic> dics = dicService.getAllDics();

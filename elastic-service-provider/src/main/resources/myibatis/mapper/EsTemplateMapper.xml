@@ -8,7 +8,7 @@
         VALUES(#{clusterCode}, #{zhName}, #{enName}, #{templateContent}, NOW(), NOW())
     </insert>
 
-    <select id="getTemplateById" resultType="com.dipper.monitor.entity.elastic.EsTemplate">
+    <select id="getTemplateById" resultType="com.dipper.monitor.entity.elastic.template.EsTemplate">
         SELECT * FROM t_es_template WHERE id = #{id}
     </select>
 
@@ -21,7 +21,7 @@
         DELETE FROM t_es_template WHERE id = #{id}
     </delete>
 
-    <select id="getAllTemplates" resultType="com.dipper.monitor.entity.elastic.EsTemplate">
+    <select id="getAllTemplates" resultType="com.dipper.monitor.entity.elastic.template.EsTemplate">
         SELECT * FROM t_es_template
     </select>
 </mapper>

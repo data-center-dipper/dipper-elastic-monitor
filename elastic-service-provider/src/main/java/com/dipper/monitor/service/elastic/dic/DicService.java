@@ -14,4 +14,6 @@ public interface DicService {
     boolean existDic(Integer dicId);
 
     public boolean existDicByName(String dicName);
+
+    Dic getDicByName(String dicName);
 }

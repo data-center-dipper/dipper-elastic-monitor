@@ -1,8 +1,14 @@
 package com.dipper.monitor.service.elastic.template.impl;
 
+import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.template.EsTemplate;
+import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
+import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.template.EsTemplateService;
+import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +22,10 @@ public class EsTemplateServiceImpl implements EsTemplateService {
 
     @Override
     public EsTemplate addTemplate(EsTemplate esTemplate) {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        esTemplate.setClusterCode(clusterCode);
+
         validate(esTemplate);
         esTemplateMapper.insertTemplate(esTemplate);
         return esTemplate;
@@ -28,6 +38,10 @@ public class EsTemplateServiceImpl implements EsTemplateService {
 
     @Override
     public EsTemplate updateTemplate(EsTemplate esTemplate) {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        esTemplate.setClusterCode(clusterCode);
+
         validate(esTemplate);
         esTemplateMapper.updateTemplate(esTemplate);
         return esTemplate;
@@ -41,6 +55,12 @@ public class EsTemplateServiceImpl implements EsTemplateService {
     @Override
     public List<EsTemplate> getAllTemplates() {
         return esTemplateMapper.getAllTemplates();
+    }
+
+    @Override
+    public JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
+        PreviewTemplateHandler  previewTemplateHandler = new PreviewTemplateHandler();
+        return previewTemplateHandler.previewTemplate(esUnconvertedTemplate);
     }
 
     /**

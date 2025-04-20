@@ -34,7 +34,7 @@ public class WordController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PostMapping
+    @PostMapping("/addField")
     public JSONObject addField(@RequestBody Field field) {
         try {
             Field addedField = wordService.addField(field);
@@ -58,7 +58,7 @@ public class WordController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PostMapping
+    @PostMapping("/addFields")
     public JSONObject addFields(@RequestBody List<Field> fields) {
         try {
             wordService.addFields(fields);

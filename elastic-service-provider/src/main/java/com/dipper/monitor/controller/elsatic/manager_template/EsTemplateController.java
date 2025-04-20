@@ -3,6 +3,7 @@ package com.dipper.monitor.controller.elsatic.manager_template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.EsTemplate;
+import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.template.EsTemplateService;
 import com.dipper.monitor.utils.ResultUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +27,27 @@ public class EsTemplateController {
     @Autowired
     private EsTemplateService esTemplateService;
 
+    @Operation(summary = "预览ES模板",
+            description = "Add a new Elasticsearch template.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Template added successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplate.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/previewTemplate")
+    public JSONObject previewTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
+        try {
+            JSONObject jsonObject = esTemplateService.previewTemplate(esUnconvertedTemplate);
+            return ResultUtils.onSuccess(jsonObject);
+        } catch (Exception e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
     @Operation(summary = "添加ES模板",
             description = "Add a new Elasticsearch template.",
             security = @SecurityRequirement(name = "bearerAuth"),
@@ -36,7 +58,7 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PostMapping
+    @PostMapping("/addTemplate")
     public JSONObject addTemplate(@RequestBody EsTemplate esTemplate) {
         try {
             EsTemplate addedTemplate = esTemplateService.addTemplate(esTemplate);
@@ -85,7 +107,7 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PutMapping
+    @PutMapping("/updateTemplate")
     public JSONObject updateTemplate(@RequestBody EsTemplate esTemplate) {
         try {
             EsTemplate updatedTemplate = esTemplateService.updateTemplate(esTemplate);
@@ -127,7 +149,7 @@ public class EsTemplateController {
                                     schema = @Schema(implementation = EsTemplate.class))),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping
+    @GetMapping("/getAllTemplates")
     public JSONObject getAllTemplates() {
         try {
             List<EsTemplate> templates = esTemplateService.getAllTemplates();
