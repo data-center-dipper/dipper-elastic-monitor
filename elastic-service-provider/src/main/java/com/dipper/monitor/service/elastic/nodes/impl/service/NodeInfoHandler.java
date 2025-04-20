@@ -16,13 +16,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class NodeInfoService {
+public class NodeInfoHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeInfoService.class);
+    private static final Logger logger = LoggerFactory.getLogger(NodeInfoHandler.class);
 
     private ElasticClientProxyService clientProxyService;
     
-    public NodeInfoService(ElasticClientProxyService clientProxyService) {
+    public NodeInfoHandler(ElasticClientProxyService clientProxyService) {
         this.clientProxyService = clientProxyService;
     }
 

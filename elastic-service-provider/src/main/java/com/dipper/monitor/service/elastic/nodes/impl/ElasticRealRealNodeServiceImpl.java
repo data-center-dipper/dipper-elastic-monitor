@@ -20,7 +20,8 @@ import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
-import com.dipper.monitor.service.elastic.nodes.impl.service.NodeInfoService;
+import com.dipper.monitor.service.elastic.nodes.impl.service.NodeInfoHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.service.NodeListHandler;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -87,8 +88,8 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
         log.info("准备刷新节点数据");
         ElasticClientProxyService clientProxyService = elasticClientService.getInstance(currentCluster);
-        NodeInfoService nodeInfoService = new NodeInfoService(clientProxyService);
-        List<EsNodeInfo> esNodes = nodeInfoService.getEsNodes();
+        NodeInfoHandler nodeInfoHandler = new NodeInfoHandler(clientProxyService);
+        List<EsNodeInfo> esNodes = nodeInfoHandler.getEsNodes();
         return esNodes;
     }
 
@@ -109,73 +110,9 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
     @Override
     public Tuple2<List<OneNodeTabView>, Integer> nodePageList(NodeInfoReq nodeInfoReq) throws IOException {
-        ElasticClusterManagerService managerService = SpringUtil.getBean(ElasticClusterManagerService.class);
-        CurrentClusterEntity currentCluster = managerService.getCurrentCluster();
-        String clusterCode = currentCluster.getClusterCode();
-
-        Integer pageNum = nodeInfoReq.getPageNum();
-        Integer pageSize = nodeInfoReq.getPageSize();
-
-        Integer count = elasticNodeStoreService.totalNodes(clusterCode);
-        List<NodeStoreEntity> nodeStoreEntities = elasticNodeStoreService.listByPage(clusterCode, pageNum, pageSize);
-        if(nodeStoreEntities == null || nodeStoreEntities.isEmpty()){
-            return Tuple2.of(new ArrayList<>(),count);
-        }
-
-        // 获取在线的节点
-        ElasticClientProxyService clientProxyService = elasticClientService.getInstance(currentCluster);
-        List<EsNodeInfo> esNodes = getEsNodes();
-        if(esNodes == null || esNodes.isEmpty()){
-            List<OneNodeTabView> oneNodeTabViews = new ArrayList<>();
-            // todo: 没有在线的节点，那么默认所有节点都是处于离线状态
-            for (NodeStoreEntity item:nodeStoreEntities) {
-                OneNodeTabView oneNodeTabView = new OneNodeTabView();
-                oneNodeTabView.setAddress(item.getAddress());
-                oneNodeTabView.setHostName(item.getHostName());
-                oneNodeTabView.setHostPort(item.getHostPort());
-                oneNodeTabView.setStatus("red");
-                oneNodeTabView.setTelnet("red");
-                oneNodeTabViews.add(oneNodeTabView);
-            }
-            return Tuple2.of(oneNodeTabViews,count);
-        }
-
-        Map<String, EsNodeInfo> nodeMap = esNodes.stream().collect(Collectors.toMap(x -> x.getHost(), x -> x));
-
-        List<OneNodeTabView> oneNodeTabViews = new ArrayList<>();
-        for (NodeStoreEntity item:nodeStoreEntities){
-            String address = item.getAddress();
-            EsNodeInfo esNodeInfo = nodeMap.get(address);
-
-            OneNodeTabView oneNodeTabView = new OneNodeTabView();
-            oneNodeTabView.setAddress(item.getAddress());
-            oneNodeTabView.setHostName(item.getHostName());
-            oneNodeTabView.setHostPort(item.getHostPort());
-
-            boolean telnet = TelnetUtils.telnet(item.getHostName(), item.getHostPort(), 3000);
-
-            if(esNodeInfo == null){
-                oneNodeTabView.setStatus("red");
-            }else {
-                BeanUtils.copyProperties(item, oneNodeTabView);
-                oneNodeTabView.setStatus("green");
-
-                JvmInfo jvmInfo = esNodeInfo.getJvmInfo();
-                JvmInfoView jvmInfoView = new JvmInfoView();
-                jvmInfoView.transToView(jvmInfo);
-                oneNodeTabView.setJvmInfoView(jvmInfoView);
-            }
-            //如果telnet为false，则设置状态为yellow
-            if (telnet) {
-                oneNodeTabView.setTelnet("green");
-            } else {
-                oneNodeTabView.setTelnet("red");
-            }
-
-            oneNodeTabViews.add(oneNodeTabView);
-        }
-
-        return Tuple2.of(new ArrayList<>(),count);
+        NodeListHandler nodeInfoHandler = new NodeListHandler(nodeInfoReq,elasticNodeStoreService,this);
+        Tuple2<List<OneNodeTabView>, Integer> listIntegerTuple2 = nodeInfoHandler.nodePageList();
+        return listIntegerTuple2;
     }
 
 
