@@ -100,6 +100,12 @@ public class OverviewServiceImpl implements OverviewService {
     }
 
     @Override
+    public String checkShardError() throws Exception {
+        String lifeCycleList = shardService.checkShardError();
+        return  lifeCycleList;
+    }
+
+    @Override
     public String repairShardError() throws Exception {
         String lifeCycleList = shardService.repairShardError();
         return  lifeCycleList;

@@ -37,9 +37,18 @@ public interface OverviewService {
      */
     String repairLifeCycleError() throws IOException;
 
+
+    /**
+     * 检查分片错误
+     * @return
+     */
+    String checkShardError() throws Exception;
+
     /**
      * 修复分片错误
      * @return
      */
     String repairShardError() throws Exception;
+
+
 }

@@ -14,8 +14,16 @@ public interface ShardService {
     List<JSONObject> getShardError() throws IOException;
 
     /**
+     * 分片异常检测
+     * @return
+     */
+    String checkShardError() throws Exception;
+
+    /**
      * 修复分片异常
      * @return
      */
     String repairShardError() throws Exception;
+
+
 }
