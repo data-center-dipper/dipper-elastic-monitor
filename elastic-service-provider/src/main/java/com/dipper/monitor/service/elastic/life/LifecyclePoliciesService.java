@@ -17,6 +17,11 @@ public interface LifecyclePoliciesService {
     List<JSONObject> getLifeCycleList();
 
     /**
+     * 检测生命周期异常
+     * @return
+     */
+    String checkLifeCycleError() throws IOException;
+    /**
      * 生命周期异常 修复
      * @return
      */
@@ -26,4 +31,5 @@ public interface LifecyclePoliciesService {
      * 开启生命周期
      */
     String openLifeCycle();
+
 }

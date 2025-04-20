@@ -82,6 +82,34 @@ public class OverviewController {
     }
 
     /**
+     * 生命周期异常检测
+     */
+    @Operation(summary = "生命周期异常修复",
+            description = "生命周期异常修复",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/checkLifeCycleError")
+    public JSONObject checkLifeCycleError() {
+        try {
+            String  clusterError = overviewService.checkLifeCycleError();
+            return ResultUtils.onSuccess(clusterError);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("异常", e);
+            return ResultUtils.onFail("操作异常");
+        }
+    }
+
+
+
+    /**
      * 生命周期异常修复
      */
     @Operation(summary = "生命周期异常修复",

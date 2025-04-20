@@ -1,38 +1,23 @@
-package com.dipper.monitor.service.elastic.shard.impl.service.repair;
+package com.dipper.monitor.service.elastic.shard.impl.service.check;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.disk.DiskAllocationInfo;
 import com.dipper.monitor.entity.elastic.disk.DiskWatermarkInfo;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
-import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.disk.ElasticDiskService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
-import com.dipper.monitor.service.elastic.shard.ShardService;
-import com.dipper.monitor.utils.ResultUtils;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.dipper.monitor.service.elastic.shard.impl.service.AbstractShardErrorHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.nio.entity.NStringEntity;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CheckShardErrorHandler extends AbstractShardErrorHandler {
-   
-
 
     public String checkShardError() throws Exception {
         String result;
@@ -44,7 +29,6 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
         if (StringUtils.isBlank(result)) {
             return "未发现未分配的";
         }
-
         String clusterHealth = elasticClientService.executeGetApi(ElasticRestApi.CLUSTER_HEALTH.getApiPath());
         JSONArray clusterHealthArray = JSON.parseArray(clusterHealth);
         JSONObject healthObj = (JSONObject)clusterHealthArray.get(0);
@@ -67,8 +51,6 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
             reason = reason.toUpperCase();
         }
         checkDiskMessage();
-
-
         String indexSettings = elasticClientService.executeGetApi(index + "/_settings");
         JSONObject indexSettingsJson = JSON.parseObject(indexSettings);
         JSONArray numberOfreplicas = (JSONArray)JSONPath.eval(indexSettingsJson, "$..settings.index.number_of_replicas");
@@ -90,16 +72,13 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
                 .append("shard数:\t").append(numberOfshards).append("\r\n")
                 .append("副本数:\t").append(numberOfreplicas).append("\r\n")
                 .append("\r\n");
-
         if (nodesSuccessful.intValue() < numberOfreplicasInt + 1) {
             builder.append("分片数目过多，而节点数不足:\r\n").append("建议的解决方案:").append("\r\n")
                     .append("PUT　/aaa-test/_settings\n{\n  \"number_of_replicas\":1\n}\n");
             builder.append("\r\n").append("这里的分片数，只能是小于").append(nodesSuccessful)
                     .append("个数，可根据实际情况进行修改，1-3个之间比较好");
         }
-
         processIndex(reason,indexSettingsJson,index,result);
-
         return builder.toString();
         }
 
@@ -165,14 +144,12 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
         }
         builder.append("其他原因，暂未分析\r\n");
     }
-
     private void checkDiskMessage() throws IOException {
         DiskWatermarkInfo diskWatermark = elasticDiskService.getDiskWatermark();
 
         String enable = diskWatermark.getRoutingAllocationEnable();
         String diskThreshouldEnabled = diskWatermark.getDiskThreshouldEnabled();
         String updateInterval = diskWatermark.getUpdateInterval();
-
         builder.append("集群信息:").append("\r\n")
                 .append("transient.cluster.routing.allocation.enable:").append(enable).append("\r\n")
                 .append("transient.cluster.info.update.interval:").append(updateInterval).append("\r\n")
@@ -184,12 +161,10 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
 
         int highDiskNumber = diskWatermark.getHighDiskNumber();
         String lowDisk = diskWatermark.getLowDisk();
-
         builder.append("磁盘信息:").append("\r\n")
                 .append("transient.cluster.routing.allocation.disk.watermark.high:").append(highDiskNumber).append("%")
                 .append("\r\n").append("transient.cluster.routing.allocation.disk.watermark.low:")
                 .append(lowDisk);
-
         List<DiskAllocationInfo> diskAllocations = elasticDiskService.getDiskAllocation();
         builder.append("\r\n").append("磁盘分配信息:\r\n");
         StringBuilder nodeDisOverflow = new StringBuilder();
@@ -224,31 +199,9 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
     }
 
 
-    public JSONObject setRoutingAllocation(String value) throws Exception {
-        JSONObject response;
-        String body = "{\n  \"transient\": {\n    \"cluster.routing.allocation.enable\":\"" + value + "\"\n  }\n}";
-
-        NStringEntity nStringEntity = new NStringEntity(body);
-        String result = elasticClientService.executePutApi(ElasticRestApi.CLUSTER_SETTING.getApiPath(),
-                nStringEntity);
-        JSONObject json1 = JSON.parseObject(result);
-
-        if (json1.containsKey("acknowledged") && json1.getBooleanValue("acknowledged")) {
-            log.info("操作成功");
-            response = ResultUtils.onSuccessWithComment("操作成功");
-        } else {
-            log.info("操作成失败:{}", result);
-            response = ResultUtils.onSuccessWithComment("操作成失败");
-        }
-
-        return response;
-    }
-
-// 方法`analyseIndexCreate`实现
+        // 方法`analyseIndexCreate`实现
         private void analyseIndexCreate(StringBuilder builder, String index) {
             builder.append("出现这个原因多半是因为索引创建的有问题，比如副本数过多，适当的降低副本数,修改副本数的命令如下:\r\n");
             builder.append("PUT　/" + index + "/_settings\n{\n  \"number_of_replicas\":1\n}\n");
         }
-
-
 }

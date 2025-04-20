@@ -8,6 +8,7 @@ import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.impl.service.CheckLifeCycleErrorService;
 import com.dipper.monitor.service.elastic.life.impl.service.RepairLifeCycleErrorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +61,12 @@ public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
             log.error("检查ILM问题时发生错误", e);
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public String checkLifeCycleError() throws IOException {
+        CheckLifeCycleErrorService checkLifeCycleErrorService = new CheckLifeCycleErrorService();
+        return checkLifeCycleErrorService.checkLifeCycleError();
     }
 
     @Override

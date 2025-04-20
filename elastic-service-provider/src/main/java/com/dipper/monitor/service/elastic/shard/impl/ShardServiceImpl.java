@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.shard.ShardService;
-import com.dipper.monitor.service.elastic.shard.impl.service.repair.CheckShardErrorHandler;
+import com.dipper.monitor.service.elastic.shard.impl.service.check.CheckShardErrorHandler;
 import com.dipper.monitor.service.elastic.shard.impl.service.repair.RepairShardErrorHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

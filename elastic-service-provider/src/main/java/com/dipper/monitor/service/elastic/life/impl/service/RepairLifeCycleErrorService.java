@@ -19,18 +19,12 @@ import java.io.IOException;
 import java.util.List;
 
 @Slf4j
-public class RepairLifeCycleErrorService {
-
-    private LifecyclePoliciesService lifecyclePoliciesService;
-    private ElasticClientService elasticClientService;
-    private ElasticAliansService elasticAliansService;
+public class RepairLifeCycleErrorService  extends AbstractLifeCycleError {
 
     private StringBuilder builder = new StringBuilder(3000);
 
     public RepairLifeCycleErrorService(){
-        lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
-        elasticClientService = SpringUtil.getBean(ElasticClientService.class);
-        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
+        super();
     }
 
     public String repairLifeCycleError() throws IOException {
