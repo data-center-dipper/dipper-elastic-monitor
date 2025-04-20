@@ -1,5 +1,7 @@
 package com.dipper.monitor.service.elastic.nodes;
 
+import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
@@ -28,7 +30,14 @@ public interface ElasticRealNodeService {
      * @param nodeId 节点 ID
      * @return 节点详情响应实体
      */
-    NodeDetailView getNodeDetail(Integer nodeId);
+    NodeDetailView getOneNodeView(Integer nodeId) throws IOException;
+
+    JSONObject getOneNodeOriginal(Integer nodeId)  throws IOException;
+
+    /**
+     * 真正去获取节点详情
+     */
+    EsNodeInfo getOneNodePackaging(Integer nodeId) throws IOException;
 
     String deleteNode(Integer nodeId);
 
@@ -41,4 +50,6 @@ public interface ElasticRealNodeService {
     List<EsNodeInfo> getEsNodes()  throws IOException ;
 
     EsNodeFailed getEsNodeFailed() throws IOException;
+
+
 }

@@ -52,7 +52,7 @@
     </select>
 
     <!-- 根据节点名称获取 -->
-    <select id="getBrokerByNodeName" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+    <select id="getNodeByNodeName" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
         SELECT * FROM t_elastic_node_store
         WHERE cluster_code = #{clusterCode}
         AND host_name = #{brokerName}
@@ -66,8 +66,24 @@
         AND host_port = #{port}
     </select>
 
-    <!-- 更新操作统一使用updateByPrimaryKeySelective -->
-    <!-- 注释掉原来的updateBroker，因为它指向了错误的表 -->
-    <!-- <update id="updateBroker">...</update> -->
+    <!-- 根据节点名称和端口获取 -->
+    <select id="getByNodeId" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+        AND id = #{nodeId}
+    </select>
+
+
+    <update id="updateBroker">
+        UPDATE t_elastic_node_store
+        <set>
+            <if test="clusterCode != null">cluster_code = #{clusterCode},</if>
+            <if test="hostName != null">host_name = #{hostName},</if>
+            <if test="hostIp != null">host_ip = #{hostIp},</if>
+            <if test="hostPort != null">host_port = #{hostPort},</if>
+            <if test="address != null">address = #{address},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
 
 </mapper>

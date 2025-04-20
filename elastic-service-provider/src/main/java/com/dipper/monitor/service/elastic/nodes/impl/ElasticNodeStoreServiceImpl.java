@@ -66,8 +66,8 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
     }
 
     @Override
-    public NodeStoreEntity getBrokerByNodeName(String clusterCode, String brokerName) {
-        return elasticNodeStoreMapper.getBrokerByNodeName(clusterCode, brokerName);
+    public NodeStoreEntity getByNodeName(String clusterCode, String brokerName) {
+        return elasticNodeStoreMapper.getNodeByNodeName(clusterCode, brokerName);
     }
 
     @Override
@@ -78,6 +78,12 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
     @Override
     public boolean deleteNode(Integer nodeId) {
         return false;
+    }
+
+    @Override
+    public NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId) {
+        String clusterCode = currentCluster.getClusterCode();
+        return elasticNodeStoreMapper.getByNodeId(clusterCode,nodeId);
     }
 
     private CurrentClusterEntity getCurrentCluster() {

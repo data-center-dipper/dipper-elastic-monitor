@@ -23,11 +23,18 @@ public interface ElasticNodeStoreMapper {
 
     Integer totalNodes(@Param("clusterCode") String clusterCode);
 
-    NodeStoreEntity getBrokerByNodeName(@Param("clusterCode") String clusterCode, @Param("brokerName")  String brokerName);
+    NodeStoreEntity getNodeByNodeName(@Param("clusterCode") String clusterCode, @Param("brokerName")  String brokerName);
 
     NodeStoreEntity getBrokerByNodeAndPort(@Param("clusterCode") String clusterCode,
                                            @Param("hostName")  String hostName,
                                            @Param("port")   Integer port);
 
-    void updateBroker(NodeStoreEntity brokerByNodeAndPort);
+    /**
+     * 根据给定的NodeStoreEntity对象更新t_elastic_node_store表中的记录。
+     * @param nodeStoreEntity 包含要更新的信息的实体对象。
+     * @return 更新影响的行数。
+     */
+    int updateBroker(NodeStoreEntity nodeStoreEntity);
+
+    NodeStoreEntity getByNodeId(@Param("clusterCode") String clusterCode,@Param("nodeId")  Integer nodeId);
 }

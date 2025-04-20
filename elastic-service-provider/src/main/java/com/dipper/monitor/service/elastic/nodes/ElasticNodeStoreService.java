@@ -2,7 +2,7 @@ package com.dipper.monitor.service.elastic.nodes;
 
 
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
-import com.dipper.monitor.entity.elastic.cluster.NodeEntity;
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 
 import java.util.List;
 
@@ -22,11 +22,13 @@ public interface ElasticNodeStoreService {
     /**
      * 获取指定节点的信息
      */
-    NodeStoreEntity getBrokerByNodeName(String clusterCode, String brokerName);
+    NodeStoreEntity getByNodeName(String clusterCode, String brokerName);
 
 
 
     NodeStoreEntity getBrokerByNodeAndPort(String clusterCode, String hostName, Integer port);
 
     boolean deleteNode(Integer nodeId);
+
+    NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId);
 }

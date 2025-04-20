@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
-import com.dipper.common.lib.utils.TelnetUtils;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
@@ -14,25 +13,24 @@ import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.JvmInfo;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
-import com.dipper.monitor.service.elastic.nodes.impl.service.NodeInfoHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.service.NodeDescHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.service.NodesInfoHandler;
 import com.dipper.monitor.service.elastic.nodes.impl.service.NodeListHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.service.OneNodeInfoHandler;
 import com.dipper.monitor.utils.Tuple2;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -83,13 +81,9 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
     @Override
     public List<EsNodeInfo> getEsNodes() throws IOException {
-        ElasticClusterManagerService managerService = SpringUtil.getBean(ElasticClusterManagerService.class);
-        CurrentClusterEntity currentCluster = managerService.getCurrentCluster();
-
         log.info("准备刷新节点数据");
-        ElasticClientProxyService clientProxyService = elasticClientService.getInstance(currentCluster);
-        NodeInfoHandler nodeInfoHandler = new NodeInfoHandler(clientProxyService);
-        List<EsNodeInfo> esNodes = nodeInfoHandler.getEsNodes();
+        NodesInfoHandler nodesInfoHandler = new NodesInfoHandler(elasticClientService);
+        List<EsNodeInfo> esNodes = nodesInfoHandler.getEsNodes();
         return esNodes;
     }
 
@@ -110,23 +104,48 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
     @Override
     public Tuple2<List<OneNodeTabView>, Integer> nodePageList(NodeInfoReq nodeInfoReq) throws IOException {
-        NodeListHandler nodeInfoHandler = new NodeListHandler(nodeInfoReq,elasticNodeStoreService,this);
-        Tuple2<List<OneNodeTabView>, Integer> listIntegerTuple2 = nodeInfoHandler.nodePageList();
+        NodeListHandler nodeListHandler = new NodeListHandler(nodeInfoReq,elasticNodeStoreService,this);
+        Tuple2<List<OneNodeTabView>, Integer> listIntegerTuple2 = nodeListHandler.nodePageList();
         return listIntegerTuple2;
     }
 
 
     @Override
-    public NodeDetailView getNodeDetail(Integer nodeId) {
-        NodeDetailView response = new NodeDetailView();
-//        Map<String, Object> nodeDetail = getNodeDetail(nodeId);
-//        response.setBasicInfo((Map<String, Object>) nodeDetail.get("basicInfo"));
-//        response.setJvmInfo((String) nodeDetail.get("jvmInfo"));
-//        response.setDiskUsage((String) nodeDetail.get("diskUsage"));
-//        response.setBarrelEffect((String) nodeDetail.get("barrelEffect"));
-//        response.setThreadInfo((String) nodeDetail.get("threadInfo"));
-//        response.setRawInfo((String) nodeDetail.get("rawInfo"));
-        return response;
+    public NodeDetailView getOneNodeView(Integer nodeId) throws IOException {
+        NodeDescHandler nodeInfoHandler = new NodeDescHandler(nodeId,elasticNodeStoreService,this);
+        NodeDetailView detailView = nodeInfoHandler.getNodeDetail();
+        return detailView;
+    }
+
+    @Override
+    public JSONObject getOneNodeOriginal(Integer nodeId) throws IOException {
+        // 从服务获取节点存储实体
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(currentCluster, nodeId);
+        if (nodeStoreEntity == null) {
+            log.warn("未找到节点ID为 {} 的节点信息", nodeId);
+            return null;
+        }
+        // 获取节点详细信息
+        String hostName = nodeStoreEntity.getHostName();
+        String httpResult = elasticClientService.executeGetApi("/_nodes/"+hostName);
+        JSONObject jsonObject = JSONObject.parseObject(httpResult);
+        return jsonObject;
+    }
+
+    @Override
+    public EsNodeInfo getOneNodePackaging(Integer nodeId) throws IOException {
+        // 从服务获取节点存储实体
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(currentCluster, nodeId);
+        if (nodeStoreEntity == null) {
+            log.warn("未找到节点ID为 {} 的节点信息", nodeId);
+            return null;
+        }
+        // 获取节点详细信息
+        OneNodeInfoHandler oneNodeInfoHandler = new OneNodeInfoHandler(nodeStoreEntity,elasticClientService);
+        EsNodeInfo oneNodeDetail = oneNodeInfoHandler.getOneNodeDetail();
+        return oneNodeDetail;
     }
 
 
