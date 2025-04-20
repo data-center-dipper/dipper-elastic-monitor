@@ -24,7 +24,7 @@ public class RestoreIndexCreatedHandler extends AbstractShardErrorHandler {
 
         Integer nodeCount = Integer.valueOf(1);
         try {
-            nodeCount = elasticNodeService.getClusterNodesCount();
+            nodeCount = elasticRealNodeService.getClusterNodesCount();
         } catch (IOException e) {
             log.error("获取集群节点信息出错：{}", e.getMessage(), e);
             builder.append("获取集群节点信息出错：").append(e.getMessage()).append("\r\n");

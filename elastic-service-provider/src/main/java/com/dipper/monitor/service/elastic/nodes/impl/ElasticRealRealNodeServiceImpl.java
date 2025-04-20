@@ -18,7 +18,7 @@ import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.JvmInfo;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
 import com.dipper.monitor.service.elastic.nodes.impl.service.NodeInfoService;
 import com.dipper.monitor.utils.Tuple2;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ElasticNodeServiceImpl implements ElasticNodeService {
+public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
     @Autowired
     private ElasticClientService elasticClientService;

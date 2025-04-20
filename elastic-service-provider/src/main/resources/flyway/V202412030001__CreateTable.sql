@@ -13,6 +13,17 @@ CREATE TABLE `t_elastic_cluster` (
   UNIQUE KEY `cluster_code` (`cluster_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='elastic集群配置表';
 
+CREATE TABLE t_elastic_node_store (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cluster_code VARCHAR(255) NOT NULL,
+    host_name VARCHAR(255),
+    host_ip VARCHAR(255),
+    host_port INT,
+    address TEXT,
+    UNIQUE KEY unique_host (host_name, host_ip, host_port)
+);
+
+
 CREATE TABLE t_module_task_map (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     `cluster_code` varchar(191) COLLATE utf8mb4_bin NOT NULL,

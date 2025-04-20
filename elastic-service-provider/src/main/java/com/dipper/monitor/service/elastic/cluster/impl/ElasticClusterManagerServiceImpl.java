@@ -8,11 +8,10 @@ import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterReq;
 import com.dipper.monitor.entity.elastic.cluster.ElasticClusterRegisterReq;
 import com.dipper.monitor.entity.elastic.cluster.ElasticClusterView;
-import com.dipper.monitor.listeners.event.RefreshNodesEvent;
 import com.dipper.monitor.listeners.publish.RefreshNodesEventPublisher;
 import com.dipper.monitor.mapper.ElasticClusterManagerMapper;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -33,7 +31,7 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
     @Autowired
     private ElasticClusterManagerMapper elasticClusterManagerMapper;
     @Autowired
-    private ElasticNodeService elasticNodeService;
+    private ElasticRealNodeService elasticRealNodeService;
     @Autowired
     private RefreshNodesEventPublisher refreshNodesEventPublisher;
 

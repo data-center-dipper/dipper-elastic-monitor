@@ -9,7 +9,7 @@ import com.dipper.monitor.utils.Tuple2;
 import java.io.IOException;
 import java.util.List;
 
-public interface ElasticNodeService {
+public interface ElasticRealNodeService {
     /**
      * 刷新节点存储信息
      */

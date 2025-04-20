@@ -58,7 +58,7 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
         String numberOfreplicasString = numberOfreplicas.get(0).toString();
         int numberOfreplicasInt = Integer.parseInt(numberOfreplicasString);
 
-        EsNodeFailed esNodeFailed = elasticNodeService.getEsNodeFailed();
+        EsNodeFailed esNodeFailed = elasticRealNodeService.getEsNodeFailed();
         Integer nodesTotal = esNodeFailed.getNodesTotal();
         Integer nodesSuccessful = esNodeFailed.getNodesSuccessful();
         Integer nodesFailed = esNodeFailed.getNodesFailed();

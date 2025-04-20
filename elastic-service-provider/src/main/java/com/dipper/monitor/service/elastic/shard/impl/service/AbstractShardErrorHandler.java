@@ -5,7 +5,7 @@ import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.disk.ElasticDiskService;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.shard.ShardService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -21,7 +21,7 @@ public abstract class AbstractShardErrorHandler {
     protected ShardService shardService;
     protected ElasticClientService elasticClientService;
     protected ElasticAliansService elasticAliansService;
-    protected ElasticNodeService elasticNodeService;
+    protected ElasticRealNodeService elasticRealNodeService;
     protected ElasticDiskService elasticDiskService;
 
     protected static final String HENGXIAN = "\r\n---------------------------------------------------------\r\n";
@@ -33,7 +33,7 @@ public abstract class AbstractShardErrorHandler {
         shardService = SpringUtil.getBean(ShardService.class);
         elasticClientService = SpringUtil.getBean(ElasticClientService.class);
         elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
-        elasticNodeService = SpringUtil.getBean(ElasticNodeService.class);
+        elasticRealNodeService = SpringUtil.getBean(ElasticRealNodeService.class);
         elasticDiskService = SpringUtil.getBean(ElasticDiskService.class);
 
         init();

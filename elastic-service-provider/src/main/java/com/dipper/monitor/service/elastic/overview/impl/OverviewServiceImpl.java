@@ -1,23 +1,19 @@
 package com.dipper.monitor.service.elastic.overview.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.annotation.log.CollectLogs;
-import com.dipper.monitor.config.log.method.ResultWithLogs;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatsParse;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.overview.OverviewService;
-import com.dipper.monitor.service.elastic.overview.impl.service.ClusterErrorService;
 import com.dipper.monitor.service.elastic.overview.impl.service.ClusterStatusService;
 import com.dipper.monitor.service.elastic.shard.ShardService;
 import com.dipper.monitor.utils.ListUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 集群预览服务接口实现类
@@ -36,7 +31,7 @@ public class OverviewServiceImpl implements OverviewService {
     @Autowired
     private  ElasticClientService elasticClientService;
     @Autowired
-    private  ElasticNodeService elasticNodeService;
+    private ElasticRealNodeService elasticRealNodeService;
     @Autowired
     private  ElasticHealthService elasticHealthService;
     @Autowired

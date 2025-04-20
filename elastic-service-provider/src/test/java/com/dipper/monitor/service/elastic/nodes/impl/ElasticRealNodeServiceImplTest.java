@@ -1,20 +1,18 @@
 package com.dipper.monitor.service.elastic.nodes.impl;
 
 import com.dipper.monitor.BaseMonitorTest;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
-
-public class ElasticNodeServiceImplTest extends BaseMonitorTest {
+public class ElasticRealNodeServiceImplTest extends BaseMonitorTest {
 
     @Autowired
-    private ElasticNodeService elasticNodeService;
+    private ElasticRealNodeService elasticRealNodeService;
 
     @Test
     public void refreshNodes() {
-        elasticNodeService.refreshNodes();
+        elasticRealNodeService.refreshNodes();
     }
 
     @Test

@@ -3,7 +3,7 @@ package com.dipper.monitor.controller.elsatic.manager_nodes;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
-import com.dipper.monitor.service.elastic.nodes.ElasticNodeService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class ElasticNodeController {
 
     @Autowired
-    private ElasticNodeService elasticNodeService;
+    private ElasticRealNodeService elasticRealNodeService;
 
     /**
      * 获取节点的简要信息
@@ -45,7 +45,7 @@ public class ElasticNodeController {
     @PostMapping("/nodePageList")
     public JSONObject nodePageList(@RequestBody NodeInfoReq nodeInfoReq) {
         try {
-            Tuple2<List<OneNodeTabView>, Integer> nodeStatus = elasticNodeService.nodePageList(nodeInfoReq);
+            Tuple2<List<OneNodeTabView>, Integer> nodeStatus = elasticRealNodeService.nodePageList(nodeInfoReq);
             if(nodeStatus == null){
                 return ResultUtils.onSuccessWithPageTotal(0, Collections.emptyList());
             }
@@ -69,7 +69,7 @@ public class ElasticNodeController {
     @GetMapping("/nodesDetail")
     public Map<String, Object> getNodeDetail(@RequestParam Integer nodeId) {
         try {
-            NodeDetailView nodeStatus = elasticNodeService.getNodeDetail(nodeId);
+            NodeDetailView nodeStatus = elasticRealNodeService.getNodeDetail(nodeId);
             return ResultUtils.onSuccess(nodeStatus);
         } catch (IllegalArgumentException e) {
             log.error("异常", e);
@@ -88,7 +88,7 @@ public class ElasticNodeController {
     @PostMapping("/nodes/delete")
     public Map<String, Object> deleteNode(@RequestParam Integer nodeId) {
         try {
-             elasticNodeService.deleteNode(nodeId);
+             elasticRealNodeService.deleteNode(nodeId);
             return ResultUtils.onSuccess();
         } catch (IllegalArgumentException e) {
             log.error("异常", e);
@@ -107,7 +107,7 @@ public class ElasticNodeController {
     @PostMapping("/nodes/update")
     public Map<String, Object> updateNode(NodeUpdateReq nodeUpdateReq) {
         try {
-            elasticNodeService.updateNode(nodeUpdateReq);
+            elasticRealNodeService.updateNode(nodeUpdateReq);
             return ResultUtils.onSuccess();
         } catch (IllegalArgumentException e) {
             log.error("异常", e);
@@ -125,7 +125,7 @@ public class ElasticNodeController {
      */
     @GetMapping("/nodes/line-chart")
     public Map<String, Object> getLineChartData(NodeCharReq nodeCharReq) {
-        LineChartDataResponse response = elasticNodeService.getLineChartData(nodeCharReq);
+        LineChartDataResponse response = elasticRealNodeService.getLineChartData(nodeCharReq);
         Map<String, Object> result = new HashMap<>();
         result.put("code", 200);
         result.put("message", "success");

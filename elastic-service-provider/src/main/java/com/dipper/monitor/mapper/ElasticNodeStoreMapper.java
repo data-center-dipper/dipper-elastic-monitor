@@ -1,11 +1,10 @@
 package com.dipper.monitor.mapper;
 
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
-import com.dipper.monitor.entity.elastic.cluster.NodeEntity;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
-public interface BrokerStoreMapper {
+public interface ElasticNodeStoreMapper {
     // 批量插入
     int batchInsert(@Param("list") List<NodeStoreEntity> list);
 

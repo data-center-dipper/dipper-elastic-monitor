@@ -1,11 +1,9 @@
 package com.dipper.monitor.service.elastic.nodes.impl;
 
-import com.dipper.common.lib.utils.TelnetUtils;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
-import com.dipper.monitor.entity.elastic.cluster.NodeEntity;
-import com.dipper.monitor.mapper.BrokerStoreMapper;
+import com.dipper.monitor.mapper.ElasticNodeStoreMapper;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +19,7 @@ import java.util.*;
 public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
 
     @Autowired
-    private BrokerStoreMapper brokerStoreMapper;
+    private ElasticNodeStoreMapper elasticNodeStoreMapper;
 
 
     @Override
@@ -32,7 +30,7 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
         }
 
         // 从数据库中获取当前集群下的所有节点存储实体
-        List<NodeStoreEntity> nodeStoreEntitiesInDb = brokerStoreMapper.selectByClusterCode(clusterCode);
+        List<NodeStoreEntity> nodeStoreEntitiesInDb = elasticNodeStoreMapper.selectByClusterCode(clusterCode);
 
         // 存储需要新增的节点实体
         List<NodeStoreEntity> storeList = new ArrayList<>();
@@ -52,29 +50,29 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
 
         // 如果有新的节点需要插入，则进行批量插入
         if (!CollectionUtils.isEmpty(storeList)) {
-            brokerStoreMapper.batchInsert(storeList);
+            elasticNodeStoreMapper.batchInsert(storeList);
         }
     }
 
     @Override
     public List<NodeStoreEntity> listByPage(String clusterCode, Integer pageNum, Integer pageSize) {
         Integer offset = (pageNum - 1) * pageSize; // 计算offset
-        return brokerStoreMapper.listByPage(clusterCode, pageSize, offset);
+        return elasticNodeStoreMapper.listByPage(clusterCode, pageSize, offset);
     }
 
     @Override
     public Integer totalNodes(String clusterCode) {
-        return brokerStoreMapper.totalNodes(clusterCode);
+        return elasticNodeStoreMapper.totalNodes(clusterCode);
     }
 
     @Override
     public NodeStoreEntity getBrokerByNodeName(String clusterCode, String brokerName) {
-        return brokerStoreMapper.getBrokerByNodeName(clusterCode, brokerName);
+        return elasticNodeStoreMapper.getBrokerByNodeName(clusterCode, brokerName);
     }
 
     @Override
     public NodeStoreEntity getBrokerByNodeAndPort(String clusterCode, String hostName, Integer port) {
-        return brokerStoreMapper.getBrokerByNodeAndPort(clusterCode, hostName, port);
+        return elasticNodeStoreMapper.getBrokerByNodeAndPort(clusterCode, hostName, port);
     }
 
     @Override
