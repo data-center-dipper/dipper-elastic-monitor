@@ -13,4 +13,10 @@ public interface WordService {
     List<Field> getFieldsByDicId(Integer dicId);
 
     void deleteWordsByDicId(Integer dicId);
+
+    /**
+     * 批量添加字段的方法
+     * @param fields
+     */
+    void addFields(List<Field> fields);
 }

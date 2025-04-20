@@ -22,10 +22,7 @@ public class WordServiceImpl implements WordService {
     @Override
     public Field addField(Field field) {
         checkField(field);
-
-        if (!dicService.existDic(field.getDicId())) {
-            throw new RuntimeException("字典不存在");
-        }
+        validateDicId(field.getDicId());
 
         String fieldType = field.getFieldType();
         ElasticFieldMapUtils.checkFieldType(fieldType);
@@ -42,6 +39,65 @@ public class WordServiceImpl implements WordService {
 
         int result = fieldMapper.insertField(field);
         return result > 0 ? field : null;
+    }
+
+    @Override
+    public void addFields(List<Field> fields) {
+        if (fields == null || fields.isEmpty()) {
+            throw new IllegalArgumentException("Fields list cannot be null or empty.");
+        }
+
+        Integer commonDicId = null;
+        for (Field field : fields) {
+            checkField(field);
+            if (commonDicId == null) {
+                commonDicId = field.getDicId();
+            } else if (!commonDicId.equals(field.getDicId())) {
+                throw new IllegalArgumentException("All fields must belong to the same dictionary.");
+            }
+        }
+
+        validateDicId(commonDicId);
+
+        for (Field field : fields) {
+            String fieldType = field.getFieldType();
+            ElasticFieldMapUtils.checkFieldType(fieldType);
+
+            String esMappingType = field.getEsMappingType();
+            if (StringUtils.isBlank(esMappingType)) {
+                esMappingType = ElasticFieldMapUtils.autoEsTypeMap(fieldType);
+            } else {
+                ElasticFieldMapUtils.checkEsFiledType(esMappingType);
+            }
+            field.setEsMappingType(esMappingType);
+
+            existField(field.getEnName());
+            fieldMapper.insertField(field);
+        }
+    }
+
+    private void checkField(Field field) {
+        if (field == null) {
+            throw new IllegalArgumentException("Field object cannot be null.");
+        }
+        if (StringUtils.isBlank(field.getZhName())) {
+            throw new IllegalArgumentException("Chinese name cannot be null or empty.");
+        }
+        if (StringUtils.isBlank(field.getEnName())) {
+            throw new IllegalArgumentException("English name cannot be null or empty.");
+        }
+        if (StringUtils.isBlank(field.getFieldType())) {
+            throw new IllegalArgumentException("Field type cannot be null or empty.");
+        }
+        if (field.getDicId() == null || field.getDicId() <= 0) {
+            throw new IllegalArgumentException("Dictionary ID must be a positive integer.");
+        }
+    }
+
+    private void validateDicId(Integer dicId) {
+        if (dicId == null || dicId <= 0 || !dicService.existDic(dicId)) {
+            throw new RuntimeException("Invalid or non-existent dictionary ID: " + dicId);
+        }
     }
 
     /**
@@ -61,7 +117,6 @@ public class WordServiceImpl implements WordService {
     @Override
     public Field updateField(Field field) {
         checkField(field);
-
         int result = fieldMapper.updateField(field);
         return result > 0 ? field : null;
     }
@@ -96,23 +151,5 @@ public class WordServiceImpl implements WordService {
             throw new IllegalArgumentException("Invalid dictionary ID: " + dicId + ". Dictionary ID must be a positive integer.");
         }
         fieldMapper.deleteWordsByDicId(dicId);
-    }
-
-    private void checkField(Field field) {
-        if (field == null) {
-            throw new IllegalArgumentException("Field object cannot be null.");
-        }
-        if (StringUtils.isBlank(field.getZhName())) {
-            throw new IllegalArgumentException("Chinese name cannot be null or empty.");
-        }
-        if (StringUtils.isBlank(field.getEnName())) {
-            throw new IllegalArgumentException("English name cannot be null or empty.");
-        }
-        if (StringUtils.isBlank(field.getFieldType())) {
-            throw new IllegalArgumentException("Field type cannot be null or empty.");
-        }
-        if (field.getDicId() == null || field.getDicId() <= 0) {
-            throw new IllegalArgumentException("Dictionary ID must be a positive integer.");
-        }
     }
 }

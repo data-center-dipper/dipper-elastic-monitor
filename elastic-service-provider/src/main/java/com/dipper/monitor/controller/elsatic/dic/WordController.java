@@ -48,6 +48,27 @@ public class WordController {
         }
     }
 
+    @Operation(summary = "批量添加字段",
+            description = "Add a new field to the dictionary.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Field added successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Field.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping
+    public JSONObject addFields(@RequestBody List<Field> fields) {
+        try {
+            wordService.addFields(fields);
+            return ResultUtils.onSuccess();
+        } catch (Exception e) {
+            log.error("Error adding field", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
     @Operation(summary = "更新字段",
             description = "Update an existing field by ID.",
             security = @SecurityRequirement(name = "bearerAuth"),
