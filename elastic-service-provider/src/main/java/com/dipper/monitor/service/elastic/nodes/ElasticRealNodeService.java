@@ -39,7 +39,7 @@ public interface ElasticRealNodeService {
      */
     EsNodeInfo getOneNodePackaging(Integer nodeId) throws IOException;
 
-    String deleteNode(Integer nodeId);
+    void deleteNode(Integer nodeId);
 
     void updateNode(NodeUpdateReq nodeUpdateReq);
 

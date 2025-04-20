@@ -104,10 +104,10 @@ public class ElasticNodeController {
      * @param nodeId 节点 ID
      * @return 删除操作结果
      */
-    @PostMapping("/nodes/delete")
+    @PostMapping("/nodesDelete")
     public Map<String, Object> deleteNode(@RequestParam Integer nodeId) {
         try {
-             elasticRealNodeService.deleteNode(nodeId);
+            elasticRealNodeService.deleteNode(nodeId);
             return ResultUtils.onSuccess();
         } catch (IllegalArgumentException e) {
             log.error("异常", e);
@@ -123,7 +123,7 @@ public class ElasticNodeController {
      * 修改节点信息
      * @return 修改操作结果
      */
-    @PostMapping("/nodes/update")
+    @PostMapping("/nodesUpdate")
     public Map<String, Object> updateNode(NodeUpdateReq nodeUpdateReq) {
         try {
             elasticRealNodeService.updateNode(nodeUpdateReq);
@@ -142,14 +142,18 @@ public class ElasticNodeController {
      * 获取折线图数据
      * @return 折线图数据响应
      */
-    @GetMapping("/nodes/line-chart")
+    @GetMapping("/nodesLineChart")
     public Map<String, Object> getLineChartData(NodeCharReq nodeCharReq) {
-        LineChartDataResponse response = elasticRealNodeService.getLineChartData(nodeCharReq);
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 200);
-        result.put("message", "success");
-        result.put("data", response);
-        return result;
+        try {
+            LineChartDataResponse response = elasticRealNodeService.getLineChartData(nodeCharReq);
+            return ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error updating cluster", e);
+            return ResultUtils.onFail("操作异常" + e.getMessage());
+        }
     }
 
 }

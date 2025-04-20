@@ -3,12 +3,14 @@ package com.dipper.monitor.service.elastic.nodes.impl;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.entity.elastic.nodes.NodeUpdateReq;
 import com.dipper.monitor.mapper.ElasticNodeStoreMapper;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,14 +78,21 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
     }
 
     @Override
-    public boolean deleteNode(Integer nodeId) {
-        return false;
+    public void deleteNode(Integer nodeId) {
+         elasticNodeStoreMapper.deleteNode(nodeId);
     }
 
     @Override
     public NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId) {
         String clusterCode = currentCluster.getClusterCode();
         return elasticNodeStoreMapper.getByNodeId(clusterCode,nodeId);
+    }
+
+    @Override
+    public void updateNode(NodeUpdateReq nodeUpdateReq) {
+        NodeStoreEntity nodeStoreEntity = new NodeStoreEntity();
+        BeanUtils.copyProperties(nodeUpdateReq,nodeStoreEntity);
+        elasticNodeStoreMapper.updateBroker(nodeStoreEntity);
     }
 
     private CurrentClusterEntity getCurrentCluster() {

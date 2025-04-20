@@ -18,8 +18,8 @@ public class PluginUtils {
         String home = System.getProperty("user.dir");
         logger.info("当前目录:{}", home);
         if(ApplicationUtils.isWindows()){
-            if(home.endsWith("elastic-service-provider")){
-                home = home.substring(0, home.lastIndexOf("elastic-service-provider"));
+            if(home.endsWith("elastic-handlers-provider")){
+                home = home.substring(0, home.lastIndexOf("elastic-handlers-provider"));
             }
         }
 

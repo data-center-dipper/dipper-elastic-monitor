@@ -73,6 +73,10 @@
         AND id = #{nodeId}
     </select>
 
+    <select id="deleteNode" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        delete FROM t_elastic_node_store
+        AND id = #{nodeId}
+    </select>
 
     <update id="updateBroker">
         UPDATE t_elastic_node_store

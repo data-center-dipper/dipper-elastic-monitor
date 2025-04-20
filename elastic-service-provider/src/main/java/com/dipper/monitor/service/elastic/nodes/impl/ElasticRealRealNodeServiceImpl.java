@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
@@ -18,10 +17,11 @@ import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
-import com.dipper.monitor.service.elastic.nodes.impl.service.NodeDescHandler;
-import com.dipper.monitor.service.elastic.nodes.impl.service.NodesInfoHandler;
-import com.dipper.monitor.service.elastic.nodes.impl.service.NodeListHandler;
-import com.dipper.monitor.service.elastic.nodes.impl.service.OneNodeInfoHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.handlers.NodeDescHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.handlers.NodesInfoHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.handlers.NodeListHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.handlers.OneNodeInfoHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.handlers.charts.NodeCharsHandler;
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -150,19 +150,19 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
 
     @Override
-    public String deleteNode(Integer nodeId) {
-        boolean result = elasticNodeStoreService.deleteNode(nodeId);
-        return result ? "删除成功" : "删除失败";
+    public void deleteNode(Integer nodeId) {
+         elasticNodeStoreService.deleteNode(nodeId);
     }
 
     @Override
     public void updateNode(NodeUpdateReq nodeUpdateReq) {
-
+        elasticNodeStoreService.updateNode(nodeUpdateReq);
     }
 
     @Override
     public LineChartDataResponse getLineChartData(NodeCharReq nodeCharReq) {
-        return null;
+        NodeCharsHandler nodeCharsHandler= new NodeCharsHandler();
+        return nodeCharsHandler.getLineChartData(nodeCharReq);
     }
 
     @Override

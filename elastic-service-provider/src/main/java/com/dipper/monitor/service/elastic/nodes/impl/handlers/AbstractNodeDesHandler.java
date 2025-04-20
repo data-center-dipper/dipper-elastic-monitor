@@ -1,7 +1,5 @@
-package com.dipper.monitor.service.elastic.nodes.impl.service;
+package com.dipper.monitor.service.elastic.nodes.impl.handlers;
 
-import com.dipper.client.proxy.params.elasticsearch.Request;
-import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.*;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -9,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;

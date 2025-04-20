@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.nodes;
 
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.entity.elastic.nodes.NodeUpdateReq;
 
 import java.util.List;
 
@@ -28,7 +29,9 @@ public interface ElasticNodeStoreService {
 
     NodeStoreEntity getBrokerByNodeAndPort(String clusterCode, String hostName, Integer port);
 
-    boolean deleteNode(Integer nodeId);
+    void deleteNode(Integer nodeId);
 
     NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId);
+
+    void updateNode(NodeUpdateReq nodeUpdateReq);
 }

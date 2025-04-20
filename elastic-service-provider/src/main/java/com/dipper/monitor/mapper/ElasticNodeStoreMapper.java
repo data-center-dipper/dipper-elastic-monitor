@@ -37,4 +37,6 @@ public interface ElasticNodeStoreMapper {
     int updateBroker(NodeStoreEntity nodeStoreEntity);
 
     NodeStoreEntity getByNodeId(@Param("clusterCode") String clusterCode,@Param("nodeId")  Integer nodeId);
+
+    void deleteNode(Integer nodeId);
 }
