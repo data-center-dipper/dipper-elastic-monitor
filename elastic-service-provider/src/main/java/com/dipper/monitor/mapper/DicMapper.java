@@ -1,6 +1,7 @@
 package com.dipper.monitor.mapper;
 
 import com.dipper.monitor.entity.elastic.dic.Dic;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -11,5 +12,5 @@ public interface DicMapper {
     Dic getDicById(Integer id);
     List<Dic> getAllDics();
 
-    Dic getDicByName(String enName);
+    Dic getDicByName(@Param("enName") String enName);
 }

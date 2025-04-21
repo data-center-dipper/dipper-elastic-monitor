@@ -22,7 +22,7 @@ public class PreviewTemplateHandler {
     public PreviewTemplateHandler() {
         dicService = SpringUtil.getBean(DicService.class);
         wordService = SpringUtil.getBean(WordService.class);
-        wordService = SpringUtil.getBean(WordService.class);
+        elasticDicService = SpringUtil.getBean(ElasticDicService.class);
     }
 
     public JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {

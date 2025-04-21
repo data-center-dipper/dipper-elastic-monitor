@@ -38,7 +38,7 @@
     </select>
 
     <!-- 获取字典记录通过ID -->
-    <select id="getDicByName" resultType="com.dipper.monitor.entity.elastic.dic.Dic" parameterType="int">
+    <select id="getDicByName" resultType="com.dipper.monitor.entity.elastic.dic.Dic">
         SELECT id, zh_name AS zhName, en_name AS enName, business_attribute AS businessAttribute
         FROM t_dic
         WHERE en_name = #{enName}
