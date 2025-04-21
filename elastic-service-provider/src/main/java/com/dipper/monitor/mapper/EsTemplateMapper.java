@@ -1,7 +1,7 @@
 package com.dipper.monitor.mapper;
 
 
-import com.dipper.monitor.entity.elastic.template.EsTemplate;
+import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import org.apache.ibatis.annotations.*;
 
         import java.util.List;
@@ -10,15 +10,24 @@ import org.apache.ibatis.annotations.*;
 public interface EsTemplateMapper {
 
 
-    int insertTemplate(EsTemplate esTemplate);
+    int insertTemplate(EsTemplateEntity esTemplateEntity);
 
-    EsTemplate getTemplateById(@Param("id") Long id);
+    EsTemplateEntity getTemplateById(@Param("id") Long id);
 
 
-    int updateTemplate(EsTemplate esTemplate);
+    int updateTemplate(EsTemplateEntity esTemplateEntity);
 
 
     void deleteTemplateById(@Param("id") Long id);
 
-    List<EsTemplate> getAllTemplates();
+    List<EsTemplateEntity> getAllTemplates();
+
+    /**
+     * 根据英文名称查询模版
+     * @param clusterCode
+     * @param enName
+     * @return
+     */
+    EsTemplateEntity getTemplateByEnName(@Param("clusterCode") String clusterCode,
+                                         @Param("enName") String enName);
 }

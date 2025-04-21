@@ -1,20 +1,21 @@
-package com.dipper.monitor.entity.elastic.template.unconverted;
+package com.dipper.monitor.entity.db.elastic;
 
 import lombok.Data;
 
+import java.util.Date;
 import java.util.Map;
 
-/**
- * es未经转换的模版
- */
 @Data
-public class EsUnconvertedTemplate {
+public class EsTemplateEntity {
+    private Long id;
+    private String clusterCode;
+
     // 模版名称
     private String zhName;
     private String enName;
 
     // 设置信息
-    private Map<String,Object> settings;
+    private String settings;
     // 使用的字典名称 英文
     private String dicName;
     // 索引匹配模式
@@ -27,9 +28,9 @@ public class EsUnconvertedTemplate {
     private Integer numberOfReplicas;
     // 是否开启自动 shard 计算
     private Boolean enableAutoShards;
-    // 滚动周期 最小 天 30 60 90 180 365
-    private Integer rollingPeriod;
 
     private String templateContent; // JSON内容
 
+    private Date createTime;
+    private Date updateTime;
 }

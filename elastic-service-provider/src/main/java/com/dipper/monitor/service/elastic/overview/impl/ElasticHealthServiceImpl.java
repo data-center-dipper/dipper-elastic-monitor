@@ -5,6 +5,7 @@ import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
@@ -34,7 +35,7 @@ public class ElasticHealthServiceImpl implements ElasticHealthService {
     public ClusterHealth getHealthData() {
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         ElasticClientProxyService elasticClientProxyService = elasticClientService.getInstance(currentCluster);
-        String apiPath = "/_cat/health?format=json";
+        String apiPath = ElasticRestApi.CLUSTER_HEALTH.getApiPath();
         Request request = new Request("GET", apiPath);
 
         try {

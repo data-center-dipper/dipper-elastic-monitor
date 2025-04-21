@@ -2,17 +2,22 @@ package com.dipper.monitor.service.elastic.template;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.template.EsTemplate;
+import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 
 import java.util.List;
 
 public interface EsTemplateService {
-    EsTemplate addTemplate(EsTemplate esTemplate);
-    EsTemplate getTemplate(Long id);
-    EsTemplate updateTemplate(EsTemplate esTemplate);
+    /**
+     * 仅仅 添加模版信息
+     * @param esUnconvertedTemplate
+     * @return
+     */
+    EsTemplateEntity addOrUpdateTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
+    EsTemplateEntity getTemplate(Long id);
+    EsTemplateEntity updateTemplate(EsTemplateEntity esTemplateEntity);
     void deleteTemplate(Long id);
-    List<EsTemplate> getAllTemplates();
+    List<EsTemplateEntity> getAllTemplates();
 
     /**
      * 预览生成的模版
@@ -20,4 +25,12 @@ public interface EsTemplateService {
      * @return
      */
     JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
+
+    /**
+     * 添加模版信息，并实时生效,滚动索引
+     *
+     * @param esUnconvertedTemplate
+     * @return
+     */
+    void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
 }

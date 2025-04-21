@@ -39,11 +39,18 @@ CREATE TABLE t_field (
     dic_id INT
 ) COMMENT='字段表';
 
-CREATE TABLE t_es_template (
+CREATE TABLE t_elastic_template (
     id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键ID
     cluster_code VARCHAR(255) NOT NULL, -- 集群代码
     zh_name VARCHAR(255) NOT NULL, -- 中文名称
     en_name VARCHAR(255) NOT NULL, -- 英文名称
+    settings TEXT, -- 设置信息(JSON格式)
+    dic_name VARCHAR(255), -- 使用的字典名称（英文）
+    index_patterns  VARCHAR(500) , -- 索引匹配模式(JSON或逗号分隔字符串)
+    alians_patterns  VARCHAR(500), -- 别名匹配模式(JSON或逗号分隔字符串)
+    number_of_shards INT, -- 分片数
+    number_of_replicas INT, -- 副本数
+    enable_auto_shards BOOLEAN DEFAULT FALSE, -- 是否开启自动 shard 计算
     template_content TEXT NOT NULL, -- 模板内容(JSON)
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认当前时间
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 更新时间，默认当前时间，并随更新自动更改
