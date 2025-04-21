@@ -2,9 +2,9 @@ package com.dipper.monitor.service.elastic.template.impl.handlers;
 
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
+import com.dipper.monitor.enums.elastic.RollingIndexEnum;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
-import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.NotRollingIndexHandler;
-import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.OneDayRollingIndexHandler;
+import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -50,14 +50,50 @@ public class RollingIndexByTemplateHandler {
         if(rollingPeriod == null || indexPatterns == null){
             throw new RuntimeException("滚动周期和索引模板不能为空");
         }
-        if(rollingPeriod < 1 ){
-            NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate);
-            notRollingIndexHandler.handle();
-            return;
+        RollingIndexEnum rollingIndexEnum = RollingIndexEnum.fromDays(rollingPeriod);
+        switch (rollingIndexEnum) {
+            case NONE:
+                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate);
+                notRollingIndexHandler.handle();
+            case DAILY:
+                DailyRollingIndexHandler dailyRollingIndexHandler = new DailyRollingIndexHandler(esUnconvertedTemplate);
+                dailyRollingIndexHandler.handle();
+                break;
+            case EVERY_2_DAYS:
+                Every2DaysRollingIndexHandler every2DaysRollingIndexHandler = new Every2DaysRollingIndexHandler(esUnconvertedTemplate);
+                every2DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_5_DAYS:
+                Every5DaysRollingIndexHandler every5DaysRollingIndexHandler = new Every5DaysRollingIndexHandler(esUnconvertedTemplate);
+                every5DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_10_DAYS:
+                Every10DaysRollingIndexHandler every10DaysRollingIndexHandler = new Every10DaysRollingIndexHandler(esUnconvertedTemplate);
+                every10DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_15_DAYS:
+                Every15DaysRollingIndexHandler every15DaysRollingIndexHandler = new Every15DaysRollingIndexHandler(esUnconvertedTemplate);
+                every15DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_30_DAYS:
+                Every30DaysRollingIndexHandler every30DaysRollingIndexHandler = new Every30DaysRollingIndexHandler(esUnconvertedTemplate);
+                every30DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_60_DAYS:
+                Every60DaysRollingIndexHandler every60DaysRollingIndexHandler = new Every60DaysRollingIndexHandler(esUnconvertedTemplate);
+                every60DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_180_DAYS:
+                Every180DaysRollingIndexHandler every180DaysRollingIndexHandler = new Every180DaysRollingIndexHandler(esUnconvertedTemplate);
+                every180DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_365_DAYS:
+                Every360DaysRollingIndexHandler every360DaysRollingIndexHandler = new Every360DaysRollingIndexHandler(esUnconvertedTemplate);
+                every360DaysRollingIndexHandler.handle();
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的滚动索引类型");
         }
-        if (rollingPeriod == 1) {
-            OneDayRollingIndexHandler oneDayRollingIndexHandler = new OneDayRollingIndexHandler(esUnconvertedTemplate);
-            oneDayRollingIndexHandler.handle();
-        }
+
     }
 }

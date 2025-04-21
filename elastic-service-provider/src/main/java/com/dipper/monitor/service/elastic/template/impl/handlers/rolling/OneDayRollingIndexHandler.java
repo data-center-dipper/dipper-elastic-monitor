@@ -15,5 +15,6 @@ public class OneDayRollingIndexHandler  extends AbstractRollingIndexByTemplateHa
     }
 
     public void handle() {
+
     }
 }
