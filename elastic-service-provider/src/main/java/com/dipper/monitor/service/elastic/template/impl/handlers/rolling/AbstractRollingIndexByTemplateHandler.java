@@ -11,4 +11,8 @@ public class AbstractRollingIndexByTemplateHandler {
     public AbstractRollingIndexByTemplateHandler() {
         this.esTemplateService = SpringUtil.getBean(EsTemplateService.class);
     }
+
+    protected void getIndexTime(String indexPatterns) {
+
+    }
 }

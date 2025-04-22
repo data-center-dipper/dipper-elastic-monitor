@@ -94,6 +94,12 @@ public class EsTemplateServiceImpl implements EsTemplateService {
     @Override
     public void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
         addOrUpdateTemplate(esUnconvertedTemplate);
+        rollTemplate(esUnconvertedTemplate);
+
+    }
+
+    @Override
+    public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
         RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
     }

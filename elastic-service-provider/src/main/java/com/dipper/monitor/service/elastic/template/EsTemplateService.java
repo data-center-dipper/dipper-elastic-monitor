@@ -33,4 +33,10 @@ public interface EsTemplateService {
      * @return
      */
     void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
+
+    /**
+     * 滚动模版
+     * @param esUnconvertedTemplate
+     */
+    void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
 }

@@ -93,6 +93,13 @@ public class ElasticClientServiceImpl implements ElasticClientService {
 
     @Override
     public String executePostApi(String api, HttpEntity entity) throws IOException {
+        Response response = executePostApiReturnResponse(api, entity);
+        String responseData = EntityUtils.toString(response.getEntity());
+        return responseData;
+    }
+
+    @Override
+    public Response executePostApiReturnResponse(String api, HttpEntity entity) throws IOException {
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
         Response response = null;
@@ -103,12 +110,23 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         } else {
             response = elasticClientProxyService.performRequest(new Request(RequestMethod.POST.name(), api));
         }
-        String responseData = EntityUtils.toString(response.getEntity());
-        return responseData;
+        return response;
     }
 
     @Override
     public String executePutApi(String api, HttpEntity entity) {
+        try {
+            Response response = executePutApiReturnResponse(api, entity);
+            String responseData = EntityUtils.toString(response.getEntity());
+            return responseData;
+        } catch (Exception e) {
+            log.error("执行异常",  e );
+            return e.getMessage();
+        }
+    }
+
+    @Override
+    public Response executePutApiReturnResponse(String api, HttpEntity entity) {
         try {
             CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
             ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
@@ -119,15 +137,31 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             } else {
                 response = elasticClientProxyService.performRequest(new Request(RequestMethod.PUT.name(), api));
             }
-            String responseData = EntityUtils.toString(response.getEntity());
-            return responseData;
+            return response;
         } catch (Exception e) {
             log.error("执行异常",  e );
-            return e.getMessage();
+            return null;
         }
     }
 
-    private Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
+    @Override
+    public boolean executeHeadApi(String api) {
+        try {
+            Request request = buildRequest("HEAD", api,
+                    Collections.emptyMap(), null, new Header[0]);
+
+            CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+            ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+
+            Response response = elasticClientProxyService.performRequest(request);
+            return (response.getStatusLine().getStatusCode() == 200);
+        }catch (Exception e){
+            log.error("执行异常",  e );
+        }
+        return false;
+    }
+
+    public Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
                                  HttpEntity entity, Header... headers) {
         Request request = new Request(method, endPoint);
         request.setEntity(entity);

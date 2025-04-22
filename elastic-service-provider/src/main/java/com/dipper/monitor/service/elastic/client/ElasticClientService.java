@@ -4,10 +4,8 @@ import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
-import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.util.EntityUtils;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
 import java.util.Map;
@@ -20,10 +18,17 @@ public interface ElasticClientService {
 
      ElasticClientProxyService getInstance(CurrentClusterEntity currentCluster) ;
 
+     Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
+                                 HttpEntity entity, Header... headers);
+
      public String executeGetApi(String api) throws IOException;
 
+     String executePostApi(String api, HttpEntity entity) throws IOException;
+     Response executePostApiReturnResponse(String api, HttpEntity entity) throws IOException;
 
-     public String executePostApi(String api, HttpEntity entity) throws IOException;
 
      String executePutApi(String api, HttpEntity nStringEntity);
+     Response executePutApiReturnResponse(String api, HttpEntity nStringEntity);
+
+     boolean executeHeadApi(String api);
 }
