@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.overview;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
+import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 
@@ -22,7 +23,7 @@ public interface OverviewService {
      * 获取生命周期错误信息
      * @return 生命周期错误信息
      */
-    List<JSONObject>  getLifeCycleError(PageReq pageReq);
+    List<EsLifeCycleManagement>  getLifeCycleError(PageReq pageReq);
 
     /**
      * 获取分片错误信息

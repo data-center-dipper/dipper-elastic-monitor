@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.life.impl.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
+import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ public class CheckLifeCycleErrorService extends AbstractLifeCycleError {
 
 
     public String checkLifeCycleError() throws IOException {
-        List<JSONObject> list = lifecyclePoliciesService.getLifeCycleList();
+        List<EsLifeCycleManagement> list = lifecyclePoliciesService.getLifeCycleList();
         StringBuilder builder = new StringBuilder();
 
         if (!list.isEmpty()) {

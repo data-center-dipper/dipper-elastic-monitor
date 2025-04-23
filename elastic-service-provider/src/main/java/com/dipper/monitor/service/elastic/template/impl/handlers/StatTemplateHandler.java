@@ -10,6 +10,7 @@ import com.dipper.monitor.entity.elastic.shard.ShardEntity;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,15 +27,18 @@ public class StatTemplateHandler {
     private ElasticIndexService elasticIndexService;
     private ElasticShardService elasticShardService;
     private ElasticSegmentService elasticSegmentService;
+    private LifecyclePoliciesService lifecyclePoliciesService;
 
     public StatTemplateHandler(ElasticClientService elasticClientService,
                                ElasticIndexService elasticIndexService,
                                ElasticShardService elasticShardService,
-                               ElasticSegmentService elasticSegmentService) {
+                               ElasticSegmentService elasticSegmentService,
+                               LifecyclePoliciesService lifecyclePoliciesService) {
         this.elasticClientService = elasticClientService;
         this.elasticIndexService = elasticIndexService;
         this.elasticShardService = elasticShardService;
         this.elasticSegmentService = elasticSegmentService;
+        this.lifecyclePoliciesService = lifecyclePoliciesService;
     }
 
     public List<EsTemplateConfigMes> statTemplate(String name) throws IOException {
@@ -59,7 +63,7 @@ public class StatTemplateHandler {
     }
 
     private Map<String, EsLifeCycleManagement> getLifeCycleBadMap() {
-        List<EsLifeCycleManagement> result = getLifeCycleList();
+        List<EsLifeCycleManagement> result = lifecyclePoliciesService.getLifeCycleList();
         if (result.isEmpty()) return Collections.emptyMap();
 
         Map<String, EsLifeCycleManagement> map = new HashMap<>();
@@ -67,28 +71,7 @@ public class StatTemplateHandler {
         return map;
     }
 
-    private List<EsLifeCycleManagement> getLifeCycleList() {
-        try {
-            String result = elasticClientService.executeGetApi(ElasticRestApi.LIFE_CYCLE_MANAGEMENT.getApiPath());
-            if (StringUtils.isBlank(result) || result.contains("master_not_discovered_exception")) return Collections.emptyList();
 
-            JSONObject jsonObject = JSON.parseObject(result).getJSONObject("indices");
-            List<EsLifeCycleManagement> list = new ArrayList<>();
-            for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-                JSONObject value = (JSONObject) entry.getValue();
-                if (!"false".equals(value.getString("managed")) && "ERROR".equalsIgnoreCase(value.getString("step"))) {
-                    EsLifeCycleManagement management = new EsLifeCycleManagement();
-                    management.setIndex(entry.getKey());
-                    management.setMessage(value.toJSONString());
-                    list.add(management);
-                }
-            }
-            return list;
-        } catch (Exception e) {
-            log.error("获取生命周期管理列表异常: {}", e.getMessage());
-            return Collections.emptyList();
-        }
-    }
 
     // 假设的辅助方法，用于根据模板名称对索引进行分组
     private Map<EsTemplateConfigMes, List<IndexEntity>> groupIndexByTem(String templateName, Map<String, IndexEntity> indexMap) {

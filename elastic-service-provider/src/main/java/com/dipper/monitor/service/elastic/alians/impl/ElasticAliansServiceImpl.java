@@ -2,13 +2,17 @@ package com.dipper.monitor.service.elastic.alians.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.alians.IndexAlians;
+import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -102,5 +106,73 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
             log.error("更新索引不可写异常：index :{} body:{} ex:{}", indexName, body, e.getMessage(), e);
             throw e;
         }
+    }
+
+    @Override
+    public List<String> listExceptionAlians() throws IOException {
+        Map<String, List<IndexAlians>> mebeyEx = getAlainsHiveManyIndex();
+        List<String> exAlians = new ArrayList<>();
+        for (Map.Entry<String, List<IndexAlians>> item : mebeyEx.entrySet()) {
+            String alias = item.getKey();
+            String aliasData = this.elasticClientService.executeGetApi(alias + "/_alias");
+            boolean isWriteIndexGreaterThanOne = isWriteEx(aliasData);
+
+            if (!isWriteIndexGreaterThanOne) {
+                continue;
+            }
+
+            exAlians.add(alias);
+        }
+        return exAlians;
+    }
+
+    protected Map<String, List<IndexAlians>> getAlainsHiveManyIndex() throws IOException {
+        Map<String, List<IndexAlians>> group = getAliansIndexMap();
+
+        Map<String, List<IndexAlians>> mebeyEx = new HashMap<>();
+
+        for (Map.Entry<String, List<IndexAlians>> item : group.entrySet()) {
+            List<IndexAlians> value = item.getValue();
+            if (1 < value.size()) {
+                mebeyEx.put(item.getKey(), item.getValue());
+            }
+        }
+        return mebeyEx;
+    }
+
+    public Map<String, List<IndexAlians>> getAliansIndexMap() throws IOException {
+        String result = this.elasticClientService.executeGetApi(ElasticRestApi.ALIASES_LIST.getApiPath());
+        if (StringUtils.isBlank(result)) {
+            return null;
+        }
+        String[] lines = result.split("\n");
+        Map<String, List<IndexAlians>> map = new HashMap<>();
+        for (String line : lines) {
+            String[] fields = line.split("\\s+");
+            IndexAlians indexAlians = new IndexAlians(fields[0], fields[1], fields[2], fields[3], fields[4]);
+            List<IndexAlians> list = map.get(fields[0]);
+            if (list == null) {
+                list = new ArrayList<>();
+            }
+            list.add(indexAlians);
+            map.put(fields[0], list);
+        }
+        return map;
+    }
+
+    @Override
+    public Map<String, JSONObject> getAllAliansJson() throws IOException {
+        String aliansRep = this.elasticClientService.executeGetApi("/*/_alias");
+        if (StringUtils.isBlank(aliansRep)) {
+            return Collections.emptyMap();
+        }
+        JSONObject json = JSON.parseObject(aliansRep);
+        Map<String, JSONObject> map = new HashMap<>(json.size());
+        for (Map.Entry<String, Object> item : (Iterable<Map.Entry<String, Object>>)json.entrySet()) {
+            String index = item.getKey();
+            JSONObject value = (JSONObject)item.getValue();
+            map.put(index, value);
+        }
+        return map;
     }
 }

@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.life.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.monitor.annotation.log.CollectLogs;
@@ -12,6 +13,7 @@ import com.dipper.monitor.service.elastic.life.impl.service.CheckLifeCycleErrorS
 import com.dipper.monitor.service.elastic.life.impl.service.RepairLifeCycleErrorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.StringEntity;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.aop.support.AopUtils;
@@ -34,33 +36,28 @@ public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
 //    @Lazy
 //    private RepairLifeCycleErrorService repairLifeCycleErrorService;
 
-//    @CollectLogs // 自定义注解，用于标记需要收集日志的方法
-    public List<JSONObject> getLifeCycleList() {
+    @Override
+    public List<EsLifeCycleManagement> getLifeCycleList() {
         try {
-            // 创建请求并设置空请求体
-            String ilmExplainResult = elasticClientService.executeGetApi("/*/_ilm/explain?pretty");
-            log.info("索引生命周期管理状态：{}", ilmExplainResult);
+            String result = elasticClientService.executeGetApi(ElasticRestApi.LIFE_CYCLE_MANAGEMENT.getApiPath());
+            if (StringUtils.isBlank(result) || result.contains("master_not_discovered_exception")) return Collections.emptyList();
 
-           List<JSONObject> result = new ArrayList<>();
-            JSONObject jsonObject = JSONObject.parseObject(ilmExplainResult);
-            JSONObject indices = jsonObject.getJSONObject("indices");
-            for (String index : indices.keySet()) {
-                JSONObject indexInfo = indices.getJSONObject(index);
-                String step = indexInfo.getString("step");
-                Boolean managed = indexInfo.getBoolean("managed");
-              if ("false".equals(managed)) {
-                    continue;
-                   }
-               if (!"ERROR".equalsIgnoreCase(step)) {
-                   continue;
+            JSONObject jsonObject = JSON.parseObject(result).getJSONObject("indices");
+            List<EsLifeCycleManagement> list = new ArrayList<>();
+            for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+                JSONObject value = (JSONObject) entry.getValue();
+                if (!"false".equals(value.getString("managed")) && "ERROR".equalsIgnoreCase(value.getString("step"))) {
+                    EsLifeCycleManagement management = new EsLifeCycleManagement();
+                    management.setIndex(entry.getKey());
+                    management.setMessage(value.toJSONString());
+                    list.add(management);
                 }
-                result.add(indexInfo);
             }
-            return result;
+            return list;
         } catch (Exception e) {
-            log.error("检查ILM问题时发生错误", e);
+            log.error("获取生命周期管理列表异常: {}", e.getMessage());
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
     }
 
     @Override

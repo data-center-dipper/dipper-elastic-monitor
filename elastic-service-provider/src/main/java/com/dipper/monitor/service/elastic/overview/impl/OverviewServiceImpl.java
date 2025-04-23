@@ -5,6 +5,7 @@ import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatsParse;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
+import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -59,17 +60,17 @@ public class OverviewServiceImpl implements OverviewService {
 
 
     @Override
-    public List<JSONObject>  getLifeCycleError(PageReq pageReq) {
+    public List<EsLifeCycleManagement>  getLifeCycleError(PageReq pageReq) {
         // 获取原始的生命周期列表
-        List<JSONObject> lifeCycleList = lifecyclePoliciesService.getLifeCycleList();
+        List<EsLifeCycleManagement> lifeCycleList = lifecyclePoliciesService.getLifeCycleList();
         if(CollectionUtils.isEmpty(lifeCycleList)){
             return Collections.emptyList();
         }
         // 进行分页处理
         Integer pageNum = pageReq.getPageNum();
         Integer pageSize = pageReq.getPageSize();
-        List<List<JSONObject>> lists = ListUtils.splitListBySize(lifeCycleList, pageSize);
-        List<JSONObject> result = lists.get(pageNum - 1);
+        List<List<EsLifeCycleManagement>> lists = ListUtils.splitListBySize(lifeCycleList, pageSize);
+        List<EsLifeCycleManagement> result = lists.get(pageNum - 1);
         // 转换为 Map
         return result;
     }

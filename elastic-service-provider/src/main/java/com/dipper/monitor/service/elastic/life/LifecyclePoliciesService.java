@@ -14,7 +14,7 @@ public interface LifecyclePoliciesService {
      * 获取生命周期异常列表
      * @return
      */
-    List<JSONObject> getLifeCycleList();
+    List<EsLifeCycleManagement> getLifeCycleList();
 
     /**
      * 检测生命周期异常

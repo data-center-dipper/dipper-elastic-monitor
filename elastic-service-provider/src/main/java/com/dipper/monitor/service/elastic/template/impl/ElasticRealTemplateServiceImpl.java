@@ -5,6 +5,7 @@ import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
@@ -29,6 +30,8 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
     private ElasticShardService elasticShardService;
     @Autowired
     private ElasticSegmentService elasticSegmentService;
+    @Autowired
+    private LifecyclePoliciesService lifecyclePoliciesService;
 
     public boolean isExistTemplate(String name) throws IOException {
         String api = "/_template/" + name;
@@ -67,7 +70,7 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
     public List<EsTemplateConfigMes> statTemplate(String name) throws IOException {
         StatTemplateHandler statTemplateHandler = new StatTemplateHandler(elasticClientService,
                 elasticIndexService,elasticShardService,
-                elasticSegmentService);
+                elasticSegmentService,lifecyclePoliciesService);
         return statTemplateHandler.statTemplate(name);
     }
 
