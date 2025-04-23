@@ -2,8 +2,10 @@ package com.dipper.monitor.service.elastic.shard.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.shard.ShardEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
+import com.dipper.monitor.service.elastic.shard.impl.service.ListShardMapHandler;
 import com.dipper.monitor.service.elastic.shard.impl.service.check.CheckShardErrorHandler;
 import com.dipper.monitor.service.elastic.shard.impl.service.repair.RepairShardErrorHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -53,5 +56,11 @@ public class ElasticShardServiceImpl implements ElasticShardService {
         RepairShardErrorHandler repairShardErrorHandler = new RepairShardErrorHandler();
         String s = repairShardErrorHandler.repairShardError();
         return s;
+    }
+
+    @Override
+    public Map<String, List<ShardEntity>> listShardMap() throws IOException {
+        ListShardMapHandler listShardMapHandler = new ListShardMapHandler(elasticClientService);
+        return listShardMapHandler.listShardMap();
     }
 }

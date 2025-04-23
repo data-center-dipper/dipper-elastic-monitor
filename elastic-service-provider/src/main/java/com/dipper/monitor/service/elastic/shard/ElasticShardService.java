@@ -1,9 +1,11 @@
 package com.dipper.monitor.service.elastic.shard;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.shard.ShardEntity;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface ElasticShardService {
     /**
@@ -26,4 +28,5 @@ public interface ElasticShardService {
     String repairShardError() throws Exception;
 
 
+    Map<String, List<ShardEntity>> listShardMap() throws IOException;
 }

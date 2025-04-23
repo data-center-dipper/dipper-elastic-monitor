@@ -1,7 +1,10 @@
 package com.dipper.monitor.service.elastic.index.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.index.IndexEntity;
+import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticIndexService;
@@ -10,14 +13,18 @@ import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
+import com.dipper.monitor.utils.elastic.IndexUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 
 @Service
@@ -70,6 +77,39 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
             indexDocCount = json.getLong("_count");
         }
         return indexDocCount.longValue();
+    }
+
+    public Map<String, IndexEntity> listIndexMap(boolean setting) throws IOException {
+        String response = elasticClientService.executeGetApi(ElasticRestApi.INDEX_LIST.getApiPath());
+        JSONArray jsonArray = JSON.parseArray(response);
+        Map<String, IndexEntity> map = new HashMap<>();
+        jsonArray.stream().forEach(jsonObject -> {
+            JSONObject obj = (JSONObject)jsonObject;
+            String health = obj.getString("health");
+            String status = obj.getString("status");
+            String index = obj.getString("index");
+            String uuid = obj.getString("uuid");
+            Integer pri = obj.getInteger("pri");
+            Integer rep = obj.getInteger("rep");
+            Long docsCount = Long.valueOf(obj.getLongValue("docs.count"));
+            long docsDeleted = obj.getLongValue("docs.deleted");
+            String storeSize = obj.getString("store.size");
+            String priStoreSize = obj.getString("pri.store.size");
+            IndexEntity indexEntity = new IndexEntity();
+            indexEntity.setHealth(health).setStatus(status).setIndex(index).setUuid(uuid).setPri(pri).setRep(rep).setDocsCount(docsCount).setDocsDeleted(Long.valueOf(docsDeleted)).setStoreSize(storeSize).setPriStoreSize(priStoreSize);
+            if (setting && StringUtils.isNotBlank(index) && !IndexUtils.isIndexNameContainSpecialChar(index)) {
+                String api = index + "/_settings";
+                String settings = null;
+                try {
+                    settings = elasticClientService.executeGetApi(api);
+                } catch (IOException e) {
+                    log.error("获取索引setting失败", e);
+                }
+                indexEntity.setSettings(settings);
+            }
+            map.put(index, indexEntity);
+        });
+        return map;
     }
 
 

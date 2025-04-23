@@ -2,14 +2,20 @@ package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.params.elasticsearch.Response;
+import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
+import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
+import com.dipper.monitor.service.elastic.template.impl.handlers.StatTemplateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -17,6 +23,12 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
 
     @Autowired
     private ElasticClientService elasticClientService;
+    @Autowired
+    private ElasticIndexService elasticIndexService;
+    @Autowired
+    private ElasticShardService elasticShardService;
+    @Autowired
+    private ElasticSegmentService elasticSegmentService;
 
     public boolean isExistTemplate(String name) throws IOException {
         String api = "/_template/" + name;
@@ -43,6 +55,20 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
             log.error("索引模板创建失败：{}", e);
             return false;
         }
+    }
+
+    /**
+     * 点开某个模版 查看模版的详情
+     * @param name
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public List<EsTemplateConfigMes> statTemplate(String name) throws IOException {
+        StatTemplateHandler statTemplateHandler = new StatTemplateHandler(elasticClientService,
+                elasticIndexService,elasticShardService,
+                elasticSegmentService);
+        return statTemplateHandler.statTemplate(name);
     }
 
 }
