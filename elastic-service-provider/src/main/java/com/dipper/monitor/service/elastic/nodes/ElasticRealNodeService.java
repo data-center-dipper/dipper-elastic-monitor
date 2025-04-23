@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
 import com.dipper.monitor.utils.Tuple2;
@@ -52,4 +54,7 @@ public interface ElasticRealNodeService {
     EsNodeFailed getEsNodeFailed() throws IOException;
 
 
+    List<ElasticNodeDetail>  nodeMemoryTop10() throws IOException;
+
+    List<ElasticNodeDisk>  nodeDiskTop10() throws IOException;
 }

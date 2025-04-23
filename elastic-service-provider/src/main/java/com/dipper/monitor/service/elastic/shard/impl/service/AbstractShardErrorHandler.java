@@ -6,7 +6,7 @@ import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.disk.ElasticDiskService;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
-import com.dipper.monitor.service.elastic.shard.ShardService;
+import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
@@ -18,7 +18,7 @@ public abstract class AbstractShardErrorHandler {
 
 
     protected LifecyclePoliciesService lifecyclePoliciesService;
-    protected ShardService shardService;
+    protected ElasticShardService elasticShardService;
     protected ElasticClientService elasticClientService;
     protected ElasticAliansService elasticAliansService;
     protected ElasticRealNodeService elasticRealNodeService;
@@ -30,7 +30,7 @@ public abstract class AbstractShardErrorHandler {
 
     public AbstractShardErrorHandler(){
         lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
-        shardService = SpringUtil.getBean(ShardService.class);
+        elasticShardService = SpringUtil.getBean(ElasticShardService.class);
         elasticClientService = SpringUtil.getBean(ElasticClientService.class);
         elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
         elasticRealNodeService = SpringUtil.getBean(ElasticRealNodeService.class);

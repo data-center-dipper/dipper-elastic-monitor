@@ -2,8 +2,8 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
-import com.dipper.monitor.service.elastic.template.EsRealTemplateService;
-import com.dipper.monitor.service.elastic.template.EsTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,12 +21,12 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
     private static final Logger log = LoggerFactory.getLogger(NotRollingIndexHandler.class);
 
     private EsUnconvertedTemplate esUnconvertedTemplate;
-    private EsTemplateService esTemplateService; // 假设这是你的服务类，用于处理模板相关的逻辑
-    private EsRealTemplateService esRealTemplateService;
+    private ElasticTemplateService elasticTemplateService; // 假设这是你的服务类，用于处理模板相关的逻辑
+    private ElasticRealTemplateService elasticRealTemplateService;
 
-    public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, EsTemplateService esTemplateService) {
+    public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, ElasticTemplateService elasticTemplateService) {
         this.esUnconvertedTemplate = esUnconvertedTemplate;
-        this.esTemplateService = esTemplateService;
+        this.elasticTemplateService = elasticTemplateService;
     }
 
 
@@ -36,10 +36,10 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
         log.info("开始处理索引模式: {}", indexPatterns);
 
         // 生成新的模板信息
-        JSONObject templateJson = esTemplateService.previewTemplate(esUnconvertedTemplate);
+        JSONObject templateJson = elasticTemplateService.previewTemplate(esUnconvertedTemplate);
 
         // 保存或更新模板
-        esRealTemplateService.saveOrUpdateTemplate(enName,templateJson);
+        elasticRealTemplateService.saveOrUpdateTemplate(enName,templateJson);
 
         // 获取当前最大的索引名称
         String currentMaxIndexName = getCurrentMaxIndexName(indexPatterns);

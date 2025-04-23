@@ -3,17 +3,9 @@ package com.dipper.monitor.service.elastic.life.impl.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
-import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
-import com.dipper.monitor.service.elastic.shard.ShardService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;

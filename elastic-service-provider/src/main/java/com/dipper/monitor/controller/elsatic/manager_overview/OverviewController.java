@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.service.elastic.overview.OverviewService;
 import com.dipper.monitor.utils.ResultUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -219,6 +221,59 @@ public class OverviewController {
     }
 
 
+
+
+    /**
+     * 节点内存负载top10
+     */
+    @Operation(summary = "节点内存负载top10",
+            description = "节点内存负载top10",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/nodeMemoryTop10")
+    public JSONObject nodeMemoryTop10() {
+        try {
+            List<ElasticNodeDetail> elasticNodeDetails = overviewService.nodeMemoryTop10();
+            return ResultUtils.onSuccess(elasticNodeDetails);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("异常", e);
+            return ResultUtils.onFail("操作异常");
+        }
+    }
+
+    /**
+     * 节点磁盘负载top10
+     */
+    @Operation(summary = "节点磁盘负载top10",
+            description = "节点磁盘负载top10",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ElasticClusterEntity.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/nodeDiskTop10")
+    public JSONObject nodeDiskTop10() {
+        try {
+            List<ElasticNodeDisk> elasticNodeDisks = overviewService.nodeDiskTop10();
+            return ResultUtils.onSuccess(elasticNodeDisks);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("异常", e);
+            return ResultUtils.onFail("操作异常");
+        }
+    }
 
 
 

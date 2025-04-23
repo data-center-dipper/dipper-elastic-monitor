@@ -7,7 +7,7 @@ import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTempl
 
 import java.util.List;
 
-public interface EsTemplateService {
+public interface ElasticTemplateService {
     /**
      * 仅仅 添加模版信息
      * @param esUnconvertedTemplate

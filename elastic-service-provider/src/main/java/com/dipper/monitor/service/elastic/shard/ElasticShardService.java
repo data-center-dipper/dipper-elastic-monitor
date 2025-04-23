@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.util.List;
 
-public interface ShardService {
+public interface ElasticShardService {
     /**
      * 获取分片异常列表
      * @return

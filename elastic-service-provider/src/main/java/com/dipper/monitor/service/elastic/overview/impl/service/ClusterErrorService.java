@@ -3,20 +3,19 @@ package com.dipper.monitor.service.elastic.overview.impl.service;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
-import com.dipper.monitor.service.elastic.shard.ShardService;
+import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class ClusterErrorService {
 
     private   LifecyclePoliciesService lifecyclePoliciesService ;
-    private   ShardService shardService ;
+    private ElasticShardService elasticShardService;
 
     public ClusterErrorService(){
         lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
-        shardService = SpringUtil.getBean(ShardService.class);
+        elasticShardService = SpringUtil.getBean(ElasticShardService.class);
     }
 
     public String getClusterError() {
@@ -48,7 +47,7 @@ public class ClusterErrorService {
 
     private Integer getShardError() {
         try {
-            List<JSONObject> shardError = shardService.getShardError();
+            List<JSONObject> shardError = elasticShardService.getShardError();
             return shardError.size();
         }catch (Exception e){
             log.error("获取分片异常",e);

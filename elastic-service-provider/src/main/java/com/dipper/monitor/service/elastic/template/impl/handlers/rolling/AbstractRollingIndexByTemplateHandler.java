@@ -1,15 +1,15 @@
 package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
 
 import com.dipper.monitor.beans.SpringUtil;
-import com.dipper.monitor.service.elastic.template.EsTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
 
 public class AbstractRollingIndexByTemplateHandler {
 
 
-    protected EsTemplateService esTemplateService;
+    protected ElasticTemplateService elasticTemplateService;
 
     public AbstractRollingIndexByTemplateHandler() {
-        this.esTemplateService = SpringUtil.getBean(EsTemplateService.class);
+        this.elasticTemplateService = SpringUtil.getBean(ElasticTemplateService.class);
     }
 
     protected void getIndexTime(String indexPatterns) {

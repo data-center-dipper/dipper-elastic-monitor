@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
 
-public interface EsRealTemplateService {
+public interface ElasticRealTemplateService {
 
     public boolean isExistTemplate(String name) throws IOException;
 

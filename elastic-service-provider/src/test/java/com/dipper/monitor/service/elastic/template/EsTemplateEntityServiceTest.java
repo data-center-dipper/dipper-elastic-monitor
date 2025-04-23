@@ -12,7 +12,7 @@ import java.util.Map;
 public class EsTemplateEntityServiceTest extends BaseMonitorTest {
 
     @Autowired
-    private EsTemplateService esTemplateService;
+    private ElasticTemplateService elasticTemplateService;
 
 
     /**
@@ -118,7 +118,7 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
         esUnconvertedTemplate.setEnableAutoShards(true);
         esUnconvertedTemplate.setTemplateContent(content);
 
-        JSONObject jsonObject = esTemplateService.previewTemplate(esUnconvertedTemplate);
+        JSONObject jsonObject = elasticTemplateService.previewTemplate(esUnconvertedTemplate);
         System.out.println(jsonObject.toJSONString());
     }
 
@@ -144,7 +144,7 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
         esUnconvertedTemplate.setEnableAutoShards(true);
         esUnconvertedTemplate.setTemplateContent(content);
 
-        esTemplateService.addOrUpdateTemplate(esUnconvertedTemplate);
+        elasticTemplateService.addOrUpdateTemplate(esUnconvertedTemplate);
     }
 
     @Test
@@ -182,7 +182,7 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
         esUnconvertedTemplate.setEnableAutoShards(true);
         esUnconvertedTemplate.setTemplateContent(content);
 
-        esTemplateService.rollTemplate(esUnconvertedTemplate);
+        elasticTemplateService.rollTemplate(esUnconvertedTemplate);
     }
 
 

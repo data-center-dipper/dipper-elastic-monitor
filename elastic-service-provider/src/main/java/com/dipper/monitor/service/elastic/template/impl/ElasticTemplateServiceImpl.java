@@ -6,7 +6,7 @@ import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
-import com.dipper.monitor.service.elastic.template.EsTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class EsTemplateServiceImpl implements EsTemplateService {
+public class ElasticTemplateServiceImpl implements ElasticTemplateService {
 
     @Autowired
     private EsTemplateMapper esTemplateMapper;

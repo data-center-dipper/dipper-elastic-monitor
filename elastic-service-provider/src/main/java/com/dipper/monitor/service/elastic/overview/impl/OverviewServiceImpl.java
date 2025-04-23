@@ -5,13 +5,15 @@ import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatsParse;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.overview.OverviewService;
 import com.dipper.monitor.service.elastic.overview.impl.service.ClusterStatusService;
-import com.dipper.monitor.service.elastic.shard.ShardService;
+import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.utils.ListUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -37,7 +39,7 @@ public class OverviewServiceImpl implements OverviewService {
     @Autowired
     private LifecyclePoliciesService lifecyclePoliciesService;
     @Autowired
-    private ShardService shardService;
+    private ElasticShardService elasticShardService;
 
 
     @Override
@@ -75,7 +77,7 @@ public class OverviewServiceImpl implements OverviewService {
     @Override
     public List<JSONObject> getShardError(PageReq pageReq) throws IOException {
         // 获取原始的生命周期列表
-        List<JSONObject>  lifeCycleList = shardService.getShardError();
+        List<JSONObject>  lifeCycleList = elasticShardService.getShardError();
         if(CollectionUtils.isEmpty(lifeCycleList)){
             return Collections.emptyList();
         }
@@ -102,14 +104,24 @@ public class OverviewServiceImpl implements OverviewService {
 
     @Override
     public String checkShardError() throws Exception {
-        String lifeCycleList = shardService.checkShardError();
+        String lifeCycleList = elasticShardService.checkShardError();
         return  lifeCycleList;
     }
 
     @Override
     public String repairShardError() throws Exception {
-        String lifeCycleList = shardService.repairShardError();
+        String lifeCycleList = elasticShardService.repairShardError();
         return  lifeCycleList;
+    }
+
+    @Override
+    public List<ElasticNodeDetail> nodeMemoryTop10() throws IOException {
+        return elasticRealNodeService.nodeMemoryTop10();
+    }
+
+    @Override
+    public List<ElasticNodeDisk> nodeDiskTop10() throws IOException {
+       return  elasticRealNodeService.nodeDiskTop10();
     }
 
 }

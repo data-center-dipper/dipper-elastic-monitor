@@ -1,22 +1,19 @@
 package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.template.EsRealTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.apache.http.Header;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Slf4j
 @Service
-public class EsRealTemplateServiceImpl implements EsRealTemplateService {
+public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateService {
 
     @Autowired
     private ElasticClientService elasticClientService;

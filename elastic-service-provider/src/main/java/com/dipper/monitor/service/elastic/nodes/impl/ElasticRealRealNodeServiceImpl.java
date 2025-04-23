@@ -10,6 +10,8 @@ import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
 import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
@@ -17,10 +19,7 @@ import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
-import com.dipper.monitor.service.elastic.nodes.impl.handlers.NodeDescHandler;
-import com.dipper.monitor.service.elastic.nodes.impl.handlers.NodesInfoHandler;
-import com.dipper.monitor.service.elastic.nodes.impl.handlers.NodeListHandler;
-import com.dipper.monitor.service.elastic.nodes.impl.handlers.OneNodeInfoHandler;
+import com.dipper.monitor.service.elastic.nodes.impl.handlers.*;
 import com.dipper.monitor.service.elastic.nodes.impl.handlers.charts.NodeCharsHandler;
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
@@ -100,6 +99,18 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
         esNodeFailed.setNodesSuccessful(nodesSuccessful);
         esNodeFailed.setNodesFailed(nodesFailed);
         return esNodeFailed;
+    }
+
+    @Override
+    public  List<ElasticNodeDetail>  nodeMemoryTop10() throws IOException {
+        ListHighMemoryRiskNodesHandler listHighMemoryRiskNodesHandler = new ListHighMemoryRiskNodesHandler(elasticClientService);
+        return listHighMemoryRiskNodesHandler.listHighRiskNodes();
+    }
+
+    @Override
+    public  List<ElasticNodeDisk>  nodeDiskTop10() throws IOException {
+        ListHighDiskRiskNodesHandler listHighMemoryRiskNodesHandler = new ListHighDiskRiskNodesHandler(elasticClientService);
+        return listHighMemoryRiskNodesHandler.listHighDiskRiskNodes();
     }
 
     @Override
