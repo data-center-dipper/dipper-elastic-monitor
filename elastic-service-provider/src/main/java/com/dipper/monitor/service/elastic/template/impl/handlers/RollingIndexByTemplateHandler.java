@@ -4,7 +4,7 @@ import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.enums.elastic.RollingIndexEnum;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
-import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,11 +13,11 @@ public class RollingIndexByTemplateHandler {
 
 
     private ElasticHealthService elasticHealthService;
-    private ElasticTemplateService elasticTemplateService;
+    private ElasticStoreTemplateService elasticStoreTemplateService;
 
-    public RollingIndexByTemplateHandler(ElasticHealthService elasticHealthService, ElasticTemplateService elasticTemplateService) {
+    public RollingIndexByTemplateHandler(ElasticHealthService elasticHealthService, ElasticStoreTemplateService elasticStoreTemplateService) {
         this.elasticHealthService = elasticHealthService;
-        this.elasticTemplateService = elasticTemplateService;
+        this.elasticStoreTemplateService = elasticStoreTemplateService;
     }
 
     public void rollIndexByTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
@@ -56,7 +56,7 @@ public class RollingIndexByTemplateHandler {
         RollingIndexEnum rollingIndexEnum = RollingIndexEnum.fromDays(rollingPeriod);
         switch (rollingIndexEnum) {
             case NONE:
-                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate,elasticTemplateService);
+                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate, elasticStoreTemplateService);
                 notRollingIndexHandler.handle();
             case DAILY:
                 DailyRollingIndexHandler dailyRollingIndexHandler = new DailyRollingIndexHandler(esUnconvertedTemplate);

@@ -4,7 +4,8 @@ package com.dipper.monitor.controller.elsatic.manager_template;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
-import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.ResultUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +26,9 @@ import java.util.List;
 public class EsTemplateController {
 
     @Autowired
-    private ElasticTemplateService elasticTemplateService;
+    private ElasticStoreTemplateService elasticStoreTemplateService;
+    @Autowired
+    private ElasticRealTemplateService elasticRealTemplateService;
 
     @Operation(summary = "预览ES模板",
             description = "Add a new Elasticsearch template.",
@@ -40,7 +43,7 @@ public class EsTemplateController {
     @PostMapping("/previewTemplate")
     public JSONObject previewTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
         try {
-            JSONObject jsonObject = elasticTemplateService.previewTemplate(esUnconvertedTemplate);
+            JSONObject jsonObject = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
             return ResultUtils.onSuccess(jsonObject);
         } catch (Exception e) {
             log.error("Error adding template", e);
@@ -61,7 +64,7 @@ public class EsTemplateController {
     @PostMapping("/addTemplate")
     public JSONObject addTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
         try {
-            EsTemplateEntity addedTemplate = elasticTemplateService.addOrUpdateTemplate(esUnconvertedTemplate);
+            EsTemplateEntity addedTemplate = elasticStoreTemplateService.addOrUpdateTemplate(esUnconvertedTemplate);
             if (addedTemplate == null) {
                 return ResultUtils.onFail("Failed to add template");
             }
@@ -85,7 +88,7 @@ public class EsTemplateController {
     @PostMapping("/addAndRollTemplate")
     public JSONObject addAndRollTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
         try {
-            elasticTemplateService.addAndRollTemplate(esUnconvertedTemplate);
+            elasticStoreTemplateService.addAndRollTemplate(esUnconvertedTemplate);
             return ResultUtils.onSuccess();
         } catch (Exception e) {
             log.error("Error adding template", e);
@@ -105,10 +108,11 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "404", description = "Template not found"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping("/{id}")
-    public JSONObject getTemplate(@PathVariable Long id) {
+    @GetMapping("/showTemplate")
+    public JSONObject showTemplate(@PathVariable Long id) {
         try {
-            EsTemplateEntity template = elasticTemplateService.getTemplate(id);
+            EsTemplateEntity template = elasticRealTemplateService.getTemplate(id);
+            EsTemplateEntity template = elasticStoreTemplateService.getTemplate(id);
             if (template == null) {
                 return ResultUtils.onFail("Template not found");
             }
@@ -132,7 +136,7 @@ public class EsTemplateController {
     @PutMapping("/updateTemplate")
     public JSONObject updateTemplate(@RequestBody EsTemplateEntity esTemplateEntity) {
         try {
-            EsTemplateEntity updatedTemplate = elasticTemplateService.updateTemplate(esTemplateEntity);
+            EsTemplateEntity updatedTemplate = elasticStoreTemplateService.updateTemplate(esTemplateEntity);
             if (updatedTemplate == null) {
                 return ResultUtils.onFail("Failed to update template");
             }
@@ -154,7 +158,7 @@ public class EsTemplateController {
     @DeleteMapping("/{id}")
     public JSONObject deleteTemplate(@PathVariable Long id) {
         try {
-            elasticTemplateService.deleteTemplate(id);
+            elasticStoreTemplateService.deleteTemplate(id);
             return ResultUtils.onSuccess();
         } catch (Exception e) {
             log.error("Error deleting template", e);
@@ -174,7 +178,7 @@ public class EsTemplateController {
     @GetMapping("/getAllTemplates")
     public JSONObject getAllTemplates() {
         try {
-            List<EsTemplateEntity> templates = elasticTemplateService.getAllTemplates();
+            List<EsTemplateEntity> templates = elasticStoreTemplateService.getAllTemplates();
             return ResultUtils.onSuccess(templates);
         } catch (Exception e) {
             log.error("Error retrieving templates", e);

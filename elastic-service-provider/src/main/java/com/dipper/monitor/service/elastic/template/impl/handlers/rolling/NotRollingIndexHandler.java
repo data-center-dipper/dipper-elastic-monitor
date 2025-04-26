@@ -3,7 +3,7 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
-import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,12 +21,12 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
     private static final Logger log = LoggerFactory.getLogger(NotRollingIndexHandler.class);
 
     private EsUnconvertedTemplate esUnconvertedTemplate;
-    private ElasticTemplateService elasticTemplateService; // 假设这是你的服务类，用于处理模板相关的逻辑
+    private ElasticStoreTemplateService elasticStoreTemplateService; // 假设这是你的服务类，用于处理模板相关的逻辑
     private ElasticRealTemplateService elasticRealTemplateService;
 
-    public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, ElasticTemplateService elasticTemplateService) {
+    public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, ElasticStoreTemplateService elasticStoreTemplateService) {
         this.esUnconvertedTemplate = esUnconvertedTemplate;
-        this.elasticTemplateService = elasticTemplateService;
+        this.elasticStoreTemplateService = elasticStoreTemplateService;
     }
 
 
@@ -36,7 +36,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
         log.info("开始处理索引模式: {}", indexPatterns);
 
         // 生成新的模板信息
-        JSONObject templateJson = elasticTemplateService.previewTemplate(esUnconvertedTemplate);
+        JSONObject templateJson = elasticStoreTemplateService.previewTemplate(esUnconvertedTemplate);
 
         // 保存或更新模板
         elasticRealTemplateService.saveOrUpdateTemplate(enName,templateJson);

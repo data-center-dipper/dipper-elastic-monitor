@@ -3,17 +3,14 @@ package com.dipper.monitor.service.elastic.index.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPath;
-import com.dipper.monitor.entity.elastic.alians.IndexAlians;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
 import com.dipper.monitor.entity.elastic.index.IndexSetting;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
-import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.enums.elastic.IndexOperatorType;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.index.IndexOneOperatorService;
 import com.dipper.monitor.service.elastic.index.IndexStatusService;
 import com.dipper.monitor.service.elastic.index.impl.handlers.*;
@@ -21,7 +18,7 @@ import com.dipper.monitor.service.elastic.index.impl.thread.IndexSettingCallable
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
-import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
 import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.ResultUtils;
@@ -48,7 +45,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class ElasticIndexServiceImpl implements ElasticIndexService {
+public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
 
     @Autowired
@@ -58,7 +55,7 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
     private ElasticShardService elasticShardService;
 
     @Autowired
-    private ElasticTemplateService elasticTemplateService;
+    private ElasticStoreTemplateService elasticStoreTemplateService;
 
     @Autowired
     private ElasticAliansService elasticAliansService;
@@ -338,21 +335,33 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
     }
 
 
-    public List<String> listIndexNameByPrefix(String indexPrefix, String indexXing) throws IOException {
-        String api = "/_cat/indices/" + indexXing + "?format=json";
-        log.info("获取某种类型的索引：{}", api);
-        String res1 = this.elasticClientService.executeGetApi(api);
-        JSONArray jsonArray = JSON.parseArray(res1);
-
-        List<String> indexNames = jsonArray.toJavaList(JSONObject.class).stream()
-                .map(jsonObject -> ((JSONObject) jsonObject).getString("index"))
-                .filter(index -> index.startsWith(indexPrefix))
-                .sorted(Collections.reverseOrder())
-                .collect(Collectors.toList());
-
-        log.info("获取前缀为 {} 的索引个数总结果：{}", indexPrefix, indexNames.size());
-        return indexNames;
+    /**
+     * 获取某种类型索引的前缀
+     * @param indexPrefix  lcc-log-
+     * @param indexXing  lcc-log-*
+     * @return
+     * @throws IOException
+     */
+    public List<IndexEntity> listIndexNameByPrefix(String indexPrefix, String indexXing) throws IOException {
+        IndexListByPrefixHandler indexMapHandler = new IndexListByPrefixHandler(elasticClientService);
+        List<IndexEntity> map = indexMapHandler.listIndexNameByPrefix(indexPrefix,indexXing);
+        return map;
     }
+
+    /**
+     * 获取某种类型索引的前缀
+     * @param indexPatterns   lcc-log-YYYYMMDD
+     * @param indexPrefix  lcc-log-
+     * @param indexXing  lcc-log-*
+     * @return
+     * @throws IOException
+     */
+    public List<IndexEntity> listIndexNameByPrefix(String indexPatterns,String indexPrefix, String indexXing) throws IOException {
+        List<IndexEntity> strings = listIndexNameByPrefix(indexPrefix, indexXing);
+        return strings;
+    }
+
+
 
     public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException {
         String result = this.elasticClientService.executeGetApi("/*/_settings");

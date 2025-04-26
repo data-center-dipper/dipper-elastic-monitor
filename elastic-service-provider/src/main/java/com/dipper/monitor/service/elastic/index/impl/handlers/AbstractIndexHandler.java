@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.utils.elastic.IndexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,11 +16,11 @@ public abstract class AbstractIndexHandler {
 
 
     protected  ElasticClientService elasticClientService;
-    protected ElasticIndexService elasticIndexService;
+    protected ElasticRealIndexService elasticRealIndexService;
 
     public AbstractIndexHandler(ElasticClientService elasticClientService) {
         this.elasticClientService = elasticClientService;
-        elasticIndexService = SpringUtil.getBean(ElasticIndexService.class);
+        elasticRealIndexService = SpringUtil.getBean(ElasticRealIndexService.class);
     }
 
     protected IndexEntity convertToIndexEntity(JSONObject obj, boolean setting, boolean alians) throws IOException {

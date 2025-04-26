@@ -1,18 +1,14 @@
 package com.dipper.monitor.service.elastic.index.impl.handlers;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.alians.IndexAlians;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
-import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.index.ElasticIndexService;
-import com.dipper.monitor.service.elastic.index.impl.ElasticIndexServiceImpl;
 import com.dipper.monitor.utils.elastic.IndexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +49,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         String alians = indexFilterReq.getIndexAlians();
         Boolean indexFreeze = indexFilterReq.getFreeze();
 
-        List<IndexEntity> indexNames = elasticIndexService.listIndexList(false, false, null);
+        List<IndexEntity> indexNames = elasticRealIndexService.listIndexList(false, false, null);
 
         // todo: 未完待续
 
@@ -74,7 +70,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
             indexAnlansList.addAll(group.get(index));
         }
 
-        Map<String, IndexEntity> indexNamesMap = elasticIndexService.listIndexMap(false);
+        Map<String, IndexEntity> indexNamesMap = elasticRealIndexService.listIndexMap(false);
         List<IndexEntity> indexNames = new ArrayList<>();
         for (IndexAlians index : indexAnlansList) {
             indexNames.add(indexNamesMap.get(index.getIndex()));

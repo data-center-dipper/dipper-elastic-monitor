@@ -1,0 +1,12 @@
+package com.dipper.monitor.entity.elastic.template;
+
+import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import lombok.Data;
+
+/**
+ * es模板的详情信息
+ */
+@Data
+public class ElasticTemplateView extends EsTemplateEntity  {
+
+}

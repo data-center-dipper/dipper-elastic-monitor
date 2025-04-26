@@ -7,7 +7,7 @@ import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTempl
 
 import java.util.List;
 
-public interface ElasticTemplateService {
+public interface ElasticStoreTemplateService {
     /**
      * 仅仅 添加模版信息
      * @param esUnconvertedTemplate
@@ -18,13 +18,6 @@ public interface ElasticTemplateService {
     EsTemplateEntity updateTemplate(EsTemplateEntity esTemplateEntity);
     void deleteTemplate(Long id);
     List<EsTemplateEntity> getAllTemplates();
-
-    /**
-     * 预览生成的模版
-     * @param esUnconvertedTemplate
-     * @return
-     */
-    JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
 
     /**
      * 添加模版信息，并实时生效,滚动索引

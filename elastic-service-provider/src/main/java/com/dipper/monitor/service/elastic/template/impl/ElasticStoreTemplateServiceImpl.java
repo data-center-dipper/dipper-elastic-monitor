@@ -6,7 +6,7 @@ import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
-import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
+import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
@@ -19,14 +19,14 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ElasticTemplateServiceImpl implements ElasticTemplateService {
+public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateService {
 
     @Autowired
     private EsTemplateMapper esTemplateMapper;
     @Autowired
     private ElasticHealthService elasticHealthService;
     @Autowired
-    private ElasticTemplateService elasticTemplateService;
+    private ElasticStoreTemplateService elasticStoreTemplateService;
 
 
     @Override
@@ -87,22 +87,17 @@ public class ElasticTemplateServiceImpl implements ElasticTemplateService {
         return esTemplateMapper.getAllTemplates();
     }
 
-    @Override
-    public JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
-        PreviewTemplateHandler  previewTemplateHandler = new PreviewTemplateHandler();
-        return previewTemplateHandler.previewTemplate(esUnconvertedTemplate);
-    }
+
 
     @Override
     public void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
         addOrUpdateTemplate(esUnconvertedTemplate);
         rollTemplate(esUnconvertedTemplate);
-
     }
 
     @Override
     public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
-        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,elasticTemplateService);
+        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService, elasticStoreTemplateService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
     }
 

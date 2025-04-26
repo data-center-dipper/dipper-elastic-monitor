@@ -1,41 +1,36 @@
 package com.dipper.monitor.service.elastic.template.impl.handlers;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.segments.SegmentMessage;
 import com.dipper.monitor.entity.elastic.shard.ShardEntity;
-import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
-import org.springframework.beans.BeanUtils;
 
 @Slf4j
 public class StatTemplateHandler {
 
     private ElasticClientService elasticClientService;
-    private ElasticIndexService elasticIndexService;
+    private ElasticRealIndexService elasticRealIndexService;
     private ElasticShardService elasticShardService;
     private ElasticSegmentService elasticSegmentService;
     private LifecyclePoliciesService lifecyclePoliciesService;
 
     public StatTemplateHandler(ElasticClientService elasticClientService,
-                               ElasticIndexService elasticIndexService,
+                               ElasticRealIndexService elasticRealIndexService,
                                ElasticShardService elasticShardService,
                                ElasticSegmentService elasticSegmentService,
                                LifecyclePoliciesService lifecyclePoliciesService) {
         this.elasticClientService = elasticClientService;
-        this.elasticIndexService = elasticIndexService;
+        this.elasticRealIndexService = elasticRealIndexService;
         this.elasticShardService = elasticShardService;
         this.elasticSegmentService = elasticSegmentService;
         this.lifecyclePoliciesService = lifecyclePoliciesService;
@@ -47,7 +42,7 @@ public class StatTemplateHandler {
         Map<String, EsLifeCycleManagement> lifeErrors = getLifeCycleBadMap();
         log.info("生命周期检查耗时: {} ms", System.currentTimeMillis() - startTime);
 
-        Map<String, IndexEntity> indexMap = elasticIndexService.listIndexMap(false);
+        Map<String, IndexEntity> indexMap = elasticRealIndexService.listIndexMap(false);
         log.info("索引列表获取耗时: {} ms", System.currentTimeMillis());
 
         Map<String, List<ShardEntity>> listShard = elasticShardService.listShardMap();
