@@ -32,11 +32,11 @@ public interface ElasticTemplateService {
      * @param esUnconvertedTemplate
      * @return
      */
-    void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
+    void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception;
 
     /**
      * 滚动模版
      * @param esUnconvertedTemplate
      */
-    void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
+    void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception;
 }

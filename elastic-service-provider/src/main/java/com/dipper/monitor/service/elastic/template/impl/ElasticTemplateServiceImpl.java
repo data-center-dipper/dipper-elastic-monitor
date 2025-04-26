@@ -25,6 +25,8 @@ public class ElasticTemplateServiceImpl implements ElasticTemplateService {
     private EsTemplateMapper esTemplateMapper;
     @Autowired
     private ElasticHealthService elasticHealthService;
+    @Autowired
+    private ElasticTemplateService elasticTemplateService;
 
 
     @Override
@@ -92,15 +94,15 @@ public class ElasticTemplateServiceImpl implements ElasticTemplateService {
     }
 
     @Override
-    public void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
+    public void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
         addOrUpdateTemplate(esUnconvertedTemplate);
         rollTemplate(esUnconvertedTemplate);
 
     }
 
     @Override
-    public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
-        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService);
+    public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
+        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,elasticTemplateService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
     }
 

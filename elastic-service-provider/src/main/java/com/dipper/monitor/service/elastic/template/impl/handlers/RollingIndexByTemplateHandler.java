@@ -4,6 +4,7 @@ import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.enums.elastic.RollingIndexEnum;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
+import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,12 +13,14 @@ public class RollingIndexByTemplateHandler {
 
 
     private ElasticHealthService elasticHealthService;
+    private ElasticTemplateService elasticTemplateService;
 
-    public RollingIndexByTemplateHandler(ElasticHealthService elasticHealthService) {
+    public RollingIndexByTemplateHandler(ElasticHealthService elasticHealthService, ElasticTemplateService elasticTemplateService) {
         this.elasticHealthService = elasticHealthService;
+        this.elasticTemplateService = elasticTemplateService;
     }
 
-    public void rollIndexByTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
+    public void rollIndexByTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
         ClusterHealth healthData = elasticHealthService.getHealthData();
         if (healthData == null) {
             throw new RuntimeException("集群健康状态异常");
@@ -43,7 +46,7 @@ public class RollingIndexByTemplateHandler {
         deleteFeatureAndRollToDayCreateFutureIndex(esUnconvertedTemplate);
     }
 
-    private void deleteFeatureAndRollToDayCreateFutureIndex(EsUnconvertedTemplate esUnconvertedTemplate) {
+    private void deleteFeatureAndRollToDayCreateFutureIndex(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
         Integer rollingPeriod = esUnconvertedTemplate.getRollingPeriod();
         String indexPatterns = esUnconvertedTemplate.getIndexPatterns();
 
@@ -53,7 +56,7 @@ public class RollingIndexByTemplateHandler {
         RollingIndexEnum rollingIndexEnum = RollingIndexEnum.fromDays(rollingPeriod);
         switch (rollingIndexEnum) {
             case NONE:
-                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate);
+                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate,elasticTemplateService);
                 notRollingIndexHandler.handle();
             case DAILY:
                 DailyRollingIndexHandler dailyRollingIndexHandler = new DailyRollingIndexHandler(esUnconvertedTemplate);

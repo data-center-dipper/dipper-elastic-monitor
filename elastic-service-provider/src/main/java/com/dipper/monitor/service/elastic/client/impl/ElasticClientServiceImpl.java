@@ -161,6 +161,20 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         return false;
     }
 
+    @Override
+    public String executeDeleteApi(String apiUrl, HttpEntity entity) throws IOException {
+        Response response = null;
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+        if (entity != null) {
+            response = elasticClientProxyService.performRequest(buildRequest(RequestMethod.DELETE.name(), apiUrl, Collections.emptyMap(), entity, this.commonHeaders));
+        } else {
+            response = elasticClientProxyService.performRequest(new Request(RequestMethod.DELETE.name(), apiUrl));
+        }
+        String responseData = EntityUtils.toString(response.getEntity());
+        return responseData;
+    }
+
     public Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
                                  HttpEntity entity, Header... headers) {
         Request request = new Request(method, endPoint);

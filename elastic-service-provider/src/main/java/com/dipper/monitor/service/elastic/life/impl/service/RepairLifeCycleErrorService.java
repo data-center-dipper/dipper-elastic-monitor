@@ -21,7 +21,8 @@ public class RepairLifeCycleErrorService  extends AbstractLifeCycleError {
     }
 
     public String repairLifeCycleError() throws IOException {
-        List<EsLifeCycleManagement> list = lifecyclePoliciesService.getLifeCycleList();
+//        List<EsLifeCycleManagement> list = lifecyclePoliciesService.getLifeCycleList();
+        List<JSONObject> list = null;
         if (list.isEmpty()) {
             builder.append("未有异常的生命周期\n");
             return builder.toString();

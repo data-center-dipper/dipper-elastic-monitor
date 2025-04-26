@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
+import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.service.elastic.overview.OverviewService;
@@ -72,7 +73,7 @@ public class OverviewController {
     @PostMapping("/getLifeCycleError")
     public JSONObject getLifeCycleError(PageReq pageReq) {
         try {
-            List<JSONObject>  clusterError = overviewService.getLifeCycleError(pageReq);
+            List<EsLifeCycleManagement>  clusterError = overviewService.getLifeCycleError(pageReq);
             return ResultUtils.onSuccess(clusterError);
         } catch (IllegalArgumentException e) {
             log.error("异常", e);

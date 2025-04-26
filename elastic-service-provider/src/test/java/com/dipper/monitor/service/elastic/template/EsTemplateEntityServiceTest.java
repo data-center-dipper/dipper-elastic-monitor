@@ -160,7 +160,7 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
      * 滚动不带时间的模版
      */
     @Test
-    public void rollTemplate1() {
+    public void rollTemplate1() throws Exception {
         String content = "{\"settings\":{\"index\":{\"number_of_shards\":4,\"number_of_replicas\":0,\"translog\":{\"flush_threshold_size\":\"1024mb\",\"retention\":{\"size\":\"32mb\",\"age\":\"1h\"},\"generation_threshold_size\":\"128mb\",\"durability\":\"async\"},\"refresh_interval\":\"60s\",\"merge\":{\"policy\":{\"max_merge_at_once\":\"30\",\"segments_per_tier\":\"60\",\"floor_segment\":\"10mb\",\"max_merged_segment\":\"1gb\"},\"scheduler\":{\"max_thread_count\":1,\"auto_throttle\":true,\"max_merge_count\":100}},\"lifecycle\":{\"name\":\"securitylog-flow-policy\",\"rollover_alias\":\"ailpha-securitylog-flow-yyyyMMdd\"},\"mapping\":{\"ignore_malformed\":true},\"unassigned\":{\"node_left\":{\"delayed_timeout\":\"10m\"}},\"search\":{\"slowlog\":{\"level\":\"info\",\"threshold\":{\"query\":{\"info\":\"10s\"},\"fetch\":{\"info\":\"5s\"}}}},\"indexing\":{\"slowlog\":{\"level\":\"info\",\"threshold\":{\"index\":{\"info\":\"5s\"}}}}}},\"mappings\":{\"_doc\":{\"properties\":{\"example_field\":{\"type\":\"text\"}}}}}";
         System.out.println(content);
 

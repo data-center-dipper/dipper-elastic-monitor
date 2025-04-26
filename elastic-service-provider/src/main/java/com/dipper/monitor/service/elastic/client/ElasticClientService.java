@@ -31,4 +31,6 @@ public interface ElasticClientService {
      Response executePutApiReturnResponse(String api, HttpEntity nStringEntity);
 
      boolean executeHeadApi(String api);
+
+     public String executeDeleteApi(String apiUrl, HttpEntity entity) throws IOException;
 }

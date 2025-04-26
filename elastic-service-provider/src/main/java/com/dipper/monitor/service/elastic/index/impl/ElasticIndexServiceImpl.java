@@ -7,24 +7,35 @@ import com.alibaba.fastjson.JSONPath;
 import com.dipper.monitor.entity.elastic.alians.IndexAlians;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
+import com.dipper.monitor.entity.elastic.index.IndexSetting;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
+import com.dipper.monitor.enums.elastic.IndexOperatorType;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticIndexService;
+import com.dipper.monitor.service.elastic.index.IndexOneOperatorService;
+import com.dipper.monitor.service.elastic.index.IndexStatusService;
+import com.dipper.monitor.service.elastic.index.impl.handlers.*;
+import com.dipper.monitor.service.elastic.index.impl.thread.IndexSettingCallable;
 import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
+import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.elastic.BytesUtil;
 import com.dipper.monitor.utils.elastic.EsDateUtils;
 import com.dipper.monitor.utils.elastic.IndexUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +43,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,6 +68,10 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
 
     @Autowired
     private LifecyclePoliciesService lifecyclePoliciesService;
+    @Autowired
+    private IndexStatusService indexStatusService;
+    @Autowired
+    private IndexOneOperatorService indexOneOperatorService;
 
 
     private Cache<String, Object> cache;
@@ -65,6 +81,8 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
             30, 1L, TimeUnit.HOURS, queue,
             (ThreadFactory) new CommonThreadFactory("elasticIndexService"),
             new ThreadPoolExecutor.DiscardOldestPolicy());
+
+    ListeningExecutorService executorService = MoreExecutors.listeningDecorator(delegate);
 
     @PostConstruct
     public void init() {
@@ -86,101 +104,24 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
         return indexDocCount.longValue();
     }
 
-    private IndexEntity convertToIndexEntity(JSONObject obj, boolean setting, boolean alians) throws IOException {
-        String health = obj.getString("health");
-        String status = obj.getString("status");
-        String index = obj.getString("index");
-        if (health == null || StringUtils.isBlank(health) || "null".equals(health)) {
-            health = "empty";
-        }
-        IndexEntity indexEntity = new IndexEntity();
-        indexEntity.setHealth(health)
-                .setStatus(status)
-                .setIndex(index)
-                .setUuid(obj.getString("uuid"))
-                .setPri(obj.getInteger("pri"))
-                .setRep(obj.getInteger("rep"))
-                .setDocsCount(Long.valueOf(obj.getLongValue("docs.count")))
-                .setDocsDeleted(Long.valueOf(obj.getLongValue("docs.deleted")))
-                .setStoreSize(obj.getString("store.size"))
-                .setPriStoreSize(obj.getString("pri.store.size"));
-
-        if (setting && StringUtils.isNotBlank(index) && !IndexUtils.isIndexNameContainSpecialChar(index)) {
-            String api = index + "/_settings";
-            try {
-                String settings = elasticClientService.executeGetApi(api);
-                indexEntity.setSettings(settings);
-            } catch (IOException e) {
-                log.error("获取索引setting失败", e);
-            }
-        }
-        if (alians && StringUtils.isNotBlank(index) && !IndexUtils.isIndexNameContainSpecialChar(index)) {
-            String api = index + "/_alias";
-            try {
-                String aliases = elasticClientService.executeGetApi(api);
-                indexEntity.setAlians(aliases);
-            } catch (IOException e) {
-                log.error("获取索引：{} 别名信息异常:{}", index, e.getMessage());
-            }
-        }
-        return indexEntity;
-    }
 
     public Map<String, IndexEntity> listIndexMap(boolean setting) throws IOException {
-        String response = elasticClientService.executeGetApi(ElasticRestApi.INDEX_LIST.getApiPath());
-        JSONArray jsonArray = JSON.parseArray(response);
-        Map<String, IndexEntity> map = new HashMap<>();
-        jsonArray.forEach(jsonObject -> {
-            JSONObject obj = (JSONObject) jsonObject;
-            try {
-                IndexEntity indexEntity = convertToIndexEntity(obj, setting, false);
-                map.put(obj.getString("index"), indexEntity);
-            } catch (IOException e) {
-                log.error("处理索引数据时发生错误", e);
-            }
-        });
+        IndexMapHandler indexMapHandler = new IndexMapHandler(elasticClientService);
+        Map<String, IndexEntity> map = indexMapHandler.listIndexMap(setting);
         return map;
     }
 
     public List<IndexEntity> listIndexList(boolean setting, boolean alians, String status) throws IOException {
-        String response = elasticClientService.executeGetApi(ElasticRestApi.INDEX_LIST.getApiPath());
-        JSONArray jsonArray = JSON.parseArray(response);
-        List<IndexEntity> list = new ArrayList<>();
-        for (Object object : jsonArray) {
-            JSONObject obj = (JSONObject) object;
-            String statusInDb = obj.getString("status");
-            if (StringUtils.isNotBlank(status) && !status.equals(statusInDb)) {
-                continue;
-            }
-            try {
-                IndexEntity indexEntity = convertToIndexEntity(obj, setting, alians);
-                list.add(indexEntity);
-            } catch (IOException e) {
-                log.error("处理索引数据时发生错误", e);
-            }
-        }
-        return list;
+        IndexListHandler indexListHandler = new IndexListHandler(elasticClientService);
+        List<IndexEntity> indexEntities = indexListHandler.listIndexList(setting, alians, status);
+        return indexEntities;
     }
 
-    public List<IndexEntity> listIndex(IndexFilterReq indexFilterReq) throws IOException {
-        Boolean aliansException = indexFilterReq.getAliansException();
+    public List<IndexEntity> searchIndex(IndexFilterReq indexFilterReq) throws IOException {
+        IndexSearchHandler indexListHandler = new IndexSearchHandler(elasticClientService);
+        List<IndexEntity> indexEntities = indexListHandler.searchIndex(indexFilterReq);
+        return indexEntities;
 
-        if (aliansException != null && aliansException.booleanValue()) {
-            return getAliansException();
-        }
-
-        String indexType = indexFilterReq.getIndexType();
-        String indexState = indexFilterReq.getIndexState();
-        String healthState = indexFilterReq.getHealthState();
-        Boolean feature = indexFilterReq.getFeature();
-        String alians = indexFilterReq.getIndexAlians();
-        Boolean indexFreeze = indexFilterReq.getFreeze();
-
-        List<IndexEntity> indexNames = listIndexList(false, false, null);
-
-        // todo: 未完待续
-
-        return indexNames;
     }
 
     private void setExtraLabel(List<IndexEntity> indexEntities) {
@@ -220,38 +161,6 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
         }
     }
 
-    private List<IndexEntity> getAliansException() throws IOException {
-        List<String> list = this.elasticAliansService.listExceptionAlians();
-
-        if (list.size() < 1) {
-            return Collections.emptyList();
-        }
-
-        Map<String, List<IndexAlians>> group = this.elasticAliansService.getAliansIndexMap();
-        List<IndexAlians> indexAnlansList = new ArrayList<>();
-        for (String index : list) {
-            indexAnlansList.addAll(group.get(index));
-        }
-
-        Map<String, IndexEntity> indexNamesMap = listIndexMap(false);
-        List<IndexEntity> indexNames = new ArrayList<>();
-        for (IndexAlians index : indexAnlansList) {
-            indexNames.add(indexNamesMap.get(index.getIndex()));
-        }
-    //    indexNames = BusinessRelationUtils.indexClassificationByPattern(indexNames, patterns);
-    //
-    //    Map<String, IndexSetting> indexSettingMap = this.indexGlobalSettingCache.getGlobalIndexSetting();
-    //    indexNames = setIndexFreeze(indexNames, indexSettingMap);
-    //    indexNames = this.esAliansService.getindexAlians(indexNames);
-        indexNames = setIndexCanWrite(indexNames);
-        indexNames = setIndexAlians(indexNames);
-        indexNames = setIndexDynamic(indexNames);
-        indexNames = setIndexSetting(indexNames);
-        return indexNames;
-    }
-
-
-
 
 
     private List<IndexEntity> filterByCanWrite(List<IndexEntity> indexNames) {
@@ -289,7 +198,7 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
 //        indexNames.stream().forEach(x -> {
 //            try {
 //                String index = x.getIndex();
-//                String mapping = this.esRestClient.executeGetApi1(index + "/_mapping?include_type_name=true");
+//                String mapping = this.elasticClientService.executeGetApi(index + "/_mapping?include_type_name=true");
 //                JSONObject obj = JSON.parseObject(mapping);
 //                String dynamic = (String)JSONPath.eval(obj, "$..mappings._doc.dynamic[0]");
 //                if (StringUtils.isBlank(dynamic)) {
@@ -306,51 +215,7 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
 //        return indexNames;
 //    }
 
-    public List<IndexEntity> setIndexAlians(List<IndexEntity> indexNames) {
-        Map<String, JSONObject> aliansMap = null;
-        try {
-            aliansMap = this.elasticAliansService.getAllAliansJson();
-        } catch (Exception e) {
-            log.error("获取ES所有别名异常：{}", e.getMessage(), e);
-        }
-        if (aliansMap == null) {
-            return indexNames;
-        }
-        for (IndexEntity item : indexNames) {
-            String index = item.getIndex();
-            JSONObject aliansJson = aliansMap.get(index);
-            if (aliansJson != null) {
-                List<String> aliansList = IndexUtils.getAliansListFromAliansSet(aliansJson);
-                item.setAlians(StringUtils.join(aliansList.toArray(), ","));
-                item.setAliansList(aliansList);
-            }
-        }
-        return indexNames;
-    }
 
-    public List<IndexEntity> setIndexCanWrite(List<IndexEntity> indexNames) throws IOException {
-        for (IndexEntity x : indexNames) {
-            String indexSetting = x.getSettings();
-            JSONObject indexSettingObj = JSON.parseObject(indexSetting);
-            String indexReadOnly = (String) JSONPath.eval(indexSettingObj, "$..settings.index.blocks.read_only[0]");
-            if ("true".equals(indexReadOnly)) {
-                x.setIndexCanWrite(Boolean.valueOf(false));
-                continue;
-            }
-            String canWrite = (String)JSONPath.eval(indexSettingObj, "$..settings.index.blocks.write[0]");
-            if ("false".equals(canWrite)) {
-                x.setIndexCanWrite(Boolean.valueOf(true));
-            } else if ("true".equals(canWrite)) {
-                x.setIndexCanWrite(Boolean.valueOf(false));
-            } else {
-                x.setIndexCanWrite(Boolean.valueOf(true));
-            }
-            String aliasResult = x.getAlians();
-            int writeCount = this.elasticAliansService.countAliansWrite(aliasResult);
-            x.setAlinasCanWrite(Integer.valueOf(writeCount));
-        }
-        return indexNames;
-    }
 
     public List<IndexEntity> filterByAlians(List<IndexEntity> indexNames, String aliansFilter) {
         List<IndexEntity> list = new ArrayList<>(indexNames.size());
@@ -368,10 +233,7 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
         return list;
     }
 
-    public List<IndexEntity> setIndexSetting(List<IndexEntity> indexNames) {
-        indexNames.stream().forEach(x -> x.setSettings(""));
-        return indexNames;
-    }
+
 
     @Deprecated
     private List<IndexEntity> filterByFrozen(List<IndexEntity> indexNames) {
@@ -394,7 +256,7 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
 
     private JSONArray getIndexSetting(JSONArray indexNames) {
         indexNames.stream().forEach(jsonObject -> {
-            JSONObject obj = (JSONObject)jsonObject;
+            JSONObject obj = (JSONObject) jsonObject;
             String index = obj.getString("index");
             if (StringUtils.isNotBlank(index) && !IndexUtils.isIndexNameContainSpecialChar(index)) {
                 String api = index + "/_settings";
@@ -428,909 +290,326 @@ public class ElasticIndexServiceImpl implements ElasticIndexService {
         return indexNames;
     }
 
-    @Deprecated
-    public JSONObject closeOneIndex(String index) {
-        if (StringUtils.isBlank(index)) {
-            return ResultUtils.onFail("索引名称不能为空");
+
+
+
+
+
+    public List<IndexEntity> listIndexByPrefix(boolean setting, String indexPrefix, String indexXing) throws IOException {
+        String api = "/_cat/indices/" + indexXing + "?format=json";
+        log.info("获取某种类型的索引：{}", api);
+        String res1 = this.elasticClientService.executeGetApi(api);
+        JSONArray jsonArray = JSON.parseArray(res1);
+
+        List<JSONObject> filteredList = jsonArray.toJavaList(JSONObject.class).stream()
+                .filter(jsonObject -> ((JSONObject) jsonObject).getString("index").startsWith(indexPrefix))
+                .collect(Collectors.toList());
+
+        log.info("前缀为 {} 的索引个数：{}", indexPrefix, filteredList.size());
+
+        List<List<JSONObject>> indexList = ListUtils.splitListBySize(filteredList, 200);
+        if (CollectionUtils.isEmpty(indexList)) {
+            return Collections.emptyList();
         }
-        if (index.trim().equals("*")) {
-            return ResultUtils.onFail("不能关闭所有索引");
+
+        List<Future<Map<String, IndexEntity>>> futureList = new ArrayList<>();
+        for (List<JSONObject> childList : indexList) {
+            log.info("多线程提交获取索引的设置：{}", childList.size());
+            ListenableFuture<Map<String, IndexEntity>> listenableFuture = this.executorService.submit(
+                    new IndexSettingCallable(childList, setting, this.elasticClientService));
+            futureList.add(listenableFuture);
         }
-        if (index.contains(",")) {
-            return ResultUtils.onFail("不支持一次关闭多个索引");
+
+        List<IndexEntity> allResult = new ArrayList<>();
+        for (Future<Map<String, IndexEntity>> future : futureList) {
+            try {
+                Map<String, IndexEntity> result = future.get(40L, TimeUnit.SECONDS);
+                if (result != null) {
+                    allResult.addAll(result.values());
+                }
+            } catch (Exception e) {
+                log.error("从多线程中获取broker jmx 执行结果异常：{} feature:{} isCancelled:{}",
+                        e.getMessage(), future.isDone(), future.isCancelled(), e);
+            }
         }
-        if (IndexUtils.isIndexNameContainSpecialChar(index)) {
-            log.info("索引包含特殊字符串不予关闭操作");
-            return ResultUtils.onFail("索引包含不允许的特殊字符，无法关闭");
+
+        log.info("获取多线程执行的总结果：{}", allResult.size());
+        return allResult;
+    }
+
+
+    public List<String> listIndexNameByPrefix(String indexPrefix, String indexXing) throws IOException {
+        String api = "/_cat/indices/" + indexXing + "?format=json";
+        log.info("获取某种类型的索引：{}", api);
+        String res1 = this.elasticClientService.executeGetApi(api);
+        JSONArray jsonArray = JSON.parseArray(res1);
+
+        List<String> indexNames = jsonArray.toJavaList(JSONObject.class).stream()
+                .map(jsonObject -> ((JSONObject) jsonObject).getString("index"))
+                .filter(index -> index.startsWith(indexPrefix))
+                .sorted(Collections.reverseOrder())
+                .collect(Collectors.toList());
+
+        log.info("获取前缀为 {} 的索引个数总结果：{}", indexPrefix, indexNames.size());
+        return indexNames;
+    }
+
+    public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException {
+        String result = this.elasticClientService.executeGetApi("/*/_settings");
+        if (StringUtils.isBlank(result)) {
+            return Collections.emptyMap();
         }
-        if (!index.contains("-")) {
-            log.info("索引不包含横杠不予冻结操作");
-            return ResultUtils.onFail("索引名必须包含'-'，无法执行关闭操作");
+
+        JSONObject settingsJson = JSON.parseObject(result);
+        Map<String, IndexSetting> indexMap = new HashMap<>(settingsJson.size());
+
+        settingsJson.forEach((index, jsonObject) -> {
+            JSONObject jsonObjectSetting = (JSONObject) jsonObject;
+            IndexSetting indexSetting = parseIndexSetting(index, jsonObjectSetting);
+            indexMap.put(index, indexSetting);
+        });
+
+        return indexMap;
+    }
+
+    private IndexSetting parseIndexSetting(String index, JSONObject jsonObjectSetting) {
+        IndexSetting indexSetting = new IndexSetting();
+        indexSetting.setSettingData(jsonObjectSetting);
+        indexSetting.setIndex(index);
+
+        Boolean frozen = jsonObjectSetting.getJSONObject("settings")
+                .getBoolean("index.frozen");
+        indexSetting.setFreeze(frozen == null ? false : frozen);
+
+        Boolean blocksWrite = jsonObjectSetting.getJSONObject("settings")
+                .getBoolean("index.blocks.write");
+        indexSetting.setBlocksWrite(blocksWrite == null ? false : blocksWrite);
+
+        return indexSetting;
+    }
+
+    public IndexSetting initOneIndexSetting(String index) {
+        String result = null;
+        try {
+            result = this.elasticClientService.executeGetApi("/" + index + "/_settings");
+        } catch (IOException e) {
+            log.error("获取 {} 索引的setting异常：{}", index, e.getMessage(), e);
+            return null;
         }
-        String[] indes = index.split("-");
-        String date = indes[indes.length - 2];
-        Integer nowDateTime = null;
+        if (StringUtils.isBlank(result)) {
+            return null;
+        }
+
+        JSONObject setting = JSON.parseObject(result);
+        JSONObject jsonObjectSetting = setting.getJSONObject(index);
+        return parseIndexSetting(index, jsonObjectSetting);
+    }
+
+
+
+
+
+
+    private boolean handleCustomStatistics(String index, IndexOperatorType indexOperatorType, String indexPrefix, String format) {
+        Boolean feature = isIndexFeature(index, indexPrefix, format);
+        Boolean indexNow = isIndexNow(index, indexPrefix, format);
+
+        if (feature.booleanValue()) {
+            switch (indexOperatorType) {
+                case CLOSE:
+                    log.warn("索引 {} 为特性索引，不允许关闭", index);
+                    return false;
+                case OPEN:
+                    log.warn("索引 {} 为特性索引，不允许打开", index);
+                    return false;
+                case FREEZE:
+                    log.warn("索引 {} 为特性索引，不允许冻结", index);
+                    return false;
+                default:
+                    break;
+            }
+        }
+
+        if (indexNow.booleanValue()) {
+            String indexPatternFromWeb = getIndexNowPrefix(indexPrefix, format);
+            List<String> list;
+            try {
+                list = listIndexNameByPrefix(indexPatternFromWeb, indexPatternFromWeb + "*");
+            } catch (Exception e) {
+                log.error("根据索引前缀 {} 获取索引异常：{}", indexPatternFromWeb, e.getMessage());
+                return false;
+            }
+            if (!list.isEmpty() && index.equals(list.get(0))) {
+                log.warn("索引 {} 是最新的，不允许操作", index);
+                return false;
+            }
+        }
+        return canDoAllOperator(index, indexOperatorType);
+    }
+
+
+    private JSONObject ailphaIntelligenceLibDataOperator(String index, IndexOperatorType indexOperatorType) {
+        log.warn("不允许操作索引: {}", index);
+        return ResultUtils.onFail("不允许操作该索引");
+    }
+
+    private boolean handlePeriodicStatistics(String index, IndexOperatorType indexOperatorType, String indexPrefix) {
+        int nowYear = EsDateUtils.getNowDateInt("yyyy");
+        int nowMonthInt = EsDateUtils.getNowDateInt("yyyyMMdd");
+        int preSevenEnd = Integer.parseInt("" + (nowYear - 1) + "1232");
+        int oneEnd = Integer.parseInt("" + nowYear + "0632");
+        int sevenEnd = Integer.parseInt("" + nowYear + "1232");
+
         String indexParttonFromWeb = null;
-        if (date.length() == 4) {
-            nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyy"));
-            indexParttonFromWeb = index.substring(0, index.indexOf(date) - 1);
-        } else if (date.length() == 6) {
-            nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyyMM"));
-            indexParttonFromWeb = index.substring(0, index.indexOf(date) - 1);
-        } else if (date.length() == 8) {
-            nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyyMMdd"));
-            indexParttonFromWeb = index.substring(0, index.indexOf(date) - 1);
+        if (preSevenEnd < nowMonthInt && nowMonthInt < oneEnd) {
+            indexParttonFromWeb = indexPrefix + "01";
+        } else if (oneEnd < nowMonthInt && nowMonthInt < sevenEnd) {
+            indexParttonFromWeb = indexPrefix + "07";
         }
-        int indexDateTimeInt = Integer.parseInt(date);
-        if (nowDateTime.intValue() < indexDateTimeInt) {
-            return ResultUtils.onFail("索引日期在未来，无法关闭");
+
+        if (indexParttonFromWeb == null) {
+            log.warn("无法确定索引模式: {}", index);
+            return false;
         }
-        try {
-            List<String> list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-            if (!list.isEmpty()) {
-                String lastIndexName = list.get(0);
-                if (index.equals(lastIndexName)) {
-                    return ResultUtils.onFail("此索引为最新索引，不能关闭");
-                }
-            }
-            JSONObject result = closeOneIndex(index);
-            return result;
-        } catch (Exception e) {
-            log.error("关闭索引操作异常：{}", e.getMessage(), e);
-            return ResultUtils.onFail("关闭索引失败，请检查相关配置或联系管理员");
-        }
-    }
 
-    public JSONObject closeOneIndex(String name) throws IOException {
-        JSONObject result = null;
-        try {
-            String response = elasticClientService.executePostApi("/" + name + "/_close",null);
-            result = JSON.parseObject(response);
-            if (result.containsKey("acknowledged") && result.getBooleanValue("acknowledged")) {
-            } else {
-                log.error("{}{}{}{}{}{}关闭索引时ES返回信息为：{}", new Object[] { (new Exception()).getStackTrace()[0].getMethodName(), " #^# ", "close", " #^# ", "FAIL", " #^# ", string });
-            }
-        } catch (Exception e) {
-            log.error("{}{}{}{}{}{}close index Fail", new Object[] { (new Exception()).getStackTrace()[0].getMethodName(), " #^# ", "get", " #^# ", "FAIL", " #^# ", e });
-        }
-        return result;
-    }
-
-@Deprecated
-public JSONObject deleteIndex(String index) {
-    if (StringUtils.isBlank(index)) {
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.empty"));
-    }
-    if (index.trim().equals("*")) {
-        return ResultUtils.onFail(I18nUtils.getMessage("es.delee.index.all.error"));
-    }
-    if (index.contains(",")) {
-        return ResultUtils.onFail(I18nUtils.getMessage("es.delete.index.all.error"));
-    }
-    if (IndexUtils.isIndexNameContainSpecialChar(index)) {
-        log.info("索引包含特殊字符串不予删除操作");
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.notAllow.del.error"));
-    }
-    if (!index.contains("-")) {
-        log.info("索引不包含横杠不予删除操作");
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.notAllow.del.error"));
-    }
-    String[] indes = index.split("-");
-    String date = indes[indes.length - 2];
-    if (!BusinessRelationUtils.isAllNumber(date)) {
-        log.info("索引倒数第二个信息不是数字不予删除操作");
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.notAllow.del.error"));
-    }
-    Integer nowDateTime = null;
-    String indexParttonFromWeb = null;
-    if (date.length() == 4) {
-        nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyy"));
-        indexParttonFromWeb = index.substring(0, index.indexOf(date) - 1) + "-" + index.substring(0, index.indexOf(date) - 1);
-    } else if (date.length() == 6) {
-        nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyyMM"));
-        indexParttonFromWeb = index.substring(0, index.indexOf(date) - 1) + "-" + index.substring(0, index.indexOf(date) - 1);
-    } else if (date.length() == 8) {
-        nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyyMMdd"));
-        indexParttonFromWeb = index.substring(0, index.indexOf(date) - 1) + "-" + index.substring(0, index.indexOf(date) - 1);
-    }
-    int indexDateTimeInt = Integer.parseInt(date);
-    try {
-        if (nowDateTime.intValue() == indexDateTimeInt) {
-            List<String> list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-            if (!list.isEmpty()) {
-                String lastIndexName = list.get(0);
-                if (index.equals(lastIndexName)) {
-                    return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.notAllow.del.error"));
-                }
-            }
-        }
-        JSONObject result = this.esRestClient.deleteIndex(index);
-        return result;
-    } catch (Exception e) {
-        log.error("删除索引操作异常：{}", e.getMessage(), e);
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.delete.failed"));
-    }
-}
-
-@Deprecated
-public boolean isIndexCanWrite(String index) throws IOException {
-    String indexSetting = this.esRestClient.executeGetApi1(index + "/_settings");
-    JSONObject indexSettingObj = JSON.parseObject(indexSetting);
-    String indexReadOnly = (String)JSONPath.eval(indexSettingObj, "$..settings.index.blocks.read_only[/XMLSchemaType]");
-    if ("true".equals(indexReadOnly)) {
-        return false;
-    }
-    String canWrite = (String)JSONPath.eval(indexSettingObj, "$..settings.index.blocks.write[0]");
-    if ("false".equals(canWrite))
-        return true;
-    return !"true".equals(canWrite);
-}
-
-public JSONObject forceFlushIndexs(String indexs) throws IOException {
-    JSONObject response;
-    if (indexs == null) {
-        return ResultUtils.onFail(I18nUtils.getMessage("params.illegal"));
-    }
-    String api = indexs + "/_flush";
-    String result = this.esRestClient.executePostApi(api, null);
-    JSONObject json = JSON.parseObject(result);
-    if (json.containsKey("_shards")) {
-        Integer failed = json.getJSONObject("_shards").getInteger("failed");
-        if (failed.intValue() == 0) {
-            response = ResultUtils.onSuccess(I18nUtils.getMessage("es.index.refresh.success"));
-        } else {
-            response = ResultUtils.onFail(I18nUtils.getMessage("es.index.refresh.error"));
-        }
-    } else {
-        response = ResultUtils.onFail(I18nUtils.getMessage("es.index.refresh.error"));
-    }
-    return response;
-}
-
-public JSONObject forceClearIndexs(String indexs) throws IOException {
-    JSONObject response;
-    if (indexs == null) {
-        return ResultUtils.onFail(I18nUtils.getMessage("params.illegal"));
-    }
-    String api = indexs + "/_cache/clear";
-    String result = this.esRestClient.executePostApi(api, null);
-    JSONObject json = JSON.parseObject(result);
-    if (json.containsKey("_shards")) {
-        Integer failed = json.getJSONObject("_shards").getInteger("failed");
-        if (failed.intValue() == 0) {
-            response = ResultUtils.onSuccess(I18nUtils.getMessage("es.index.clean.success"));
-        } else {
-            response = ResultUtils.onFail(I18nUtils.getMessage("es.index.clean.error"));
-        }
-    } else {
-        response = ResultUtils.onFail(I18nUtils.getMessage("es.index.clean.error"));
-    }
-    return response;
-}
-
-public JSONObject forceRefreshIndex(String indexs) throws IOException {
-    JSONObject response;
-    if (indexs == null) {
-        return ResultUtils.onFail(I18nUtils.getMessage("params.illegal"));
-    }
-    String api = indexs + "/_refresh";
-    String result = this.esRestClient.executePostApi(api, null);
-    JSONObject json = JSON.parseObject(result);
-    if (json.containsKey("_shards")) {
-        Integer failed = json.getJSONObject("_shards").getInteger("failed");
-        if (failed.intValue() == 0) {
-            response = ResultUtils.onSuccess(I18nUtils.getMessage("es.index.refresh.success"));
-        } else {
-            response = ResultUtils.onFail(I18nUtils.getMessage("es.index.fresh.failed"));
-        }
-    } else {
-        response = ResultUtils.onFail(I18nUtils.getMessage("es.index.fresh.failed"));
-    }
-    return response;
-}
-
-@Deprecated
-public String closeIndexs(String indexs) throws IOException {
-    String result = this.esRestClient.executePostApi(indexs + "/_close", null);
-    if (StringUtils.isNotBlank(indexs)) {
-        String[] indexes = indexs.split(",");
-        for (String item : indexes) {
-            this.indexGlobalSettingCache.initOneIndexSetting(item);
-        }
-    }
-    return result;
-}
-
-public String openIndexs(String indexs) throws IOException {
-    String result = this.esRestClient.executePostApi(indexs + "/_open", null);
-    if (StringUtils.isNotBlank(indexs)) {
-        String[] indexes = indexs.split(",");
-        for (String item : indexes) {
-            this.indexGlobalSettingCache.initOneIndexSetting(item);
-        }
-    }
-    return result;
-}
-
-@Deprecated
-public String delIndexs(String indexs) throws IOException {
-    String result = this.esRestClient.executeDelApi1(indexs, null);
-    if (StringUtils.isNotBlank(indexs)) {
-        String[] indexes = indexs.split(",");
-        for (String item : indexes) {
-            this.indexGlobalSettingCache.initOneIndexSetting(item);
-        }
-    }
-    return result;
-}
-
-@Deprecated
-public String frozenIndexs(String indexs) throws IOException {
-    String result = this.esRestClient.executePostApi(indexs + "/_freeze", null);
-    if (StringUtils.isNotBlank(indexs)) {
-        String[] indexes = indexs.split(",");
-        for (String item : indexes) {
-            this.indexGlobalSettingCache.initOneIndexSetting(item);
-        }
-    }
-    return result;
-}
-
-public String unFrozenIndexs(String indexs) throws IOException {
-    String result = this.esRestClient.executePostApi(indexs + "/_unfreeze", null);
-    if (StringUtils.isNotBlank(indexs)) {
-        String[] indexes = indexs.split(",");
-        for (String item : indexes) {
-            this.indexGlobalSettingCache.initOneIndexSetting(item);
-        }
-    }
-    return result;
-}
-
-public String segmentForceMerge(String index) throws IOException {
-    if (StringUtils.isBlank(index)) {
-        return "索引信息为空";
-    }
-    String result = this.esRestClient.executePostApi(index + "/_forcemerge", null);
-    return result;
-}
-
-public String getClusterHealth() {
-    String result = executeGetApi(EsRestApi.CLUSTER_HEALTH.getApi());
-    return result;
-}
-
-public List<IndexEntity> listIndexByPrefix(boolean setting, String indexPrefxi, String indexXing) throws IOException {
-    String api = "/_cat/indices/" + indexXing + "?format=json";
-    log.info("获取某种类型的索引：{}", api);
-    String res1 = this.esRestClient.executeGetApi1(api);
-    JSONArray jsonArray = JSON.parseArray(res1);
-
-    List<JSONObject> list = new ArrayList<>();
-    jsonArray.stream().forEach(jsonObject -> {
-        JSONObject obj = (JSONObject)jsonObject;
-        String index = obj.getString("index");
-        if (index.startsWith(indexPrefxi)) {
-            list.add(obj);
-        }
-    });
-    log.info("某种前缀的索引个数：{}", Integer.valueOf(list.size()));
-
-    List<List<JSONObject>> indexList = ListUtils.splitList(list, 200);
-    if (indexList == null) {
-        return Collections.emptyList();
-    }
-
-    List<Future<Map<String, IndexEntity>>> featureList = new ArrayList<>();
-    for (List<JSONObject> childList : indexList) {
-        log.info("多线程提交获取索引的设置：{}", Integer.valueOf(childList.size()));
-        this.traceIdKd.set("thread-get-index-setting");
-        ListenableFuture listenableFuture = this.executorService.submit((Callable)new IndexSettingCallable(childList, setting, this.esRestClient, this.traceIdKd));
-        featureList.add(listenableFuture);
-        this.traceIdKd.remove();
-    }
-
-    List<IndexEntity> allResult = new ArrayList<>();
-    Iterator<Future<Map<String, IndexEntity>>> iterator = featureList.iterator();
-    while (iterator.hasNext()) {
-        Future<Map<String, IndexEntity>> childTask = iterator.next();
-        try {
-            if (childTask == null) {
-                continue;
-            }
-            Map<String, IndexEntity> result = childTask.get(40L, TimeUnit.SECONDS);
-            if (result != null) {
-                for (Map.Entry<String, IndexEntity> item : result.entrySet()) {
-                    allResult.add(item.getValue());
-                }
-            }
-        } catch (Exception e) {
-            log.error("从多线程中获取broker jmx 执行结果异常：{} feature:{} isCancelled:{}", new Object[] { e.getMessage(), Boolean.valueOf(childTask.isDone()), Boolean.valueOf(childTask.isCancelled()), e });
-        }
-    }
-
-    log.info("获取多线程执行的总结果：{}", Integer.valueOf(allResult.size()));
-    return allResult;
-}
-
-public List<String> listIndexNameByPrefix(String indexPrefxi, String indexXing) throws IOException {
-    String api = "/_cat/indices/" + indexXing + "?format=json";
-    log.info("获取某种类型的索引：{}", api);
-    String res1 = this.esRestClient.executeGetApi1(api);
-    JSONArray jsonArray = JSON.parseArray(res1);
-
-    List<String> list = new ArrayList<>();
-    Iterator<Object> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-        JSONObject obj = (JSONObject)iterator.next();
-        String index = obj.getString("index");
-        if (index.startsWith(indexPrefxi)) {
-            list.add(index);
-        }
-    }
-
-    list.sort((o1, o2) -> o2.compareTo(o1));
-    log.info("获取前缀为{} 索引个数总结果：{}", indexPrefxi, Integer.valueOf(list.size()));
-    return list;
-}
-
-public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException {
-    String result = this.esRestClient.executeGetApi1("/*/_settings");
-    if (StringUtils.isBlank(result)) {
-        return Collections.emptyMap();
-    }
-
-    JSONObject setting = JSON.parseObject(result);
-    Map<String, IndexSetting> indexMap = new HashMap<>(1000);
-    for (Map.Entry<String, Object> item : (Iterable<Map.Entry<String, Object>>)setting.entrySet()) {
-        String index = item.getKey();
-        JSONObject jsonObjectSetting = (JSONObject)item.getValue();
-
-        IndexSetting indexSetting = parseIndexSetting(index, jsonObjectSetting);
-
-        indexMap.put(index, indexSetting);
-    }
-    return indexMap;
-}
-
-private IndexSetting parseIndexSetting(String index, JSONObject jsonObjectSetting) {
-    IndexSetting indexSetting = new IndexSetting();
-    indexSetting.setSettingData(jsonObjectSetting);
-    indexSetting.setIndex(index);
-
-    Object frozen = JSONPath.eval(jsonObjectSetting, "$.settings.index.frozen");
-    if (frozen == null) {
-        indexSetting.setFreeze(Boolean.valueOf(false));
-    } else {
-        String frozenStr = (String)frozen;
-        if ("true".equals(frozenStr)) {
-            indexSetting.setFreeze(Boolean.valueOf(true));
-        } else {
-            indexSetting.setFreeze(Boolean.valueOf(false));
-        }
-    }
-
-    String canWrite = (String)JSONPath.eval(jsonObjectSetting, "$.settings.index.blocks.write[0]");
-    if ("false".equals(canWrite)) {
-        indexSetting.setBlocksWrite(Boolean.valueOf(false));
-    } else if ("true".equals(canWrite)) {
-        indexSetting.setBlocksWrite(Boolean.valueOf(true));
-    } else {
-        indexSetting.setBlocksWrite(Boolean.valueOf(false));
-    }
-    return indexSetting;
-}
-
-public IndexSetting initOneIndexSetting(String index) {
-    String result = null;
-    try {
-        result = this.esRestClient.executeGetApi1("/" + index + "/_settings");
-    } catch (IOException e) {
-        log.error("获取{}索引的setting异常：{}", new Object[] { index, e.getMessage(), e });
-    }
-    if (StringUtils.isBlank(result)) {
-        return null;
-    }
-
-    JSONObject setting = JSON.parseObject(result);
-    JSONObject jsonObjectSetting = setting.getJSONObject(index);
-    IndexSetting indexSetting = parseIndexSetting(index, jsonObjectSetting);
-    return indexSetting;
-}
-
-@Deprecated
-public List<String> getIndexCanClose(String indexs) throws IOException {
-    String[] indexNames = indexs.split(",");
-    List<String> canFreezeIndex = new ArrayList<>();
-    for (String indexName : indexNames) {
-        if (IndexUtils.isIndexNameContainSpecialChar(indexName)) {
-            log.error("索引：{}包含特殊字符串不予关闭操作", indexName);
-        }
-        else if (!indexName.contains("-")) {
-            log.error("索引：{}不包含横杠不予关闭操作", indexName);
-        }
-        else {
-            String[] indes = indexName.split("-");
-            String date = indes[indes.length - 2];
-
-            if (!BusinessRelationUtils.isAllNumber(date)) {
-                log.error("索引：{}倒数第二个信息不是数字不予关闭操作", indexName);
-            }
-            else {
-                Integer nowDateTime = null;
-                if (date.length() == 4) {
-                    nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyy"));
-                } else if (date.length() == 6) {
-                    nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyyMM"));
-                } else if (date.length() == 8) {
-                    nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt("yyyyMMdd"));
-                }
-
-                int indexDateTimeInt = Integer.parseInt(date);
-
-                if (nowDateTime.intValue() <= indexDateTimeInt) {
-                    log.error("索引：{}是今天或者为了索引不予关闭操作", indexName);
-                }
-                else if (!isIndexOpen(indexName)) {
-                    log.error("索引：{}关闭状态不予关闭操作", indexName);
-                }
-                else {
-                    canFreezeIndex.add(indexName);
-                }
-            }
-        }
-    }
-    return canFreezeIndex;
-}
-
-public boolean isIndexOpen(String indexName) throws IOException {
-    String result = this.esRestClient.executeGetApi1("/_cat/indices/" + indexName + "?format=json");
-    JSONArray array = JSONArray.parseArray(result);
-    JSONObject obj = array.getJSONObject(0);
-    String status = obj.getString("status");
-    return "open".equals(status);
-}
-
-private boolean isIndexClose(String index) throws IOException {
-    String result = this.esRestClient.executeGetApi1("/_cat/indices/" + index + "?format=json");
-    JSONArray array = JSONArray.parseArray(result);
-    JSONObject obj = array.getJSONObject(0);
-    String status = obj.getString("status");
-    return "close".equals(status);
-}
-
-private boolean isIndexFreeze(String indexName) {
-    Map<String, IndexSetting> indexSettingMap = this.indexGlobalSettingCache.getGlobalIndexSetting();
-    IndexSetting indexSetting = indexSettingMap.get(indexName);
-    if (indexSetting == null) {
-        indexSetting = this.indexGlobalSettingCache.initOneIndexSetting(indexName);
-    }
-    if (indexSetting.getFreeze().booleanValue()) {
-        return true;
-    }
-    return false;
-}
-
-public JSONObject indexOperator(String index, IndexOperatorType indexOperatorType) {
-    if (index.startsWith("ailpha-baas-alarm-"))
-        return ailphaBaasAlarmOperator(index, indexOperatorType);
-    if (index.startsWith("ailpha-baas-event-"))
-        return ailphaBaasEventOperator(index, indexOperatorType);
-    if (index.startsWith("ailpha-baas-flow-"))
-        return ailphaBaasFlowOperator(index, indexOperatorType);
-    if (index.startsWith("ailpha-baas-log-"))
-        return ailphaBaasLogOperator(index, indexOperatorType);
-    if (index.startsWith("ailpha-custom-alarm-"))
-        return ailphaCustomeAlarmOperator(index, indexOperatorType);
-    if (index.startsWith("ailpha-statistics-all-")) {
-        return ailphaStaticAllOperator1(index, indexOperatorType);
-    }
-    if (index.startsWith("ailpha-statistics-custom-")) {
-        return ailphaStaticCustomeOperator1(index, indexOperatorType);
-    }
-    if (index.startsWith("threat_intelligence_lib_data"))
-        return ailphaIntelligenceLibDataOperator(index, indexOperatorType);
-    if (index.startsWith("."))
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.notAllow.failed"));
-    if (index.startsWith("ailpha-sended-alarm")) {
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.notAllow.failed"));
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaStaticCustomeOperator1(String index, IndexOperatorType indexOperatorType) {
-    String indexPrefix = "ailpha-statistics-custom-";
-    String format = this.esTemplateService.getTemplateDatePattern("ailpha-statistics-custom");
-
-    Boolean feature = isIndexFeature(index, indexPrefix, format);
-    Boolean indexNow = isIndexNow(index, indexPrefix, format);
-    if (feature.booleanValue()) {
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.close.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.open.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.FREEZE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.freeze.failed"));
-        }
-    }
-
-    if (indexNow.booleanValue()) {
-        String indexParttonFromWeb = getIndexNowPrefix(indexPrefix, format);
-        List<String> list = new ArrayList<>(0);
+        List<String> list;
         try {
             list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
         } catch (Exception e) {
-            log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
+            log.error("根据索引前缀 {} 获取索引异常：{}", indexParttonFromWeb, e.getMessage());
+            return false;
         }
-        if (!list.isEmpty()) {
-            String lastIndexName = list.get(0);
-            if (index.equals(lastIndexName)) {
-                return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
+        if (!list.isEmpty() && index.equals(list.get(0))) {
+            log.warn("索引 {} 是最新的，不允许操作", index);
+            return false;
+        }
+        return canDoAllOperator(index, indexOperatorType);
+    }
+
+
+
+    private boolean handleIndexOperation(String index, IndexOperatorType indexOperatorType, String indexPrefix, String format) {
+        Boolean feature = isIndexFeature(index, indexPrefix, format);
+        Boolean indexNow = isIndexNow(index, indexPrefix, format);
+
+        if (feature.booleanValue()) {
+            switch (indexOperatorType) {
+                case CLOSE:
+                    log.warn("索引 {} 为特性索引，不允许关闭", index);
+                    return false;
+                case OPEN:
+                    log.warn("索引 {} 为特性索引，不允许打开", index);
+                    return false;
+                case FREEZE:
+                    log.warn("索引 {} 为特性索引，不允许冻结", index);
+                    return false;
+                default:
+                    break;
             }
         }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
 
-private JSONObject ailphaStaticAllOperator1(String index, IndexOperatorType indexOperatorType) {
-    String indexPrefix = "ailpha-statistics-all-";
-    String format = this.esTemplateService.getTemplateDatePattern("ailpha-statistics-all");
-
-    Boolean feature = isIndexFeature(index, indexPrefix, format);
-    Boolean indexNow = isIndexNow(index, indexPrefix, format);
-    if (feature.booleanValue()) {
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.close.failed"));
+        if (indexNow.booleanValue()) {
+            String indexPatternFromWeb = getIndexNowPrefix(indexPrefix, format);
+            List<String> list;
+            try {
+                list = listIndexNameByPrefix(indexPatternFromWeb, indexPatternFromWeb + "*");
+            } catch (Exception e) {
+                log.error("根据索引前缀 {} 获取索引异常：{}", indexPatternFromWeb, e.getMessage());
+                return false;
+            }
+            if (!list.isEmpty() && index.equals(list.get(0))) {
+                log.warn("索引 {} 是最新的，不允许操作", index);
+                return false;
+            }
         }
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.open.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.FREEZE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.freeze.failed"));
-        }
+        return canDoAllOperator(index, indexOperatorType);
     }
 
-    if (indexNow.booleanValue()) {
-        String indexParttonFromWeb = getIndexNowPrefix(indexPrefix, format);
-        List<String> list = new ArrayList<>(0);
+    private boolean canDoAllOperator(String index, IndexOperatorType indexOperatorType) {
+        if (StringUtils.isBlank(index)) {
+            log.warn("索引名称为空");
+            return false;
+        }
+        if ("*".equals(index.trim())) {
+            log.warn("不能对所有索引执行此操作");
+            return false;
+        }
+
         try {
-            list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
+            boolean indexFreeze = indexStatusService.isIndexFreeze(index);
+            boolean indexOpen = indexStatusService.isIndexOpen(index);
+            boolean indexClose = indexStatusService.isIndexClose(index);
+
+            switch (indexOperatorType) {
+                case OPEN:
+                    if (indexOpen) {
+                        log.info("索引 {} 已经是打开状态", index);
+                        return true;
+                    }
+                    String result = indexOneOperatorService.openIndexs(index);
+                    JSONObject json = JSON.parseObject(result);
+                    if (json.containsKey("acknowledged") && json.getBooleanValue("acknowledged")) {
+                        log.info("开启索引: {} 操作成功", index);
+                        return true;
+                    }
+                    log.error("开启索引: {} 操作失败", index);
+                    return false;
+
+                case CLOSE:
+                    if (indexClose) {
+                        log.info("索引 {} 已经是关闭状态", index);
+                        return true;
+                    }
+                    boolean closeResult = this.indexOneOperatorService.closeOneIndex(index);
+                    return closeResult;
+
+                case DELETE:
+                    boolean deleteResult = this.indexOneOperatorService.deleteIndex(index);
+                    return deleteResult;
+
+                default:
+                    log.error("未知的操作类型: {}", indexOperatorType);
+                    return false;
+            }
         } catch (Exception e) {
-            log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-        }
-        if (!list.isEmpty()) {
-            String lastIndexName = list.get(0);
-            if (index.equals(lastIndexName)) {
-                return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-            }
-        }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaIntelligenceLibDataOperator(String index, IndexOperatorType indexOperatorType) {
-    return ResultUtils.onFail(I18nUtils.getMessage("es.index.notAllow.failed"));
-}
-
-private JSONObject ailphaStaticCustomeOperator(String index, IndexOperatorType indexOperatorType) {
-    String indexPrefix = "ailpha-statistics-custom-";
-
-    int nowYear = EsDateUtils.getNowDateInt("yyyy");
-    int nowMonthInt = EsDateUtils.getNowDateInt("yyyyMMdd");
-    int preSevenEnd = Integer.parseInt("" + nowYear - 1 + "1232");
-    int oneEnd = Integer.parseInt("" + nowYear + "0632");
-    int sevenEnd = Integer.parseInt("" + nowYear + "1232");
-
-    String indexParttonFromWeb = null;
-    if (preSevenEnd < nowMonthInt && nowMonthInt < oneEnd) {
-        indexParttonFromWeb = indexPrefix + indexPrefix + "01";
-    }
-    if (oneEnd < nowMonthInt && nowMonthInt < sevenEnd) {
-        indexParttonFromWeb = indexPrefix + indexPrefix + "07";
-    }
-
-    List<String> list = new ArrayList<>(0);
-    try {
-        list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-    } catch (Exception e) {
-        log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-    }
-    if (!list.isEmpty()) {
-        String lastIndexName = list.get(0);
-        if (index.equals(lastIndexName)) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-        }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaStaticAllOperator(String index, IndexOperatorType indexOperatorType) {
-    String indexPrefix = "ailpha-statistics-all-";
-
-    int nowYear = EsDateUtils.getNowDateInt("yyyy");
-    int nowMonthInt = EsDateUtils.getNowDateInt("yyyyMMdd");
-    int preSevenEnd = Integer.parseInt("" + nowYear - 1 + "1232");
-    int oneEnd = Integer.parseInt("" + nowYear + "0632");
-    int sevenEnd = Integer.parseInt("" + nowYear + "1232");
-
-    String indexParttonFromWeb = null;
-    if (preSevenEnd < nowMonthInt && nowMonthInt < oneEnd) {
-        indexParttonFromWeb = indexPrefix + indexPrefix + "01";
-    }
-    if (oneEnd < nowMonthInt && nowMonthInt < sevenEnd) {
-        indexParttonFromWeb = indexPrefix + indexPrefix + "07";
-    }
-
-    List<String> list = new ArrayList<>(0);
-    try {
-        list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-    } catch (Exception e) {
-        log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-    }
-    if (!list.isEmpty()) {
-        String lastIndexName = list.get(0);
-        if (index.equals(lastIndexName)) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-        }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaCustomeAlarmOperator(String index, IndexOperatorType indexOperatorType) {
-    List<String> list = new ArrayList<>(0);
-    try {
-        list = listIndexNameByPrefix("ailpha-custom-alarm-", "ailpha-custom-alarm-*");
-    } catch (Exception e) {
-        log.error("根据索引前缀{}获取索引异常：ailpha-custom-alarm- {} ", e.getMessage(), e);
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-    }
-    if (!list.isEmpty()) {
-        String lastIndexName = list.get(0);
-        if (index.equals(lastIndexName)) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-        }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaBaasLogOperator(String index, IndexOperatorType indexOperatorType) {
-    String indexPrefix = "ailpha-baas-log-";
-    String format = this.esTemplateService.getTemplateDatePattern("ailpha-baas-log");
-    Boolean feature = isIndexFeature(index, indexPrefix, format);
-    Boolean indexNow = isIndexNow(index, indexPrefix, format);
-    if (feature.booleanValue()) {
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.close.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.open.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.FREEZE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.freeze.failed"));
+            log.error("获取索引状态信息异常：{}", index, e);
+            return false;
         }
     }
 
-    if (indexNow.booleanValue()) {
-        String indexParttonFromWeb = getIndexNowPrefix(indexPrefix, format);
-        List<String> list = new ArrayList<>(0);
-        try {
-            list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-        } catch (Exception e) {
-            log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-        }
-        if (!list.isEmpty()) {
-            String lastIndexName = list.get(0);
-            if (index.equals(lastIndexName)) {
-                return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-            }
-        }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaBaasFlowOperator(String index, IndexOperatorType indexOperatorType) {
-    Boolean feature = isIndexFeature(index, "ailpha-baas-flow-", "yyyyMMdd");
-    Boolean indexNow = isIndexNow(index, "ailpha-baas-flow-", "yyyyMMdd");
-    if (feature.booleanValue()) {
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.close.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.open.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.FREEZE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.freeze.failed"));
-        }
+    private String getIndexNowPrefix(String prefix, String format) {
+        // 使用当前日期格式化后与前缀拼接
+        String formattedDate = EsDateUtils.getFormattedDate(format);
+        return prefix + formattedDate;
     }
 
-    if (indexNow.booleanValue()) {
-        String indexParttonFromWeb = getIndexNowPrefix("ailpha-baas-flow-", "yyyyMMdd");
-        List<String> list = new ArrayList<>(0);
-        try {
-            list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-        } catch (Exception e) {
-            log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
+    private Boolean isIndexCondition(String index, String prefix, String format, boolean checkFuture) {
+        Integer nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt(format));
+        String[] parts = index.split("-");
+        if (parts.length < 2) {
+            log.error("索引 {} 格式不正确", index);
+            return false;
         }
-        if (!list.isEmpty()) {
-            String lastIndexName = list.get(0);
-            if (index.equals(lastIndexName)) {
-                return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-            }
+        String datePart = parts[parts.length - 2];
+        if (!isAllNumber(datePart)) {
+            log.error("索引：{} 倒数第二个信息不是数字不予操作", index);
+            return false;
         }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaBaasEventOperator(String index, IndexOperatorType indexOperatorType) {
-    Boolean feature = isIndexFeature(index, "ailpha-baas-event-", "yyyyMM");
-    Boolean indexNow = isIndexNow(index, "ailpha-baas-event-", "yyyyMM");
-    if (feature.booleanValue()) {
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.close.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.open.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.FREEZE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.freeze.failed"));
-        }
+        int indexDateTimeInt = Integer.parseInt(datePart);
+        return checkFuture ? (nowDateTime.intValue() < indexDateTimeInt) : (nowDateTime.intValue() == indexDateTimeInt);
     }
 
-    if (indexNow.booleanValue()) {
-        String indexParttonFromWeb = getIndexNowPrefix("ailpha-baas-event-", "yyyyMM");
-        List<String> list = new ArrayList<>(0);
-        try {
-            list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-        } catch (Exception e) {
-            log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-        }
-        if (!list.isEmpty()) {
-            String lastIndexName = list.get(0);
-            if (index.equals(lastIndexName)) {
-                return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-            }
-        }
-    }
-    return canDoAllOperator(index, indexOperatorType);
-}
-
-private JSONObject ailphaBaasAlarmOperator(String index, IndexOperatorType indexOperatorType) {
-    Boolean feature = isIndexFeature(index, "ailpha-baas-alarm-", "yyyy");
-    Boolean indexNow = isIndexNow(index, "ailpha-baas-alarm-", "yyyy");
-    if (feature.booleanValue()) {
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.close.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.open.failed"));
-        }
-        if (indexOperatorType == IndexOperatorType.FREEZE) {
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.feature.freeze.failed"));
-        }
+    private Boolean isIndexFeature(String index, String prefix, String format) {
+        return isIndexCondition(index, prefix, format, true);
     }
 
-    if (indexNow.booleanValue()) {
-        String indexParttonFromWeb = getIndexNowPrefix("ailpha-baas-alarm-", "yyyy");
-        List<String> list = new ArrayList<>(0);
-        try {
-            list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
-        } catch (Exception e) {
-            log.error("根据索引前缀{}获取索引异常：{}", new Object[] { indexParttonFromWeb, e.getMessage(), e });
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.search.failed"));
-        }
-        if (!list.isEmpty()) {
-            String lastIndexName = list.get(0);
-            if (index.equals(lastIndexName)) {
-                return ResultUtils.onFail(I18nUtils.getMessage("es.index.new.operate.failed"));
-            }
-        }
+    private Boolean isIndexNow(String index, String prefix, String format) {
+        return isIndexCondition(index, prefix, format, false);
     }
-    return canDoAllOperator(index, indexOperatorType);
-}
 
-private JSONObject canDoAllOperator(String index, IndexOperatorType indexOperatorType) {
-    if (StringUtils.isBlank(index)) {
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.empty"));
-    }
-    if (index.trim().equals("*")) {
-        return ResultUtils.onFail(I18nUtils.getMessage("es.index.close.error"));
-    }
-    try {
-        boolean indexFreeze = isIndexFreeze(index);
-        boolean indexOpen = isIndexOpen(index);
-        boolean indexClose = isIndexClose(index);
-        if (indexOperatorType == IndexOperatorType.OPEN) {
-            if (indexOpen) {
-                return ResultUtils.onSuccess(I18nUtils.getMessage("es.index.open.status"));
-            }
-            String result = openIndexs(index);
-            JSONObject json = JSON.parseObject(result);
-            if (json.containsKey("acknowledged") && json.getBooleanValue("acknowledged")) {
-                log.info("开启索引:" + index + "操作成功");
-                return ResultUtils.onSuccess(ResultEnum.SUCCESS.msg);
-            }
-            log.info("开启索引:" + index + "操作失败");
-            return ResultUtils.onFail(I18nUtils.getMessage("es.index.open.error"));
-        }
-        if (indexOperatorType == IndexOperatorType.CLOSE) {
-            if (indexClose) {
-                return ResultUtils.onSuccess(I18nUtils.getMessage("es.index.close.status"));
-            }
-            JSONObject json = this.esRestClient.closeOneIndex(index);
-            return json;
-        }
-        if (indexOperatorType == IndexOperatorType.DELETE) {
-            JSONObject result = this.esRestClient.deleteIndex(index);
-            return result;
-        }
-        log.error("没有操作类型");
-    }
-    catch (Exception e) {
-        log.error("获取索引状态信息异常：{}", index, e);
-    }
-    return ResultUtils.onFail(I18nUtils.getMessage("es.index.operate.error"));
-}
+    private static final Pattern pattern = Pattern.compile("[0-9]*");
 
-private String getIndexNowPrefix(String prefix, String format) {
-    String indexParttonFromWeb = null;
-    int nowDateTime = EsDateUtils.getNowDateInt(format);
-    if ("yyyy".equals(format)) {
-        indexParttonFromWeb = prefix + prefix;
-    } else if ("yyyyMM".equals(format)) {
-        indexParttonFromWeb = prefix + prefix;
-    } else if ("yyyyMMdd".equals(format)) {
-        indexParttonFromWeb = prefix + prefix;
+    public  boolean isAllNumber(String dest) {
+       return pattern.matcher(dest).matches();
     }
-    return indexParttonFromWeb;
-}
-
-private Boolean isIndexFeature(String index, String prefix, String format) {
-    Integer nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt(format));
-    String[] indes = index.split("-");
-    String date = indes[indes.length - 2];
-    if (!BusinessRelationUtils.isAllNumber(date)) {
-        log.error("索引：{}倒数第二个信息不是数字不予操作", index);
-        return Boolean.valueOf(false);
-    }
-    int indexDateTimeInt = Integer.parseInt(date);
-    return Boolean.valueOf((nowDateTime.intValue() < indexDateTimeInt));
-}
-
-private Boolean isIndexNow(String index, String prefix, String format) {
-    Integer nowDateTime = Integer.valueOf(EsDateUtils.getNowDateInt(format));
-    String[] indes = index.split("-");
-    String date = indes[indes.length - 2];
-    if (!BusinessRelationUtils.isAllNumber(date)) {
-        log.error("索引：{}倒数第二个信息不是数字不予操作", index);
-        return Boolean.valueOf(false);
-    }
-    int indexDateTimeInt = Integer.parseInt(date);
-    return Boolean.valueOf((nowDateTime.intValue() == indexDateTimeInt));
-}
-
-public List<IndexEntity> filterIndexByPattern(List<IndexEntity> indexList, String indexPrefixNoDate, String dateFormat, String pattern) {
-    if (StringUtils.isBlank(pattern))
-    {
-        pattern = indexPrefixNoDate + "[0-9]{" + indexPrefixNoDate + "}-[0-9]{6}";
-    }
-    log.info("根据正则过滤索引：indexPrefixNoDate:{} \t dateFormat:{}  \t {}", new Object[] { indexPrefixNoDate, dateFormat, pattern });
-    Pattern patternMatcher = Pattern.compile(pattern);
-
-    List<IndexEntity> result = new ArrayList<>(indexList.size());
-    for (IndexEntity indexEntity : indexList) {
-        String index = indexEntity.getIndex();
-        if (patternMatcher.matcher(index).find()) {
-            result.add(indexEntity);
-        }
-    }
-    return result;
 }
