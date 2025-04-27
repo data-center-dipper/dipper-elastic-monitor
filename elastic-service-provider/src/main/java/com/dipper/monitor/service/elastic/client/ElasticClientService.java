@@ -4,6 +4,7 @@ import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 
@@ -33,4 +34,5 @@ public interface ElasticClientService {
      boolean executeHeadApi(String api);
 
      public String executeDeleteApi(String apiUrl, HttpEntity entity) throws IOException;
+
 }

@@ -9,6 +9,7 @@ import com.dipper.monitor.config.plugins.PluginsClientLoader;
 import com.dipper.monitor.config.plugins.PluginsConfigUtils;
 import com.dipper.monitor.constants.PluginConstants;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
+import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.dipper.monitor.utils.plugins.PluginConfigUtils;
@@ -174,6 +175,7 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         String responseData = EntityUtils.toString(response.getEntity());
         return responseData;
     }
+
 
     public Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
                                  HttpEntity entity, Header... headers) {

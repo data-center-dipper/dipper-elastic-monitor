@@ -20,6 +20,7 @@ import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
+import com.dipper.monitor.utils.DiscardOldestThreadPolicy;
 import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.elastic.BytesUtil;
@@ -361,6 +362,14 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         return strings;
     }
 
+
+
+    @Override
+    public Map<String, IndexEntity> listIndexPatternMapThread(boolean setting, String indexPatternPrefix, String indexXing) throws IOException {
+        IndexListPatternThreadHandler indexMapHandler = new IndexListPatternThreadHandler(elasticClientService);
+        Map<String, IndexEntity> map = indexMapHandler.listIndexPatternMapThread(setting,indexPatternPrefix,indexXing);
+        return map;
+    }
 
 
     public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException {

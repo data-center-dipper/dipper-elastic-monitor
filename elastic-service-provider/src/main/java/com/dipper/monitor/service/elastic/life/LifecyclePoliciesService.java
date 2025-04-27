@@ -32,4 +32,5 @@ public interface LifecyclePoliciesService {
      */
     String openLifeCycle();
 
+    List<EsLifeCycleManagement> getLifeCycleExList(String indexXing) throws IOException;
 }

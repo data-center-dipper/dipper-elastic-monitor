@@ -24,4 +24,6 @@ public interface ElasticRealTemplateService {
     JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
 
     EsTemplateEntity getTemplate(Long id);
+
+    List<String> getIndexPatternList(String indexPatterns);
 }

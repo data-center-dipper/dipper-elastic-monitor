@@ -84,4 +84,43 @@ public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
         }
         return result;
     }
+
+    @Override
+    public List<EsLifeCycleManagement> getLifeCycleExList(String indexPrefix) throws IOException {
+        String api = "/" + indexPrefix + "/_ilm/explain?pretty";
+        log.info("获取前缀为：{} 的异常生命周期API:{}", indexPrefix, api);
+
+        String result = this.elasticClientService.executeGetApi(api);
+        if (StringUtils.isBlank(result)) {
+            return Collections.emptyList();
+        }
+
+        if (result.contains("master_not_discovered_exception")) {
+            throw new IllegalArgumentException("master_not_discovered_exception");
+        }
+
+        JSONObject jsonObject = JSON.parseObject(result);
+        JSONObject indices = jsonObject.getJSONObject("indices");
+
+        List<EsLifeCycleManagement> list = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : indices.entrySet()) {
+            String index = entry.getKey();
+            JSONObject value = (JSONObject) entry.getValue();
+
+            // 获取 managed 和 step 字段值
+            boolean managed = value.getBooleanValue("managed");
+            String step = value.getString("step");
+
+            // 如果 managed 为 false 或者 step 不是 ERROR，则跳过
+            if (!managed || !"ERROR".equalsIgnoreCase(step)) {
+                continue;
+            }
+
+            EsLifeCycleManagement life = new EsLifeCycleManagement();
+            life.setIndex(index);
+            life.setMessage(value.toJSONString());
+            list.add(life);
+        }
+        return list;
+    }
 }

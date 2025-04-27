@@ -14,4 +14,6 @@ public interface ElasticRealIndexService {
     List<IndexEntity> listIndexNameByPrefix(String indexParttonFromWeb, String s) throws IOException;
 
     List<IndexEntity> listIndexNameByPrefix(String indexPatterns,String indexPrefix, String indexXing);
+
+    Map<String, IndexEntity> listIndexPatternMapThread(boolean b, String indexPatternPrefix, String indexXing) throws IOException;
 }

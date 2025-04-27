@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -91,4 +92,23 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
         EsTemplateEntity template = elasticStoreTemplateService.getTemplate(id);
         return template;
     }
+
+    @Override
+    public List<String> getIndexPatternList(String indexPattern) {
+        List<String> indexPatternList = new ArrayList<>();
+            String indexPrefxi = null;
+            if (indexPattern.contains("yyyy")) {
+                indexPrefxi = indexPattern.substring(0, indexPattern.indexOf("yyyy"));
+            } else {
+                int position = indexPattern.indexOf("*");
+                if (position < 1) {
+                    position = indexPattern.length();
+                }
+                indexPrefxi = indexPattern.substring(0, position);
+            }
+            indexPatternList.add(indexPrefxi);
+            return indexPatternList;
+        }
+
+
 }
