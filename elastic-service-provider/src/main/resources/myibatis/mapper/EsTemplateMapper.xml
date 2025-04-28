@@ -75,4 +75,12 @@
     <select id="getTemplateByEnName" resultType="com.dipper.monitor.entity.db.elastic.EsTemplateEntity">
         SELECT * FROM t_elastic_template WHERE  cluster_code = #{clusterCode} and en_name=#{enName}
     </select>
+
+    <update id="updateTemplateStat">
+        UPDATE t_elastic_template
+        SET
+        stat_message=#{statMessage}
+        WHERE id=#{id}
+    </update>
+
 </mapper>

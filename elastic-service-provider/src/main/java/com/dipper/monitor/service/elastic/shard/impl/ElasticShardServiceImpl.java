@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.shard.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.shard.ShardEntity;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -62,5 +64,36 @@ public class ElasticShardServiceImpl implements ElasticShardService {
     public Map<String, List<ShardEntity>> listShardMap() throws IOException {
         ListShardMapHandler listShardMapHandler = new ListShardMapHandler(elasticClientService);
         return listShardMapHandler.listShardMap();
+    }
+
+    @Override
+    public List<ShardEntity> listShardByPrefix(String indexPatternPrefix, String indexXing) throws IOException {
+        String api = "/_cat/shards/" + indexXing + "?format=json";
+        log.info("获取某种类型的shard:{}", api);
+        String result = this.elasticClientService.executeGetApi(api);
+
+        JSONArray indexDiskJson = JSON.parseArray(result);
+        List<ShardEntity> list = new ArrayList<>();
+        for (Iterator<Object> nodeItera = indexDiskJson.iterator(); nodeItera.hasNext(); ) {
+            JSONObject obj = (JSONObject)nodeItera.next();
+            String index = obj.getString("index");
+            if (!index.startsWith(indexPatternPrefix)) {
+                continue;
+            }
+            String state = obj.getString("state");
+
+            ShardEntity shard = new ShardEntity();
+            shard.setIndex(index)
+                    .setDocs(Long.valueOf(obj.getLongValue("docs")))
+                    .setIp(obj.getString("ip"))
+                    .setNode(obj.getString("node"))
+                    .setPrirep(obj.getString("prirep"))
+                    .setShard(obj.getInteger("shard"))
+                    .setState(state)
+                    .setStore(obj.getString("store"));
+
+            list.add(shard);
+        }
+        return list;
     }
 }

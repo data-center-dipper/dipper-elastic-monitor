@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 
 import java.util.List;
@@ -32,4 +33,6 @@ public interface ElasticStoreTemplateService {
      * @param esUnconvertedTemplate
      */
     void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception;
+
+    void updateTemplateStat(List<EsTemplateStatEntity> templateStat);
 }

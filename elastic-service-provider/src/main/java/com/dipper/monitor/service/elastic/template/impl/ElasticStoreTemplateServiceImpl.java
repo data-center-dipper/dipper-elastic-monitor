@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.template.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
@@ -99,6 +100,15 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
         RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService, elasticStoreTemplateService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
+    }
+
+    @Override
+    public void updateTemplateStat(List<EsTemplateStatEntity> templateStat) {
+        for (EsTemplateStatEntity item: templateStat) {
+            Long id = item.getId();
+            String statMessage = JSONObject.toJSONString(item);
+            esTemplateMapper.updateTemplateStat(id, statMessage);
+        }
     }
 
     /**

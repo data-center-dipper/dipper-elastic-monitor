@@ -30,4 +30,6 @@ public interface EsTemplateMapper {
      */
     EsTemplateEntity getTemplateByEnName(@Param("clusterCode") String clusterCode,
                                          @Param("enName") String enName);
+
+    void updateTemplateStat(@Param("id") Long id,@Param("statMessage")  String statMessage);
 }

@@ -32,4 +32,6 @@ public class EsUnconvertedTemplate {
 
     private String templateContent; // JSON内容
 
+    private String statMessage; // 统计信息
+
 }

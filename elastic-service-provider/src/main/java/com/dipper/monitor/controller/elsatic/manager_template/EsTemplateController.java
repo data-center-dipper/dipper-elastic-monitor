@@ -111,7 +111,6 @@ public class EsTemplateController {
     @GetMapping("/showTemplate")
     public JSONObject showTemplate(@PathVariable Long id) {
         try {
-            EsTemplateEntity template = elasticRealTemplateService.getTemplate(id);
             EsTemplateEntity template = elasticStoreTemplateService.getTemplate(id);
             if (template == null) {
                 return ResultUtils.onFail("Template not found");

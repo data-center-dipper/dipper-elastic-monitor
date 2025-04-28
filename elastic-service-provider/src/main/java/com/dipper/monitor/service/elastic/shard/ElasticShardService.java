@@ -29,4 +29,6 @@ public interface ElasticShardService {
 
 
     Map<String, List<ShardEntity>> listShardMap() throws IOException;
+
+    List<ShardEntity> listShardByPrefix(String indexPatternPrefix, String indexXing) throws IOException;
 }

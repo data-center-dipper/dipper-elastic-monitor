@@ -450,7 +450,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
         if (indexNow.booleanValue()) {
             String indexPatternFromWeb = getIndexNowPrefix(indexPrefix, format);
-            List<String> list;
+            List<IndexEntity> list;
             try {
                 list = listIndexNameByPrefix(indexPatternFromWeb, indexPatternFromWeb + "*");
             } catch (Exception e) {
@@ -490,7 +490,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
             return false;
         }
 
-        List<String> list;
+        List<IndexEntity> list;
         try {
             list = listIndexNameByPrefix(indexParttonFromWeb, indexParttonFromWeb + "*");
         } catch (Exception e) {
@@ -528,7 +528,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
         if (indexNow.booleanValue()) {
             String indexPatternFromWeb = getIndexNowPrefix(indexPrefix, format);
-            List<String> list;
+            List<IndexEntity> list;
             try {
                 list = listIndexNameByPrefix(indexPatternFromWeb, indexPatternFromWeb + "*");
             } catch (Exception e) {
