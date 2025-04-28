@@ -3,6 +3,7 @@ package com.dipper.monitor.controller.elsatic.manager_template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
@@ -111,11 +112,11 @@ public class EsTemplateController {
     @GetMapping("/showTemplate")
     public JSONObject showTemplate(@PathVariable Long id) {
         try {
-            EsTemplateEntity template = elasticStoreTemplateService.getTemplate(id);
-            if (template == null) {
+            ElasticTemplateView elasticTemplateView = elasticStoreTemplateService.getTemplateAndStat(id);
+            if (elasticTemplateView == null) {
                 return ResultUtils.onFail("Template not found");
             }
-            return ResultUtils.onSuccess(template);
+            return ResultUtils.onSuccess(elasticTemplateView);
         } catch (Exception e) {
             log.error("Error retrieving template", e);
             return ResultUtils.onFail("Operation error");

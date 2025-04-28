@@ -4,13 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     private ElasticHealthService elasticHealthService;
     @Autowired
     private ElasticStoreTemplateService elasticStoreTemplateService;
+    @Autowired
+    private ElasticRealTemplateService elasticRealTemplateService;
 
 
     @Override
@@ -98,7 +103,8 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
-        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService, elasticStoreTemplateService);
+        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,
+                elasticStoreTemplateService,elasticRealTemplateService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
     }
 
@@ -109,6 +115,23 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
             String statMessage = JSONObject.toJSONString(item);
             esTemplateMapper.updateTemplateStat(id, statMessage);
         }
+    }
+
+    @Override
+    public ElasticTemplateView getTemplateAndStat(Long id) {
+        EsTemplateEntity template = getTemplate(id);
+        if (template == null) {
+            throw new IllegalArgumentException("template not exist");
+        }
+        ElasticTemplateView elasticTemplateView = new ElasticTemplateView();
+        BeanUtils.copyProperties(template, elasticTemplateView);
+
+        String statMessage = template.getStatMessage();
+        if (StringUtils.isNotBlank(statMessage)) {
+            EsTemplateStatEntity esTemplateStatEntity = JSONObject.parseObject(statMessage, EsTemplateStatEntity.class);
+            elasticTemplateView.setEsTemplateStat(esTemplateStatEntity);
+        }
+        return elasticTemplateView;
     }
 
     /**

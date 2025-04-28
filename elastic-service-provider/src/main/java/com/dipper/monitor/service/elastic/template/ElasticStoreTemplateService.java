@@ -4,6 +4,7 @@ package com.dipper.monitor.service.elastic.template;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 
 import java.util.List;
@@ -35,4 +36,12 @@ public interface ElasticStoreTemplateService {
     void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception;
 
     void updateTemplateStat(List<EsTemplateStatEntity> templateStat);
+
+    /**
+     * 根据英文名称查询模版，并且统计模版的信息
+     * @param id
+     * @return
+     */
+    ElasticTemplateView getTemplateAndStat(Long id);
+
 }

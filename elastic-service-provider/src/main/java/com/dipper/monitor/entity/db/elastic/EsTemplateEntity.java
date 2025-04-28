@@ -31,6 +31,8 @@ public class EsTemplateEntity {
 
     private String templateContent; // JSON内容
 
+    private String statMessage; // 统计信息
+
     private Date createTime;
     private Date updateTime;
 }

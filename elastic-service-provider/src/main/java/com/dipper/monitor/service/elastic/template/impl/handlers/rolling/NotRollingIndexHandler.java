@@ -22,11 +22,15 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
 
     private EsUnconvertedTemplate esUnconvertedTemplate;
     private ElasticStoreTemplateService elasticStoreTemplateService; // 假设这是你的服务类，用于处理模板相关的逻辑
+
     private ElasticRealTemplateService elasticRealTemplateService;
 
-    public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, ElasticStoreTemplateService elasticStoreTemplateService) {
+    public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate,
+                                  ElasticStoreTemplateService elasticStoreTemplateService,
+                                  ElasticRealTemplateService elasticRealTemplateService) {
         this.esUnconvertedTemplate = esUnconvertedTemplate;
         this.elasticStoreTemplateService = elasticStoreTemplateService;
+        this.elasticRealTemplateService = elasticRealTemplateService;
     }
 
 
@@ -36,7 +40,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
         log.info("开始处理索引模式: {}", indexPatterns);
 
         // 生成新的模板信息
-        JSONObject templateJson = elasticStoreTemplateService.previewTemplate(esUnconvertedTemplate);
+        JSONObject templateJson = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
 
         // 保存或更新模板
         elasticRealTemplateService.saveOrUpdateTemplate(enName,templateJson);

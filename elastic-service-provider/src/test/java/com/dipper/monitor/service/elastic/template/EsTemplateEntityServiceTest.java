@@ -13,7 +13,8 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
 
     @Autowired
     private ElasticStoreTemplateService elasticStoreTemplateService;
-
+    @Autowired
+    private ElasticRealTemplateService elasticRealTemplateService;
 
     /**
      * {
@@ -118,7 +119,7 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
         esUnconvertedTemplate.setEnableAutoShards(true);
         esUnconvertedTemplate.setTemplateContent(content);
 
-        JSONObject jsonObject = elasticStoreTemplateService.previewTemplate(esUnconvertedTemplate);
+        JSONObject jsonObject = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
         System.out.println(jsonObject.toJSONString());
     }
 

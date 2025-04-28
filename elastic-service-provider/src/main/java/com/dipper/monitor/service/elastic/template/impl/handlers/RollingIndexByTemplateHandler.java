@@ -4,6 +4,7 @@ import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.enums.elastic.RollingIndexEnum;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.*;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +15,14 @@ public class RollingIndexByTemplateHandler {
 
     private ElasticHealthService elasticHealthService;
     private ElasticStoreTemplateService elasticStoreTemplateService;
+    private ElasticRealTemplateService elasticRealTemplateService;
 
-    public RollingIndexByTemplateHandler(ElasticHealthService elasticHealthService, ElasticStoreTemplateService elasticStoreTemplateService) {
+    public RollingIndexByTemplateHandler(ElasticHealthService elasticHealthService,
+                                         ElasticStoreTemplateService elasticStoreTemplateService,
+                                         ElasticRealTemplateService elasticRealTemplateService) {
         this.elasticHealthService = elasticHealthService;
         this.elasticStoreTemplateService = elasticStoreTemplateService;
+        this.elasticRealTemplateService = elasticRealTemplateService;
     }
 
     public void rollIndexByTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
@@ -56,7 +61,8 @@ public class RollingIndexByTemplateHandler {
         RollingIndexEnum rollingIndexEnum = RollingIndexEnum.fromDays(rollingPeriod);
         switch (rollingIndexEnum) {
             case NONE:
-                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate, elasticStoreTemplateService);
+                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate,
+                        elasticStoreTemplateService,elasticRealTemplateService);
                 notRollingIndexHandler.handle();
             case DAILY:
                 DailyRollingIndexHandler dailyRollingIndexHandler = new DailyRollingIndexHandler(esUnconvertedTemplate);

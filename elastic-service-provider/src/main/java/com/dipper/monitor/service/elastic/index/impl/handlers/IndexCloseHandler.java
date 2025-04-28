@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.index.impl.handlers;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.utils.elastic.EsDateUtils;
 import com.dipper.monitor.utils.elastic.IndexUtils;
@@ -77,7 +78,7 @@ public class IndexCloseHandler extends AbstractIndexHandler {
 
         // 检查是否为最新的索引
         try {
-            List<String> list = elasticRealIndexService.listIndexNameByPrefix(indexPrefix, indexPrefix + "*");
+            List<IndexEntity> list = elasticRealIndexService.listIndexNameByPrefix(indexPrefix, indexPrefix + "*");
             if (!list.isEmpty() && index.equals(list.get(0))) {
                 throw new IllegalArgumentException("此索引为最新索引，不能关闭");
             }
