@@ -4,7 +4,6 @@ import com.dipper.monitor.annotation.quartz.QuartzJob;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
-import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.segments.SegmentMessage;
 import com.dipper.monitor.entity.elastic.shard.ShardEntity;
@@ -22,8 +21,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -51,188 +53,131 @@ public class TemplateStatTask {
             editAble = true)
     public void elasticNodesUpdateTask() throws Exception {
         List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
-        if (allTemplates == null || allTemplates.isEmpty()) {
-            return;
-        }
-        List<EsTemplateStatEntity> templateStat = new ArrayList<>();
-        for (EsTemplateEntity templateEntity : allTemplates) {
-            EsTemplateStatEntity esTemplateConfigMes = staticTemplate(templateEntity);
-            if(esTemplateConfigMes != null) {
-                continue;
-            }
-            templateStat.add(esTemplateConfigMes);
-        }
-        // todo: 将结果存储到数据库
-        elasticStoreTemplateService.updateTemplateStat(templateStat);
+        if (allTemplates == null || allTemplates.isEmpty()) return;
+
+        List<EsTemplateStatEntity> templateStats = allTemplates.stream()
+                .map(this::processTemplate)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        elasticStoreTemplateService.updateTemplateStat(templateStats);
     }
 
-    /**
-     * 计算一个模板下有多少个索引，开启的有多少个 关闭的有多少个 冻结的有多少个 异常的有多少个
-     * 分片数有多少个，段有多少个
-     * 占用的总jmv信息有多少
-     * <p>
-     * 索引：共 35个，关闭 4个 ，冻结 - ，开启 31个
-     * 滚动周期：日
-     * 异常索引个数：-，分片个数：268个 ，异常分片个数：-
-     * 段：共 399个 ，JVM使用： 5MB
-     * <p>
-     * 这些统计信息
-     *
-     * @param templateEntity 模板实体
-     * @return
-     */
-    private EsTemplateStatEntity staticTemplate(EsTemplateEntity templateEntity) {
-        long end1 = System.currentTimeMillis();
-        log.info("时间 模板 周期：{}", Long.valueOf(end1));
-        String indexPatterns = templateEntity.getIndexPatterns();
-        List<String> indexPatternList = elasticRealTemplateService.getIndexPatternList(indexPatterns);
-        if (indexPatternList.isEmpty()) {
-            return null;
-        }
-        long end2 = System.currentTimeMillis();
-        log.info("时间 模板 周期：{}", Long.valueOf(end2 - end1));
+    private EsTemplateStatEntity processTemplate(EsTemplateEntity templateEntity) {
+        long startTime = System.currentTimeMillis();
+        log.info("开始处理模板: {}", templateEntity.getId());
 
-        Set<EsLifeCycleManagement> lifeExSet = new HashSet<>();
-        Map<String, IndexEntity> indexAllMap = new HashMap<>();
-        Set<ShardEntity> listAllShard = new HashSet<>();
-        Set<SegmentMessage> listAllSegment = new HashSet<>();
+        List<String> indexPatternList = getIndexPatternList(templateEntity);
+        if (indexPatternList.isEmpty()) return null;
 
-        for (String indexPatternPrefix : indexPatternList) {
-            String indexXing = indexPatternPrefix + "*";
-            List<EsLifeCycleManagement> lifeErrors = null;
+        Set<EsLifeCycleManagement> lifeCycleErrors = collectLifecycleErrors(indexPatternList);
+        Map<String, IndexEntity> indexAllMap = collectIndexEntities(indexPatternList);
+        Set<ShardEntity> shardEntities = collectShardEntities(indexPatternList);
+        Set<SegmentMessage> segmentMessages = collectSegmentMessages(indexPatternList);
+
+        EsTemplateStatEntity statEntity = aggregateStatistics(templateEntity, lifeCycleErrors, indexAllMap, shardEntities, segmentMessages);
+        log.info("完成处理模板 {}，耗时：{}ms", templateEntity.getId(), System.currentTimeMillis() - startTime);
+
+        return statEntity;
+    }
+
+    private List<String> getIndexPatternList(EsTemplateEntity templateEntity) {
+        return elasticRealTemplateService.getIndexPatternList(templateEntity.getIndexPatterns());
+    }
+
+    private Set<EsLifeCycleManagement> collectLifecycleErrors(List<String> patterns) {
+        Set<EsLifeCycleManagement> errors = new HashSet<>();
+        for (String pattern : patterns) {
             try {
-                lifeErrors = this.lifecyclePoliciesService.getLifeCycleExList(indexXing);
+                lifecyclePoliciesService.getLifeCycleExList(pattern + "*").stream()
+                        .filter(item -> item.getIndex().startsWith(getIndexPrefix(pattern)))
+                        .forEach(errors::add);
             } catch (IOException e) {
                 log.error("获取生命周期异常", e);
             }
-            for (EsLifeCycleManagement item : lifeErrors) {
-                String index = item.getIndex();
-                if (index.startsWith(indexPatternPrefix)) {
-                    lifeExSet.add(item);
-                }
-            }
-            long end3 = System.currentTimeMillis();
-            log.info("时间 模板 周期问题：{}", Long.valueOf(end3 - end2));
+        }
+        return errors;
+    }
 
-            List<IndexEntity> indexList = null;
+    private Map<String, IndexEntity> collectIndexEntities(List<String> patterns) {
+        return patterns.stream().flatMap(pattern -> {
             try {
-                indexList = this.elasticRealIndexService.listIndexNameByPrefix(indexPatternPrefix, indexXing);
+                return elasticRealIndexService.listIndexNameByPrefix(getIndexPrefix(pattern), pattern + "*").stream();
             } catch (IOException e) {
                 log.error("获取索引列表失败", e);
+                return Stream.empty();
             }
-            Map<String, IndexEntity> indexMap =   indexList.stream().collect(Collectors.toMap(IndexEntity::getIndex, Function.identity()));
-            indexAllMap.putAll(indexMap);
+        }).collect(Collectors.toMap(IndexEntity::getIndex, Function.identity()));
+    }
 
-            long end4 = System.currentTimeMillis();
-            log.info("时间 模板 索引：{}", Long.valueOf(end4 - end3));
-
-            List<ShardEntity> listShard = null;
+    private Set<ShardEntity> collectShardEntities(List<String> patterns) {
+        Set<ShardEntity> shards = new HashSet<>();
+        patterns.forEach(pattern -> {
             try {
-                listShard = this.elasticShardService.listShardByPrefix(indexPatternPrefix, indexXing);
+                shards.addAll(elasticShardService.listShardByPrefix(getIndexPrefix(pattern), pattern + "*"));
             } catch (IOException e) {
                 log.error("获取shard失败：{}", e.getMessage());
             }
-            listAllShard.addAll(listShard);
+        });
+        return shards;
+    }
 
-            long end5 = System.currentTimeMillis();
-            log.info("时间 模板 shard：{}", Long.valueOf(end5 - end4));
-
-            List<SegmentMessage> listSegment = null;
+    private Set<SegmentMessage> collectSegmentMessages(List<String> patterns) {
+        Set<SegmentMessage> segments = new HashSet<>();
+        patterns.forEach(pattern -> {
             try {
-                listSegment = this.elasticSegmentService.listSegmentByPrefix(indexPatternPrefix, indexXing);
+                segments.addAll(elasticSegmentService.listSegmentByPrefix(getIndexPrefix(pattern), pattern + "*"));
             } catch (IOException e) {
                 log.error("获取segment失败", e);
             }
-            listAllSegment.addAll(listSegment);
+        });
+        return segments;
+    }
 
-            long l1 = System.currentTimeMillis();
-            log.info("时间 模板 segment：{}", Long.valueOf(l1 - end5));
-        }
-
-        long end6 = System.currentTimeMillis();
-
-
-
+    private EsTemplateStatEntity aggregateStatistics(EsTemplateEntity templateEntity, Set<EsLifeCycleManagement> lifeCycleErrors, Map<String, IndexEntity> indices, Set<ShardEntity> shards, Set<SegmentMessage> segments) {
         int openIndex = 0;
         int closeIndex = 0;
         int exceptionIndex = 0;
         int freezeIndex = 0;
+        AtomicInteger shardUnassigned = new AtomicInteger();
+        AtomicLong segmentSize = new AtomicLong(0L);
 
-        int shardUnassigned = 0;
+        for (Map.Entry<String, IndexEntity> entry : indices.entrySet()) {
+            IndexEntity index = entry.getValue();
+            String status = index.getStatus();
 
-        long segmentSize = 0L;
+            if ("open".equals(status)) openIndex++;
+            else if ("close".equals(status)) closeIndex++;
 
-        for (Map.Entry<String, IndexEntity> mapItem : indexAllMap.entrySet()) {
-            IndexEntity indexEntity = mapItem.getValue();
+            if ("red".equalsIgnoreCase(index.getHealth()) || "yellow".equalsIgnoreCase(index.getHealth())) exceptionIndex++;
 
-            for (ShardEntity shard : listAllShard) {
-                String shardState = shard.getState();
-                if ("UNASSIGNED".equalsIgnoreCase(shardState)) {
-                    shardUnassigned++;
-                }
-            }
+            if (index.getSettings() != null && index.getSettings().contains("\"frozen\":\"true\"")) freezeIndex++;
 
-            for (SegmentMessage segmentItem : listAllSegment) {
-                Long sizeMemory = segmentItem.getSizeMemory();
-                segmentSize += sizeMemory.longValue();
-            }
+            shards.stream().filter(shard -> shard.getIndex().equals(entry.getKey())).forEach(shard -> {
+                if ("UNASSIGNED".equalsIgnoreCase(shard.getState())) shardUnassigned.getAndIncrement();
+            });
 
-            String status = indexEntity.getStatus();
-            if (status.equals("open")) {
-                openIndex++;
-            }
-            if (status.equals("close")) {
-                closeIndex++;
-            }
-
-            String health = indexEntity.getHealth();
-            if ("red".equalsIgnoreCase(health) || "yellow".equalsIgnoreCase(health)) {
-                exceptionIndex++;
-            }
-
-            String settings = indexEntity.getSettings();
-
-            if (settings != null && settings.contains("\"frozen\":\"true\"")) {
-                freezeIndex++;
-            }
+            segments.stream().filter(segment -> segment.getIndex().equals(entry.getKey())).forEach(segment -> segmentSize.addAndGet(segment.getSizeMemory()));
         }
 
-        EsTemplateStatEntity et = new EsTemplateStatEntity();
-        et.setId(templateEntity.getId());
-        et.setRollingCycleError(Integer.valueOf(lifeExSet.size()));
-        et.setOpenIndex(Integer.valueOf(openIndex));
-        et.setCloseIndex(Integer.valueOf(closeIndex));
-        et.setExceptionIndex(Integer.valueOf(exceptionIndex));
-        et.setFreezeIndex(Integer.valueOf(freezeIndex));
+        EsTemplateStatEntity statEntity = new EsTemplateStatEntity();
+        BeanUtils.copyProperties(templateEntity, statEntity);
+        statEntity.setRollingCycleError(lifeCycleErrors.size());
+        statEntity.setOpenIndex(openIndex);
+        statEntity.setCloseIndex(closeIndex);
+        statEntity.setExceptionIndex(exceptionIndex);
+        statEntity.setFreezeIndex(freezeIndex);
+        statEntity.setShardCount(shards.size());
+        statEntity.setShardUnassigned(shardUnassigned.get());
+        statEntity.setSegmetCount(segments.size());
+        statEntity.setSegmentSize(segmentSize.get() / 1048576L);
 
-        et.setShardCount(Integer.valueOf(listAllShard.size()));
-        et.setShardUnassigned(Integer.valueOf(shardUnassigned));
-
-        et.setSegmetCount(Integer.valueOf(listAllSegment.size()));
-        et.setSegmentSize(Long.valueOf(segmentSize / 1048576L));
-
-        long end7 = System.currentTimeMillis();
-        log.info("时间 模板 遍历：{}", Long.valueOf(end7 - end6));
-
-        return et;
+        return statEntity;
     }
 
-
-    /**
-     * 从索引模式中提取索引前缀
-     *
-     * @param indexPattern 索引模式，例如 lcc-log-YYYYMMDD 或者 lcc-log-YYYYMMDDHH
-     * @return 索引前缀，例如 lcc-log
-     */
     private String getIndexPrefix(String indexPattern) {
-        // 假设索引模式至少包含一个日期占位符如 "YYYY", "MM", "DD", "HH" 等等
-        // 使用正则表达式匹配最后一个非数字字母下划线字符的位置
         int pos = indexPattern.replaceAll("[^\\d_]*([\\d_]+)$", "$1").length();
-
-        // 提取前缀
-        String indexPrefix = indexPattern.substring(0, indexPattern.length() - pos);
-
-        return indexPrefix;
+        return indexPattern.substring(0, indexPattern.length() - pos);
     }
 
 }
