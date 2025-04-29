@@ -4,7 +4,7 @@ import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.disk.ElasticDiskService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.io.UnsupportedEncodingException;
 public abstract class AbstractShardErrorHandler {
 
 
-    protected LifecyclePoliciesService lifecyclePoliciesService;
+    protected ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     protected ElasticShardService elasticShardService;
     protected ElasticClientService elasticClientService;
     protected ElasticAliansService elasticAliansService;
@@ -29,7 +29,7 @@ public abstract class AbstractShardErrorHandler {
     protected StringBuilder builder = new StringBuilder(3000);
 
     public AbstractShardErrorHandler(){
-        lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
+        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
         elasticShardService = SpringUtil.getBean(ElasticShardService.class);
         elasticClientService = SpringUtil.getBean(ElasticClientService.class);
         elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);

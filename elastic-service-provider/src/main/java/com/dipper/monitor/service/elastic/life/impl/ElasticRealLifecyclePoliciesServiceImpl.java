@@ -2,33 +2,23 @@ package com.dipper.monitor.service.elastic.life.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.client.proxy.params.elasticsearch.Request;
-import com.dipper.monitor.annotation.log.CollectLogs;
-import com.dipper.monitor.config.log.method.ResultWithLogs;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.life.impl.service.CheckLifeCycleErrorService;
 import com.dipper.monitor.service.elastic.life.impl.service.RepairLifeCycleErrorService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.entity.StringEntity;
-import org.checkerframework.checker.units.qual.A;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
 @Slf4j
-public class LifecyclePoliciesServiceImpl implements LifecyclePoliciesService {
+public class ElasticRealLifecyclePoliciesServiceImpl implements ElasticRealLifecyclePoliciesService {
 
     @Autowired
     private ElasticClientService elasticClientService;

@@ -3,7 +3,6 @@ package com.dipper.monitor.service.elastic.life.impl.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +38,7 @@ public class RepairLifeCycleErrorService  extends AbstractLifeCycleError {
                 .append("当前生命周期运行状态:\n").append(lifeStatus).append("\r\n");
         if ("STOP".equalsIgnoreCase(lifeStatus)) {
             builder.append("集群的生命周期处于停止状态.. 现在执行开启：").append(ElasticRestApi.LIFE_CYCLE_START.getApiPath()).append("\r\n");
-            String result = lifecyclePoliciesService.openLifeCycle();
+            String result = elasticRealLifecyclePoliciesService.openLifeCycle();
             builder.append("执行结果:\n").append(result).append("\r\n");
         }
 

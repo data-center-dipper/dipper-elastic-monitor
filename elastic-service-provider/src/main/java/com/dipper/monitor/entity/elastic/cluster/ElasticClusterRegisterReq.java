@@ -12,10 +12,6 @@ public class ElasticClusterRegisterReq {
     private String clusterDesc;
     // 集群的地址
     private String address;
-    private String kafkaJmxAddress;
-    private String zookeeperAddress;
-    // 网卡默认速率
-    private Integer networkRate;
     // 是否忽略 校验 地址
     private Boolean checkAddress = false;
 }

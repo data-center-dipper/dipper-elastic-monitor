@@ -2,7 +2,7 @@ package com.dipper.monitor.service.elastic.overview.impl.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.beans.SpringUtil;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
@@ -10,11 +10,11 @@ import java.util.List;
 @Slf4j
 public class ClusterErrorService {
 
-    private   LifecyclePoliciesService lifecyclePoliciesService ;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     private ElasticShardService elasticShardService;
 
     public ClusterErrorService(){
-        lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
+        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
         elasticShardService = SpringUtil.getBean(ElasticShardService.class);
     }
 

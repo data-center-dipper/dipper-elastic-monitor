@@ -13,7 +13,7 @@ public class CheckLifeCycleErrorService extends AbstractLifeCycleError {
 
 
     public String checkLifeCycleError() throws IOException {
-        List<EsLifeCycleManagement> list = lifecyclePoliciesService.getLifeCycleList();
+        List<EsLifeCycleManagement> list = elasticRealLifecyclePoliciesService.getLifeCycleList();
         StringBuilder builder = new StringBuilder();
 
         if (!list.isEmpty()) {

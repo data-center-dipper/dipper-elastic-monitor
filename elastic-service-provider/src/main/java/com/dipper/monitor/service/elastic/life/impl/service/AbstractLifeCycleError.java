@@ -3,7 +3,7 @@ package com.dipper.monitor.service.elastic.life.impl.service;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -13,12 +13,12 @@ public abstract class AbstractLifeCycleError {
 
     protected StringBuilder builder = new StringBuilder(3000);
 
-    protected LifecyclePoliciesService lifecyclePoliciesService;
+    protected ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     protected ElasticClientService elasticClientService;
     protected ElasticAliansService elasticAliansService;
 
     public AbstractLifeCycleError(){
-        lifecyclePoliciesService = SpringUtil.getBean(LifecyclePoliciesService.class);
+        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
         elasticClientService = SpringUtil.getBean(ElasticClientService.class);
         elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
 

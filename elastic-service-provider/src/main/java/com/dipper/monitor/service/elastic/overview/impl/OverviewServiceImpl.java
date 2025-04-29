@@ -9,7 +9,7 @@ import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.overview.OverviewService;
@@ -38,7 +38,7 @@ public class OverviewServiceImpl implements OverviewService {
     @Autowired
     private  ElasticHealthService elasticHealthService;
     @Autowired
-    private LifecyclePoliciesService lifecyclePoliciesService;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     @Autowired
     private ElasticShardService elasticShardService;
 
@@ -62,7 +62,7 @@ public class OverviewServiceImpl implements OverviewService {
     @Override
     public List<EsLifeCycleManagement>  getLifeCycleError(PageReq pageReq) {
         // 获取原始的生命周期列表
-        List<EsLifeCycleManagement> lifeCycleList = lifecyclePoliciesService.getLifeCycleList();
+        List<EsLifeCycleManagement> lifeCycleList = elasticRealLifecyclePoliciesService.getLifeCycleList();
         if(CollectionUtils.isEmpty(lifeCycleList)){
             return Collections.emptyList();
         }
@@ -93,13 +93,13 @@ public class OverviewServiceImpl implements OverviewService {
 
     @Override
     public String checkLifeCycleError() throws IOException {
-        String lifeCycleList = lifecyclePoliciesService.checkLifeCycleError();
+        String lifeCycleList = elasticRealLifecyclePoliciesService.checkLifeCycleError();
         return  lifeCycleList;
     }
 
     @Override
     public String repairLifeCycleError() throws IOException {
-        String lifeCycleList = lifecyclePoliciesService.repairLifeCycleError();
+        String lifeCycleList = elasticRealLifecyclePoliciesService.repairLifeCycleError();
         return  lifeCycleList;
     }
 

@@ -7,7 +7,7 @@ import com.dipper.monitor.entity.elastic.segments.SegmentMessage;
 import com.dipper.monitor.entity.elastic.shard.ShardEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,18 +22,18 @@ public class StatTemplateHandler {
     private ElasticRealIndexService elasticRealIndexService;
     private ElasticShardService elasticShardService;
     private ElasticSegmentService elasticSegmentService;
-    private LifecyclePoliciesService lifecyclePoliciesService;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
 
     public StatTemplateHandler(ElasticClientService elasticClientService,
                                ElasticRealIndexService elasticRealIndexService,
                                ElasticShardService elasticShardService,
                                ElasticSegmentService elasticSegmentService,
-                               LifecyclePoliciesService lifecyclePoliciesService) {
+                               ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService) {
         this.elasticClientService = elasticClientService;
         this.elasticRealIndexService = elasticRealIndexService;
         this.elasticShardService = elasticShardService;
         this.elasticSegmentService = elasticSegmentService;
-        this.lifecyclePoliciesService = lifecyclePoliciesService;
+        this.elasticRealLifecyclePoliciesService = elasticRealLifecyclePoliciesService;
     }
 
     public List<EsTemplateConfigMes> statTemplate(String name) throws IOException {
@@ -58,7 +58,7 @@ public class StatTemplateHandler {
     }
 
     private Map<String, EsLifeCycleManagement> getLifeCycleBadMap() {
-        List<EsLifeCycleManagement> result = lifecyclePoliciesService.getLifeCycleList();
+        List<EsLifeCycleManagement> result = elasticRealLifecyclePoliciesService.getLifeCycleList();
         if (result.isEmpty()) return Collections.emptyMap();
 
         Map<String, EsLifeCycleManagement> map = new HashMap<>();

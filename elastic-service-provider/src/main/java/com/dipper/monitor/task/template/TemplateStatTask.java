@@ -9,7 +9,7 @@ import com.dipper.monitor.entity.elastic.segments.SegmentMessage;
 import com.dipper.monitor.entity.elastic.shard.ShardEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
@@ -38,7 +38,7 @@ public class TemplateStatTask {
     @Autowired
     private ElasticRealIndexService elasticRealIndexService;
     @Autowired
-    private LifecyclePoliciesService lifecyclePoliciesService;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     @Autowired
     private ElasticClientService elasticClientService;
     @Autowired
@@ -89,7 +89,7 @@ public class TemplateStatTask {
         Set<EsLifeCycleManagement> errors = new HashSet<>();
         for (String pattern : patterns) {
             try {
-                lifecyclePoliciesService.getLifeCycleExList(pattern + "*").stream()
+                elasticRealLifecyclePoliciesService.getLifeCycleExList(pattern + "*").stream()
                         .filter(item -> item.getIndex().startsWith(getIndexPrefix(pattern)))
                         .forEach(errors::add);
             } catch (IOException e) {

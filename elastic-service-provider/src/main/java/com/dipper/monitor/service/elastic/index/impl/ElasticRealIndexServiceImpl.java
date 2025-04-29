@@ -15,12 +15,11 @@ import com.dipper.monitor.service.elastic.index.IndexOneOperatorService;
 import com.dipper.monitor.service.elastic.index.IndexStatusService;
 import com.dipper.monitor.service.elastic.index.impl.handlers.*;
 import com.dipper.monitor.service.elastic.index.impl.thread.IndexSettingCallable;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
-import com.dipper.monitor.utils.DiscardOldestThreadPolicy;
 import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.elastic.BytesUtil;
@@ -65,7 +64,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     private ElasticSegmentService elasticSegmentService;
 
     @Autowired
-    private LifecyclePoliciesService lifecyclePoliciesService;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     @Autowired
     private IndexStatusService indexStatusService;
     @Autowired
@@ -123,7 +122,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     private void setExtraLabel(List<IndexEntity> indexEntities) {
-        List<EsLifeCycleManagement> lifeCycleList = this.lifecyclePoliciesService.getLifeCycleList();
+        List<EsLifeCycleManagement> lifeCycleList = this.elasticRealLifecyclePoliciesService.getLifeCycleList();
         Map<String, EsLifeCycleManagement> lifecycleMap = lifeCycleList.stream()
                 .collect(Collectors.toMap(EsLifeCycleManagement::getIndex,
                         esLifeCycleManagement -> esLifeCycleManagement));

@@ -7,7 +7,7 @@ import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
-import com.dipper.monitor.service.elastic.life.LifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
@@ -36,7 +36,7 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
     @Autowired
     private ElasticSegmentService elasticSegmentService;
     @Autowired
-    private LifecyclePoliciesService lifecyclePoliciesService;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     @Autowired
     private ElasticStoreTemplateService elasticStoreTemplateService;
 
@@ -77,7 +77,7 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
     public List<EsTemplateConfigMes> statTemplate(String name) throws IOException {
         StatTemplateHandler statTemplateHandler = new StatTemplateHandler(elasticClientService,
                 elasticRealIndexService,elasticShardService,
-                elasticSegmentService,lifecyclePoliciesService);
+                elasticSegmentService, elasticRealLifecyclePoliciesService);
         return statTemplateHandler.statTemplate(name);
     }
 
