@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
@@ -29,10 +30,6 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     private EsTemplateMapper esTemplateMapper;
     @Autowired
     private ElasticHealthService elasticHealthService;
-    @Autowired
-    private ElasticStoreTemplateService elasticStoreTemplateService;
-    @Autowired
-    private ElasticRealTemplateService elasticRealTemplateService;
 
 
     @Override
@@ -103,8 +100,9 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
+        ElasticRealTemplateService elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
         RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,
-                elasticStoreTemplateService,elasticRealTemplateService);
+                this,elasticRealTemplateService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
     }
 
