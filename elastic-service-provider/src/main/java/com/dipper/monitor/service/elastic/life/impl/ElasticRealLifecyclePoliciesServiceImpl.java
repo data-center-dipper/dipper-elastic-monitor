@@ -11,10 +11,12 @@ import com.dipper.monitor.service.elastic.life.impl.service.RepairLifeCycleError
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -22,9 +24,6 @@ public class ElasticRealLifecyclePoliciesServiceImpl implements ElasticRealLifec
 
     @Autowired
     private ElasticClientService elasticClientService;
-//    @Autowired
-//    @Lazy
-//    private RepairLifeCycleErrorService repairLifeCycleErrorService;
 
     @Override
     public List<EsLifeCycleManagement> getLifeCycleList() {
@@ -51,6 +50,16 @@ public class ElasticRealLifecyclePoliciesServiceImpl implements ElasticRealLifec
     }
 
     @Override
+    public List<JSONObject> getJsonLifeCycleList() {
+        List<EsLifeCycleManagement> lifeCycleList = getLifeCycleList();
+        if (lifeCycleList.isEmpty()) {
+            return List.of();
+        }
+        return lifeCycleList.stream().map(EsLifeCycleManagement::getMessage).
+                map(JSONObject::parseObject).collect(Collectors.toList());
+    }
+
+    @Override
     public String checkLifeCycleError() throws IOException {
         CheckLifeCycleErrorService checkLifeCycleErrorService = new CheckLifeCycleErrorService();
         return checkLifeCycleErrorService.checkLifeCycleError();
@@ -58,8 +67,6 @@ public class ElasticRealLifecyclePoliciesServiceImpl implements ElasticRealLifec
 
     @Override
     public String repairLifeCycleError() throws IOException {
-//        boolean cglibProxy = AopUtils.isCglibProxy(repairLifeCycleErrorService);
-//        log.info("cglibProxy:{}",cglibProxy);
         RepairLifeCycleErrorService repairLifeCycleErrorService = new RepairLifeCycleErrorService();
         return repairLifeCycleErrorService.repairLifeCycleError();
     }

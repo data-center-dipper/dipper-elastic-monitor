@@ -33,9 +33,9 @@ public class OverviewController {
     private OverviewService overviewService;
 
     /**
-     * 获取所有Kafka集群列表。
+     * 获取集群状态信息
      */
-    @Operation(summary = "获取所有集群",
+    @Operation(summary = "获取集群状态信息",
             description = "Returns a list of all managed Kafka clusters.",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {

@@ -6,4 +6,13 @@ import lombok.Data;
 public class EsLifeCycleManagement {
     private String index;
    private String message;
+
+   public EsLifeCycleManagement() {
+
+   }
+
+    public EsLifeCycleManagement(String index, String message) {
+        this.index = index;
+        this.message = message;
+    }
 }

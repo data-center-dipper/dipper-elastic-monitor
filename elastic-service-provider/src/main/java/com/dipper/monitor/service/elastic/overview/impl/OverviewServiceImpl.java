@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.elastic.overview.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.cluster.ClusterStatsParse;
@@ -16,6 +17,7 @@ import com.dipper.monitor.service.elastic.overview.OverviewService;
 import com.dipper.monitor.service.elastic.overview.impl.service.ClusterStatusService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.utils.ListUtils;
+import com.dipper.monitor.utils.mock.MockAllData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,9 @@ public class OverviewServiceImpl implements OverviewService {
 
     @Override
     public List<EsLifeCycleManagement>  getLifeCycleError(PageReq pageReq) {
+        if(ApplicationUtils.isWindows()){
+            return MockAllData.getLifeCycleError();
+        }
         // 获取原始的生命周期列表
         List<EsLifeCycleManagement> lifeCycleList = elasticRealLifecyclePoliciesService.getLifeCycleList();
         if(CollectionUtils.isEmpty(lifeCycleList)){

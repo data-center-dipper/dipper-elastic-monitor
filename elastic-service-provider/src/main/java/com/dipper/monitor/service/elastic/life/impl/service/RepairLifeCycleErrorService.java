@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.life.impl.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
+import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,8 +21,7 @@ public class RepairLifeCycleErrorService  extends AbstractLifeCycleError {
     }
 
     public String repairLifeCycleError() throws IOException {
-//        List<EsLifeCycleManagement> list = lifecyclePoliciesService.getLifeCycleList();
-        List<JSONObject> list = null;
+        List<JSONObject> list = elasticRealLifecyclePoliciesService.getJsonLifeCycleList();
         if (list.isEmpty()) {
             builder.append("未有异常的生命周期\n");
             return builder.toString();
