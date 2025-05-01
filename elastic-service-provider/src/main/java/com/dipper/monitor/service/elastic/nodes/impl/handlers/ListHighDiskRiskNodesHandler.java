@@ -62,16 +62,19 @@ public class ListHighDiskRiskNodesHandler {
     }
 
     private ElasticNodeDisk parseDiskJson(JSONObject jsonObj) {
+        Double diskPercent = jsonObj.getDouble("disk.percent");
+
         return new ElasticNodeDisk()
                 .setShards(jsonObj.getInteger("shards"))
                 .setDiskIndices(jsonObj.getString("disk.indices"))
                 .setDiskUsed(jsonObj.getString("disk.used"))
                 .setDiskAvail(jsonObj.getString("disk.avail"))
                 .setDiskTotal(jsonObj.getString("disk.total"))
-                .setDiskPercent(jsonObj.getDouble("disk.percent"))
+                .setDiskPercent(diskPercent)
                 .setHost(jsonObj.getString("host"))
                 .setIp(jsonObj.getString("ip"))
-                .setNode(jsonObj.getString("node"));
+                .setNode(jsonObj.getString("node"))
+                .setName(jsonObj.getString("node"));
     }
 
     private List<ElasticNodeDisk> filterAndSortNodes(JSONObject nodesJson, Map<String, ElasticNodeDisk> nodeDiskMap) {
@@ -81,9 +84,9 @@ public class ListHighDiskRiskNodesHandler {
             String nodeName = nodeInfo.getString("name");
             if (nodeDiskMap.containsKey(nodeName)) {
                 ElasticNodeDisk diskInfo = nodeDiskMap.get(nodeName);
-                if (diskInfo.getDiskPercent() >= DISK_THRESHOLD) {
+//                if (diskInfo.getDiskPercent() >= DISK_THRESHOLD) {
                     nodeList.add(diskInfo);
-                }
+//                }
             }
         });
 

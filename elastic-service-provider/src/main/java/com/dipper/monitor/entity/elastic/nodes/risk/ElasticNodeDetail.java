@@ -25,8 +25,4 @@ public class ElasticNodeDetail {
     private Integer esDiskThreshouldInt;
     private Integer esJvmThreshouldInt;
     private Integer score;
-    private String diskUsed;
-    private String diskAvail;
-    private String diskTotal;
-    private Double diskPercent;
 }
