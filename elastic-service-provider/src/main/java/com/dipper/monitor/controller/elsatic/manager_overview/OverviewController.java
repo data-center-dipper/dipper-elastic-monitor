@@ -71,7 +71,7 @@ public class OverviewController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @PostMapping("/getLifeCycleError")
-    public JSONObject getLifeCycleError(PageReq pageReq) {
+    public JSONObject getLifeCycleError(@RequestBody  PageReq pageReq) {
         try {
             List<EsLifeCycleManagement>  clusterError = overviewService.getLifeCycleError(pageReq);
             return ResultUtils.onSuccess(clusterError);
@@ -153,7 +153,7 @@ public class OverviewController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @PostMapping("/getShardError")
-    public JSONObject getShardError(PageReq pageReq) {
+    public JSONObject getShardError(@RequestBody  PageReq pageReq) {
         try {
             List<JSONObject>  clusterError = overviewService.getShardError(pageReq);
             return ResultUtils.onSuccess(clusterError);

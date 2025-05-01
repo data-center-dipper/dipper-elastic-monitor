@@ -3,12 +3,14 @@ package com.dipper.monitor.service.elastic.shard.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.shard.ShardEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.shard.impl.service.ListShardMapHandler;
 import com.dipper.monitor.service.elastic.shard.impl.service.check.CheckShardErrorHandler;
 import com.dipper.monitor.service.elastic.shard.impl.service.repair.RepairShardErrorHandler;
+import com.dipper.monitor.utils.mock.MockAllData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,9 @@ public class ElasticShardServiceImpl implements ElasticShardService {
 
     @Override
     public List<JSONObject> getShardError() throws IOException {
+        if(ApplicationUtils.isWindows()){
+            return MockAllData.getShardError();
+        }
         // 检查分片状态
         String shardsResult = elasticClientService.executeGetApi("/_cat/shards?format=json");
         log.info("分片状态：\n{}", shardsResult);
