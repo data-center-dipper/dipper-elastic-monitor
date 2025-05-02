@@ -1,6 +1,6 @@
-package com.dipper.monitor.entity.elastic.nodes;
+package com.dipper.monitor.entity.elastic.nodes.detail;
 
-import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.PathInfo;
 import lombok.Data;
@@ -18,10 +18,12 @@ public class NodeDetailView {
     private String address;
 
     // JVM Info
-    private JvmInfo jvmInfo;
+    private JvmDetailView jvmInfoView;
 
     // OS Info
-    private OsInfo osInfo ;
+    private OsDetailView osDetailView ;
+
+    private ElasticNodeDisk elasticNodeDisk;
 
     // Path Info
     private PathInfo pathInfo;

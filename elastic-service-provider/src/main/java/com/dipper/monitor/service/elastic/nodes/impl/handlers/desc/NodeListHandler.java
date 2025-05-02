@@ -1,20 +1,19 @@
-package com.dipper.monitor.service.elastic.nodes.impl.handlers;
+package com.dipper.monitor.service.elastic.nodes.impl.handlers.desc;
 
 import com.dipper.common.lib.utils.TelnetUtils;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
-import com.dipper.monitor.entity.elastic.nodes.JvmInfoView;
+import com.dipper.monitor.entity.elastic.nodes.list.JvmInfoView;
 import com.dipper.monitor.entity.elastic.nodes.NodeInfoReq;
 import com.dipper.monitor.entity.elastic.nodes.OneNodeTabView;
-import com.dipper.monitor.entity.elastic.nodes.OsInfoView;
+import com.dipper.monitor.entity.elastic.nodes.list.OsInfoView;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.entity.elastic.original.nodes.info.EsNodeInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.stats.JVM;
 import com.dipper.monitor.entity.elastic.original.nodes.stats.Node;
-import com.dipper.monitor.entity.elastic.original.nodes.stats.NodeStatsResponse;
 import com.dipper.monitor.entity.elastic.original.nodes.stats.OS;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
@@ -68,6 +67,7 @@ public class NodeListHandler {
             // todo: 没有在线的节点，那么默认所有节点都是处于离线状态
             for (NodeStoreEntity item:nodeStoreEntities) {
                 OneNodeTabView oneNodeTabView = new OneNodeTabView();
+                oneNodeTabView.setNodeId(item.getId());
                 oneNodeTabView.setAddress(item.getAddress());
                 oneNodeTabView.setHostName(item.getHostName());
                 oneNodeTabView.setHostPort(item.getHostPort());
@@ -90,6 +90,7 @@ public class NodeListHandler {
             ElasticNodeDisk elasticNodeDisk = esNodesDiskMap.get(address);
 
             OneNodeTabView oneNodeTabView = new OneNodeTabView();
+            oneNodeTabView.setNodeId(item.getId());
             oneNodeTabView.setAddress(item.getAddress());
             oneNodeTabView.setHostName(item.getHostName());
             oneNodeTabView.setHostPort(item.getHostPort());

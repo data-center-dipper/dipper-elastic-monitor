@@ -1,4 +1,4 @@
-package com.dipper.monitor.service.elastic.nodes.impl.handlers;
+package com.dipper.monitor.service.elastic.nodes.impl.handlers.desc;
 
 import com.dipper.monitor.entity.elastic.original.nodes.info.EsNodeInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.*;
@@ -122,9 +122,9 @@ public abstract class AbstractNodeDesHandler {
 
     private PathInfo parsePathInfo(JsonNode pathNode) {
         PathInfo pathInfo = new PathInfo();
-        pathInfo.setData(getSafeTextValue(pathNode.path("data"), ""));
-        pathInfo.setLogs(getSafeTextValue(pathNode.path("logs"), ""));
-        pathInfo.setHome(getSafeTextValue(pathNode.path("home"), ""));
+        pathInfo.setData(getSafeTextValue(pathNode, "data"));
+        pathInfo.setLogs(getSafeTextValue(pathNode, "logs"));
+        pathInfo.setHome(getSafeTextValue(pathNode, "home"));
         return pathInfo;
     }
 

@@ -3,10 +3,12 @@ package com.dipper.monitor.controller.elsatic.manager_nodes;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
+import com.dipper.monitor.entity.elastic.nodes.detail.NodeDetailView;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +68,7 @@ public class ElasticNodeController {
      * @return 节点详情响应数据
      */
     @GetMapping("/getOneNodeView")
-    public Map<String, Object> getOneNodeView(@RequestParam Integer nodeId) {
+    public JSONObject getOneNodeView(@Parameter(description = "nodeId") @RequestParam Integer nodeId) {
         try {
             NodeDetailView nodeStatus = elasticRealNodeService.getOneNodeView(nodeId);
             return ResultUtils.onSuccess(nodeStatus);

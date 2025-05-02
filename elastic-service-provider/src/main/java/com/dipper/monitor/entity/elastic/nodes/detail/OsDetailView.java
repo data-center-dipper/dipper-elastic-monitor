@@ -1,13 +1,11 @@
-package com.dipper.monitor.entity.elastic.nodes;
+package com.dipper.monitor.entity.elastic.nodes.detail;
 
-import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
-import com.dipper.monitor.entity.elastic.original.nodes.stats.JVM;
 import com.dipper.monitor.entity.elastic.original.nodes.stats.OS;
 import lombok.Data;
 
 @Data
-public class OsInfoView {
+public class OsDetailView {
 
     private OsInfo osInfo;
 

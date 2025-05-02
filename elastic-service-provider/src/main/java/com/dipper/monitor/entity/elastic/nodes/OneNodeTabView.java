@@ -1,8 +1,9 @@
 package com.dipper.monitor.entity.elastic.nodes;
 
 
+import com.dipper.monitor.entity.elastic.nodes.list.JvmInfoView;
+import com.dipper.monitor.entity.elastic.nodes.list.OsInfoView;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
-import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.Settings;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Data
 public class OneNodeTabView {
+    private Integer nodeId;
     private String name;
     private String hostName;
     private Integer hostPort;

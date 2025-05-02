@@ -1,4 +1,4 @@
-package com.dipper.monitor.entity.elastic.nodes;
+package com.dipper.monitor.entity.elastic.nodes.detail;
 
 import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
 import com.dipper.monitor.entity.elastic.original.nodes.stats.*;
@@ -13,7 +13,7 @@ import java.util.Map;
  * Elasticsearch 节点 JVM 信息展示类
  */
 @Data
-public class JvmInfoView {
+public class JvmDetailView {
 
     // -------------------------- JVM 启动信息 --------------------------
     /**
