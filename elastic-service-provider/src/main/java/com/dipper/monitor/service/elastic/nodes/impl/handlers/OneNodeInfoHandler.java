@@ -2,7 +2,7 @@ package com.dipper.monitor.service.elastic.nodes.impl.handlers;
 
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.EsNodeInfo;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

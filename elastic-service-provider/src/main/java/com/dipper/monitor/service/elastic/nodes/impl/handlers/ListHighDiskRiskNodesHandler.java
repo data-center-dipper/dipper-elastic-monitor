@@ -3,7 +3,6 @@ package com.dipper.monitor.service.elastic.nodes.impl.handlers;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -12,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 获取Elastic节点磁盘使用率较高的前十条
@@ -29,7 +27,7 @@ public class ListHighDiskRiskNodesHandler {
 
     public List<ElasticNodeDisk> listHighDiskRiskNodes() throws IOException {
         long startTime = System.currentTimeMillis();
-        String nodeInfoResult = elasticClientService.executeGetApi(ElasticRestApi.ES_NODES_MESSAGE.getApiPath());
+        String nodeInfoResult = elasticClientService.executeGetApi(ElasticRestApi.ES_NODES_STAT_MESSAGE.getApiPath());
 
         if (StringUtils.isBlank(nodeInfoResult) || nodeInfoResult.contains("master_not_discovered_exception")) {
             return Collections.emptyList();
@@ -46,7 +44,7 @@ public class ListHighDiskRiskNodesHandler {
         List<ElasticNodeDisk> highDiskRiskNodes = filterAndSortNodes(nodesJson, nodeDiskMap);
 
         log.info("Total processing time: {} ms", System.currentTimeMillis() - startTime);
-        return highDiskRiskNodes.subList(0, Math.min(highDiskRiskNodes.size(), 10)); // 返回前十条记录
+        return highDiskRiskNodes;
     }
 
     private Map<String, ElasticNodeDisk> fetchAndParseDiskUsage() throws IOException {

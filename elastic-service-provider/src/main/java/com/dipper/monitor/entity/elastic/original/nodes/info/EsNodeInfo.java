@@ -1,10 +1,10 @@
-package com.dipper.monitor.entity.elastic.nodes.yaunshi;
+package com.dipper.monitor.entity.elastic.original.nodes.info;
 
 
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.JvmInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.OsInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.PathInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.Settings;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.PathInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.Settings;
 import lombok.Data;
 
 import java.util.List;

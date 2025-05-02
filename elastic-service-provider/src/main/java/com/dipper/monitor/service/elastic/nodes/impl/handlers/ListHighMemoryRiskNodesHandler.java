@@ -27,7 +27,7 @@ public class ListHighMemoryRiskNodesHandler {
 
     public List<ElasticNodeDetail> listHighRiskNodes() throws IOException {
         long startTime = System.currentTimeMillis();
-        String nodeInfoResult = elasticClientService.executeGetApi(ElasticRestApi.ES_NODES_MESSAGE.getApiPath());
+        String nodeInfoResult = elasticClientService.executeGetApi(ElasticRestApi.ES_NODES_STAT_MESSAGE.getApiPath());
         if (StringUtils.isBlank(nodeInfoResult) || nodeInfoResult.contains("master_not_discovered_exception")) {
             return Collections.emptyList();
         }

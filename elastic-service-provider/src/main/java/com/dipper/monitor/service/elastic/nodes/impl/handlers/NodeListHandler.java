@@ -7,8 +7,15 @@ import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.JvmInfoView;
 import com.dipper.monitor.entity.elastic.nodes.NodeInfoReq;
 import com.dipper.monitor.entity.elastic.nodes.OneNodeTabView;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.JvmInfo;
+import com.dipper.monitor.entity.elastic.nodes.OsInfoView;
+import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
+import com.dipper.monitor.entity.elastic.original.nodes.info.EsNodeInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.stats.JVM;
+import com.dipper.monitor.entity.elastic.original.nodes.stats.Node;
+import com.dipper.monitor.entity.elastic.original.nodes.stats.NodeStatsResponse;
+import com.dipper.monitor.entity.elastic.original.nodes.stats.OS;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
@@ -72,11 +79,15 @@ public class NodeListHandler {
         }
 
         Map<String, EsNodeInfo> nodeMap = esNodes.stream().collect(Collectors.toMap(x -> x.getName(), x -> x));
+        Map<String, Node> esNodesStatMap = elasticRealRealNodeService.getEsNodesStatMap();
+        Map<String, ElasticNodeDisk> esNodesDiskMap = elasticRealRealNodeService.getEsNodeDiskMap();
 
         List<OneNodeTabView> oneNodeTabViews = new ArrayList<>();
         for (NodeStoreEntity item:nodeStoreEntities){
             String address = item.getAddress();
             EsNodeInfo esNodeInfo = nodeMap.get(address);
+            Node nodeStat = esNodesStatMap.get(address);
+            ElasticNodeDisk elasticNodeDisk = esNodesDiskMap.get(address);
 
             OneNodeTabView oneNodeTabView = new OneNodeTabView();
             oneNodeTabView.setAddress(item.getAddress());
@@ -92,9 +103,20 @@ public class NodeListHandler {
                 oneNodeTabView.setStatus("green");
 
                 JvmInfo jvmInfo = esNodeInfo.getJvmInfo();
+                JVM jvmStat = nodeStat.getJvm();
+
                 JvmInfoView jvmInfoView = new JvmInfoView();
-                jvmInfoView.transToView(jvmInfo);
+                jvmInfoView.transToView(jvmInfo,jvmStat);
                 oneNodeTabView.setJvmInfoView(jvmInfoView);
+
+                OsInfo osInfo = esNodeInfo.getOsInfo();
+                OS osStat = nodeStat.getOs();
+                OsInfoView osInfoView = new OsInfoView();
+                osInfoView.transToView(osInfo,osStat);
+                oneNodeTabView.setOsInfoView(osInfoView);
+
+                oneNodeTabView.setElasticNodeDisk(elasticNodeDisk);
+
             }
             //如果telnet为false，则设置状态为yellow
             if (telnet) {

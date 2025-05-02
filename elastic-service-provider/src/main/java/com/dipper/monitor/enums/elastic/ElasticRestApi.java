@@ -9,12 +9,11 @@ public enum ElasticRestApi {
      * 获取Elasticsearch的基本统计信息。
      */
     ES_STAT("GET", "_stats/docs,store?ignore_unavailable=true", "获取ES基本的统计信息"),
-    NODES_LIST("GET", "/_nodes/stats", "获取所有节点"),
     SHAED_LIST("GET", "/_cat/shards?format=json", "获取所有的分片列表"),
     /**
      * 获取Elasticsearch节点的相关信息。
      */
-    ES_NODES_MESSAGE("GET", "/_nodes/stats", "获取ES节点信息"),
+    ES_NODES_STAT_MESSAGE("GET", "/_nodes/stats", "获取ES节点信息"),
     SHAED_UNASSIGNED_REASON("GET", "/_cluster/allocation/explain", "查看分配未分配的原因"),
     SHAED_FORCE_DISTRIBUTION("POST", "/_cluster/reroute?retry_failed=true", "分片重新分配"),
     /**

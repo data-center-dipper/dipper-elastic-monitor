@@ -1,10 +1,8 @@
 package com.dipper.monitor.service.elastic.nodes.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPath;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;
@@ -13,7 +11,9 @@ import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.EsNodeInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.stats.Node;
+import com.dipper.monitor.entity.elastic.original.nodes.stats.NodeStatsResponse;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
@@ -28,8 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -87,12 +88,56 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
     }
 
     @Override
+    public NodeStatsResponse getEsNodesStat() throws IOException {
+        long startTime = System.currentTimeMillis();
+        String nodeInfoResult = elasticClientService.executeGetApi(ElasticRestApi.ES_NODES_STAT_MESSAGE.getApiPath());
+        JSONObject jsonObject = JSONObject.parseObject(nodeInfoResult);
+
+        NodeStatsResponse nodeStatsResponse = new NodeStatsResponse();
+        JSONObject _nodes = jsonObject.getJSONObject("_nodes");
+        Integer total = _nodes.getInteger("total");
+        Integer successful = _nodes.getInteger("successful");
+        Integer failed = _nodes.getInteger("failed");
+        nodeStatsResponse.setTotal(total);
+        nodeStatsResponse.setSuccessful(successful);
+        nodeStatsResponse.setFailed(failed);
+        nodeStatsResponse.setCluster_name(jsonObject.getString("cluster_name"));
+
+        Map<String, Node>  esNodes = new HashMap<>();
+
+        JSONObject nodes = jsonObject.getJSONObject("nodes");
+        Set<String> strings = nodes.keySet();
+        for (String string : strings) {
+            JSONObject nodeJson = nodes.getJSONObject(string);
+            Node node = nodeJson.toJavaObject(Node.class);
+            esNodes.put(string,node);
+        }
+        nodeStatsResponse.setNodes(esNodes);
+        return nodeStatsResponse;
+    }
+
+    @Override
+    public Map<String, Node> getEsNodesStatMap() throws IOException {
+        NodeStatsResponse esNodesStat = getEsNodesStat();
+        Map<String, Node> nodes = esNodesStat.getNodes();
+
+        Map<String, Node> resultMap = new HashMap<>();
+
+        for (Map.Entry<String, Node> item: nodes.entrySet()){
+            Node node = item.getValue();
+            String name = node.getName();
+            resultMap.put(name,node);
+        }
+        return resultMap;
+    }
+
+
+    @Override
     public EsNodeFailed getEsNodeFailed() throws IOException {
-        String nodeState = elasticClientService.executeGetApi(ElasticRestApi.NODES_LIST.getApiPath());
-        JSONObject nodeStateJson = JSON.parseObject(nodeState);
-        Integer nodesTotal = (Integer) JSONPath.eval(nodeStateJson, "$._nodes.total");
-        Integer nodesSuccessful = (Integer)JSONPath.eval(nodeStateJson, "$._nodes.successful");
-        Integer nodesFailed = (Integer)JSONPath.eval(nodeStateJson, "$._nodes.failed");
+        NodeStatsResponse esNodesStat = getEsNodesStat();
+        Integer nodesTotal = esNodesStat.getTotal();
+        Integer nodesSuccessful = esNodesStat.getSuccessful();
+        Integer nodesFailed = esNodesStat.getFailed();
 
         EsNodeFailed esNodeFailed = new EsNodeFailed();
         esNodeFailed.setNodesTotal(nodesTotal);
@@ -109,9 +154,21 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
 
     @Override
     public  List<ElasticNodeDisk>  nodeDiskTop10() throws IOException {
-        ListHighDiskRiskNodesHandler listHighMemoryRiskNodesHandler = new ListHighDiskRiskNodesHandler(elasticClientService);
-        return listHighMemoryRiskNodesHandler.listHighDiskRiskNodes();
+        List<ElasticNodeDisk> elasticNodeDisks =  getEsNodeDiskList();
+        return elasticNodeDisks.subList(0, Math.min(elasticNodeDisks.size(), 10)); // 返回前十条记录
     }
+
+    public Map<String, ElasticNodeDisk> getEsNodeDiskMap() throws IOException {
+        List<ElasticNodeDisk> elasticNodeDisks =  getEsNodeDiskList();
+        return elasticNodeDisks.stream().collect(Collectors.toMap(ElasticNodeDisk::getName, Function.identity()));
+    }
+
+    private List<ElasticNodeDisk> getEsNodeDiskList() throws IOException {
+        ListHighDiskRiskNodesHandler listHighMemoryRiskNodesHandler = new ListHighDiskRiskNodesHandler(elasticClientService);
+        List<ElasticNodeDisk> elasticNodeDisks = listHighMemoryRiskNodesHandler.listHighDiskRiskNodes();
+       return elasticNodeDisks;
+    }
+
 
     @Override
     public Tuple2<List<OneNodeTabView>, Integer> nodePageList(NodeInfoReq nodeInfoReq) throws IOException {

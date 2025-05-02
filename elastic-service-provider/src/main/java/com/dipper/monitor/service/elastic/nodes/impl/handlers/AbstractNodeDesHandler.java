@@ -1,7 +1,7 @@
 package com.dipper.monitor.service.elastic.nodes.impl.handlers;
 
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.EsNodeInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.*;
+import com.dipper.monitor.entity.elastic.original.nodes.info.EsNodeInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.*;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -113,8 +113,10 @@ public abstract class AbstractNodeDesHandler {
 
     private OsInfo parseOsInfo(JsonNode osNode) {
         OsInfo osInfo = new OsInfo();
-        osInfo.setPrettyName(getSafeTextValue(osNode.path("pretty_name"), ""));
-        osInfo.setArch(getSafeTextValue(osNode.path("arch"), ""));
+        osInfo.setPrettyName(getSafeTextValue(osNode, "pretty_name"));
+        osInfo.setArch(getSafeTextValue(osNode, "arch"));
+        osInfo.setAvailableProcessors(getSafeTextValue(osNode, "available_processors"));
+        osInfo.setAllocatedProcessors(getSafeTextValue(osNode, "allocated_processors"));
         return osInfo;
     }
 

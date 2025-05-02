@@ -1,11 +1,9 @@
 package com.dipper.monitor.entity.elastic.nodes;
 
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.JvmInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.OsInfo;
-import com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes.PathInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.JvmInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.OsInfo;
+import com.dipper.monitor.entity.elastic.original.nodes.info.nodes.PathInfo;
 import lombok.Data;
-
-import java.util.Map;
 
 /**
  * 节点详情响应实体类

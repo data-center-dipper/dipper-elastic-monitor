@@ -1,4 +1,4 @@
-package com.dipper.monitor.entity.elastic.nodes.yaunshi.nodes;
+package com.dipper.monitor.entity.elastic.original.nodes.info.nodes;
 
 import lombok.Data;
 
