@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.ElasticClusterManagerMapper">
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_elastic_cluster (cluster_code, cluster_name, address, current_cluster, default_cluster,
+        cluster_desc)
+        VALUES (#{clusterCode}, #{clusterName}, #{address}, #{currentCluster}, #{defaultCluster}, #{clusterDesc})
+    </insert>
+
+    <select id="getClusterByCode" resultType="com.dipper.monitor.entity.db.elastic.ElasticClusterEntity">
+        SELECT * FROM t_elastic_cluster WHERE cluster_code = #{clusterCode}
+    </select>
+
+    <select id="getAllClusterList" resultType="com.dipper.monitor.entity.db.elastic.ElasticClusterEntity">
+        SELECT * FROM t_elastic_cluster
+    </select>
+
+    <select id="getCurrentCluster" resultType="com.dipper.monitor.entity.db.elastic.ElasticClusterEntity">
+        SELECT * FROM t_elastic_cluster where current_cluster = true;
+    </select>
+
+    <update id="update">
+        UPDATE t_elastic_cluster
+        SET cluster_code=#{clusterCode}, cluster_name=#{clusterName}, address=#{address},
+        cluster_desc=#{clusterDesc}
+        WHERE cluster_code=#{clusterCode}
+    </update>
+
+
+    <update id="setDefaultCluster">
+        UPDATE t_elastic_cluster
+        SET default_cluster=#{defaultCluster}
+        WHERE cluster_code=#{clusterCode}
+    </update>
+
+    <update id="clearDefaultCluster">
+        UPDATE t_elastic_cluster
+        SET default_cluster= false
+    </update>
+
+    <update id="setCurrentCluster">
+        UPDATE t_elastic_cluster
+        SET current_cluster=#{currentEnable}
+        WHERE cluster_code=#{clusterCode}
+    </update>
+
+    <update id="clearCurrentCluster">
+        UPDATE t_elastic_cluster
+        SET current_cluster= false
+    </update>
+
+    <update id="clearMonitoringPolicy">
+        UPDATE t_elastic_cluster
+        SET cluster_policy = 'none',
+        monitor_start_time = NULL,
+        monitor_end_time = NULL
+        WHERE cluster_code = #{clusterCode}
+    </update>
+
+
+    <delete id="deleteCluster">
+        DELETE FROM t_elastic_cluster WHERE cluster_code = #{clusterCode}
+    </delete>
+
+    <delete id="deleteAll">
+        DELETE FROM t_elastic_cluster
+    </delete>
+
+</mapper>

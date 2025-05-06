@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.EsTemplateMapper">
+
+    <!-- 插入新模板 -->
+    <insert id="insertTemplate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_elastic_template(
+        cluster_code,
+        zh_name,
+        en_name,
+        settings,
+        dic_name,
+        index_patterns,
+        alians_patterns,
+        number_of_shards,
+        number_of_replicas,
+        enable_auto_shards,
+        template_content,
+        create_time,
+        update_time
+        ) VALUES (
+        #{clusterCode},
+        #{zhName},
+        #{enName},
+        #{settings},
+        #{dicName},
+        #{indexPatterns},
+        #{aliansPatterns},
+        #{numberOfShards},
+        #{numberOfReplicas},
+        #{enableAutoShards},
+        #{templateContent},
+        NOW(),
+        NOW()
+        )
+    </insert>
+
+    <!-- 根据ID获取模板 -->
+    <select id="getTemplateById" resultType="com.dipper.monitor.entity.db.elastic.EsTemplateEntity">
+        SELECT * FROM t_elastic_template WHERE id = #{id}
+    </select>
+
+    <!-- 更新模板 -->
+    <update id="updateTemplate">
+        UPDATE t_elastic_template
+        SET
+        cluster_code=#{clusterCode},
+        zh_name=#{zhName},
+        en_name=#{enName},
+        settings=#{settings},
+        dic_name=#{dicName},
+        index_patterns=#{indexPatterns},
+        alians_patterns=#{aliansPatterns},
+        number_of_shards=#{numberOfShards},
+        number_of_replicas=#{numberOfReplicas},
+        enable_auto_shards=#{enableAutoShards},
+        template_content=#{templateContent},
+        update_time=NOW()
+        WHERE id=#{id}
+    </update>
+
+    <!-- 根据ID删除模板 -->
+    <delete id="deleteTemplateById">
+        DELETE FROM t_elastic_template WHERE id = #{id}
+    </delete>
+
+    <!-- 获取所有模板 -->
+    <select id="getAllTemplates" resultType="com.dipper.monitor.entity.db.elastic.EsTemplateEntity">
+        SELECT * FROM t_elastic_template
+    </select>
+
+    <!-- 根据ID获取模板 -->
+    <select id="getTemplateByEnName" resultType="com.dipper.monitor.entity.db.elastic.EsTemplateEntity">
+        SELECT * FROM t_elastic_template WHERE  cluster_code = #{clusterCode} and en_name=#{enName}
+    </select>
+
+    <update id="updateTemplateStat">
+        UPDATE t_elastic_template
+        SET
+        stat_message=#{statMessage}
+        WHERE id=#{id}
+    </update>
+
+</mapper>

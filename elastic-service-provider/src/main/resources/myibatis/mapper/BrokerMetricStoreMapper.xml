@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.BrokerMetricStoreMapper">
+
+    <select id="findLastBatchId" resultType="java.lang.Long">
+        SELECT IFNULL(batch_id, 0)
+        FROM t_metric_node
+        WHERE module_name = #{moduleName}
+        ORDER BY id DESC
+        LIMIT 1;
+    </select>
+
+    <insert id="storeBrokerMetric" parameterType="com.dipper.monitor.entity.db.elastic.BrokerMetricEntity">
+        INSERT INTO t_metric_node
+        (batch_id, cluster_code, module_name, entity_name, section_name, metric_key, metric_value, create_time, update_time)
+        VALUES
+        (#{batchId}, #{clusterCode}, #{moduleName}, #{entityName}, #{sectionName}, #{metricKey}, #{metricValue}, NOW(), NOW())
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO t_metric_node (cluster_code, batch_id, module_name, entity_name, section_name, metric_key, metric_value)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.clusterCode}, #{entity.batchId}, #{entity.moduleName}, #{entity.entityName}, #{entity.sectionName}, #{entity.metricKey}, #{entity.metricValue})
+        </foreach>
+    </insert>
+
+    <select id="getMetricByMetricKey" resultType="com.dipper.monitor.entity.db.elastic.BrokerMetricEntity">
+        SELECT
+        batch_id,
+        cluster_code,
+        module_name,
+        entity_name,
+        section_name,
+        metric_key,
+        metric_value,
+        create_time,
+        update_time
+        FROM t_metric_node
+        WHERE 1=1
+        <if test="clusterCode != null and clusterCode != ''">
+            AND cluster_code = #{clusterCode}
+        </if>
+        <if test="modelName != null and modelName != ''">
+            AND module_name = #{modelName}
+        </if>
+        <if test="brokerName != null and brokerName != ''">
+            AND entity_name = #{brokerName}
+        </if>
+        <if test="sectionName != null and sectionName != ''">
+            AND section_name = #{sectionName}
+        </if>
+        <if test="metricKey != null and metricKey != ''">
+            AND metric_key = #{metricKey}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time &lt;= #{endTime}
+        </if>
+    </select>
+
+</mapper>

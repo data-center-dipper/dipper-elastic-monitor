@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.ElasticNodeStoreMapper">
+    <!-- 批量插入 -->
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_elastic_node_store (cluster_code, host_name, host_ip, host_port, address)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.clusterCode}, #{item.hostName}, #{item.hostIp}, #{item.hostPort}, #{item.address})
+        </foreach>
+    </insert>
+
+    <!-- 根据集群编码删除 -->
+    <delete id="deleteByClusterCode">
+        DELETE FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+    </delete>
+
+    <!-- 查询集群存储信息 -->
+    <select id="selectByClusterCode" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+    </select>
+
+    <!-- 选择性更新 -->
+    <update id="updateByPrimaryKeySelective">
+        UPDATE t_elastic_node_store
+        <set>
+            <if test="clusterCode != null">cluster_code = #{clusterCode},</if>
+            <if test="hostName != null">host_name = #{hostName},</if>
+            <if test="hostIp != null">host_ip = #{hostIp},</if>
+            <if test="hostPort != null">host_port = #{hostPort},</if>
+            <if test="address != null">address = #{address},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 分页查询 -->
+    <select id="listByPage" parameterType="map" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 节点总数统计 -->
+    <select id="totalNodes" resultType="int">
+        SELECT COUNT(1)
+        FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+    </select>
+
+    <!-- 根据节点名称获取 -->
+    <select id="getNodeByNodeName" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+        AND host_name = #{brokerName}
+    </select>
+
+    <!-- 根据节点名称和端口获取 -->
+    <select id="getBrokerByNodeAndPort" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+        AND host_name = #{hostName}
+        AND host_port = #{port}
+    </select>
+
+    <!-- 根据节点名称和端口获取 -->
+    <select id="getByNodeId" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+        AND id = #{nodeId}
+    </select>
+
+    <select id="deleteNode" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        delete FROM t_elastic_node_store
+        AND id = #{nodeId}
+    </select>
+
+    <update id="updateBroker">
+        UPDATE t_elastic_node_store
+        <set>
+            <if test="clusterCode != null">cluster_code = #{clusterCode},</if>
+            <if test="hostName != null">host_name = #{hostName},</if>
+            <if test="hostIp != null">host_ip = #{hostIp},</if>
+            <if test="hostPort != null">host_port = #{hostPort},</if>
+            <if test="address != null">address = #{address},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

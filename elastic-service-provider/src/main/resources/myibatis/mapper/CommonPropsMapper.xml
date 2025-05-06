@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dipper.monitor.mapper.CommonPropsMapper">
+
+    <!-- 查询 -->
+    <select id="getConfByKey" parameterType="string" resultType="com.dipper.monitor.entity.db.config.ConfItemEntity">
+        SELECT
+        id,
+        module_name AS moduleName,
+        entity_name AS entityName,
+        section_name AS sectionName,
+        config_type AS configType,
+        custom_type AS customType,
+        show_view AS showView,
+        dynamic_data AS dynamicData,
+        config_key AS configKey,
+        config_name AS configName,
+        config_value AS configValue,
+        config_desc AS configDesc,
+        config_content AS configContent,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM t_config
+        WHERE config_name = #{configKey}
+    </select>
+
+    <!-- 插入 -->
+    <insert id="save" parameterType="com.dipper.monitor.entity.db.config.ConfItemEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_config (
+        module_name,
+        entity_name,
+        section_name,
+        config_type,
+        custom_type,
+        show_view,
+        dynamic_data,
+        config_key,
+        config_name,
+        config_value,
+        config_desc,
+        config_content
+        ) VALUES (
+        #{moduleName},
+        #{entityName},
+        #{sectionName},
+        #{configType},
+        #{customType, jdbcType=BOOLEAN},
+        #{showView, jdbcType=BOOLEAN},
+        #{dynamicData, jdbcType=BOOLEAN},
+        #{configKey},
+        #{configName},
+        #{configValue},
+        #{configDesc},
+        #{configContent}
+        )
+    </insert>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.dipper.monitor.entity.db.config.ConfItemEntity">
+        UPDATE t_config
+        SET
+        module_name = #{moduleName},
+        entity_name = #{entityName},
+        section_name = #{sectionName},
+        config_type = #{configType},
+        custom_type = #{customType, jdbcType=BOOLEAN},
+        show_view = #{showView, jdbcType=BOOLEAN},
+        dynamic_data = #{dynamicData, jdbcType=BOOLEAN},
+        config_key = #{configKey},
+        config_name = #{configName},
+        config_value = #{configValue},
+        config_desc = #{configDesc},
+        config_content = #{configContent},
+        update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteByKey" parameterType="string">
+        DELETE FROM t_config
+        WHERE config_key = #{configKey}
+    </delete>
+
+    <!-- 查询所有配置项 -->
+    <select id="getConfigList" resultType="com.dipper.monitor.entity.db.config.ConfItemEntity">
+        SELECT
+        id,
+        module_name AS moduleName,
+        entity_name AS entityName,
+        section_name AS sectionName,
+        config_type AS configType,
+        custom_type AS customType,
+        show_view AS showView,
+        dynamic_data AS dynamicData,
+        config_key AS configKey,
+        config_name AS configName,
+        config_value AS configValue,
+        config_desc AS configDesc,
+        config_content AS configContent,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM t_config
+    </select>
+
+</mapper>
