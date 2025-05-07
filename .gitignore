@@ -11,6 +11,8 @@
 .mtj.tmp/
 
 # Package Files #
+# 插件目录我希望每次都能添加
+!plugins
 *.jar
 *.war
 *.nar
