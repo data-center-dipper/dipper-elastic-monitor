@@ -1,0 +1,11 @@
+# 激活的Spring配置文件（根据实际需要取消注释）
+# 可选值：
+#   - prod       生产环境
+#   - windows    Windows 开发环境
+#   - gs78       当前激活环境
+#   - mac        Mac 开发环境
+#   - maclocal   本地 Mac 测试环境
+
+spring:
+  profiles:
+    active: gs78  # <-- 当前生效的是 gs78 环境

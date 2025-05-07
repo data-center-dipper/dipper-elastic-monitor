@@ -1,6 +1,6 @@
 <configuration>
     <!-- 使用Spring的属性 -->
-    <springProperty scope="context" name="LOG_PATH" source="logging.path"/>
+    <springProperty scope="context" name="LOG_PATH" source="logging.path" defaultValue="./logs"/>
 
     <property name="APP_NAME" value="dipper-monitor"/>
     <property name="SCHEDULED_TASK_LOG_PATH" value="${LOG_PATH}/scheduled-tasks"/>
