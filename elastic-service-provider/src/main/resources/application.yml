@@ -6,6 +6,8 @@
 #   - mac        Mac 开发环境
 #   - maclocal   本地 Mac 测试环境
 
+
+
 spring:
   profiles:
     active: gs78  # <-- 当前生效的是 gs78 环境
