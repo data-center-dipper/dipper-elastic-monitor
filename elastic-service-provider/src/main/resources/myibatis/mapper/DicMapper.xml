@@ -43,4 +43,28 @@
         FROM t_dic
         WHERE en_name = #{enName}
     </select>
+
+    <select id="getDicNum" resultType="int">
+        SELECT COUNT(*)
+        FROM t_dic
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
+                OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getDicByPage" resultType="com.dipper.monitor.entity.elastic.dic.Dic">
+        SELECT *
+        FROM t_dic
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
+                OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        LIMIT #{pageSize} OFFSET #{pageNum}
+    </select>
 </mapper>

@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.elastic.dic.impl;
 
 import com.dipper.monitor.entity.elastic.dic.Dic;
+import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
 import com.dipper.monitor.mapper.DicMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
@@ -79,6 +80,17 @@ public class DicServiceImpl implements DicService {
         }
         Dic dicByName = dicMapper.getDicByName(dicName);
         return dicByName;
+    }
+
+    @Override
+    public Integer getDicNum(DicPageInfo dicPageInfo) {
+        String keyword = dicPageInfo.getKeyword();
+        return dicMapper.getDicNum(keyword);
+    }
+
+    @Override
+    public List<Dic> getDicByPage(DicPageInfo dicPageInfo) {
+        return dicMapper.getDicByPage(dicPageInfo);
     }
 
     private void check(Dic dic) {

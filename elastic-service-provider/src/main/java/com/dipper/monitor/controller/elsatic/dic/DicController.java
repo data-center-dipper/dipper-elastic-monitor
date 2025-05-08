@@ -2,8 +2,10 @@ package com.dipper.monitor.controller.elsatic.dic;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.dic.Dic;
+import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.utils.ResultUtils;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -123,11 +125,12 @@ public class DicController {
                                     schema = @Schema(implementation = Dic.class, type = "array"))),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping("/getAllDics")
-    public JSONObject getAllDics() {
+    @PostMapping("/getAllDics")
+    public JSONObject getAllDics(@RequestBody DicPageInfo dicPageInfo) {
         try {
-            List<Dic> dics = dicService.getAllDics();
-            return ResultUtils.onSuccess(dics);
+            Integer total = dicService.getDicNum(dicPageInfo);
+            List<Dic> dics = dicService.getDicByPage(dicPageInfo);
+            return ResultUtils.onSuccessWithPageTotal(total,dics);
         } catch (Exception e) {
             log.error("Error retrieving dictionaries", e);
             return ResultUtils.onFail("Operation error");
