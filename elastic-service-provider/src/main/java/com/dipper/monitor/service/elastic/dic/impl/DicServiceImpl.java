@@ -90,6 +90,13 @@ public class DicServiceImpl implements DicService {
 
     @Override
     public List<Dic> getDicByPage(DicPageInfo dicPageInfo) {
+        Integer pageNum = dicPageInfo.getPageNum();
+        if(pageNum == null){
+            pageNum = 0;
+        }else {
+            pageNum = pageNum - 1;
+        }
+        dicPageInfo.setPageNum(pageNum);
         return dicMapper.getDicByPage(dicPageInfo);
     }
 
