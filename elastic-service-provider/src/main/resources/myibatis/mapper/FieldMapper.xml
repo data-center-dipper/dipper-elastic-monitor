@@ -47,7 +47,7 @@
     </delete>
 
     <!-- 获取指定字典ID的所有字段记录 -->
-    <select id="getFieldByEnName" resultType="com.dipper.monitor.entity.elastic.dic.Field" parameterType="int">
+    <select id="getFieldByEnName" resultType="com.dipper.monitor.entity.elastic.dic.Field" >
         SELECT id, dic_id AS dicId, zh_name AS zhName, en_name AS enName, field_type AS fieldType, es_mapping_type AS esMappingType
         FROM t_field
         WHERE en_name = #{enName}

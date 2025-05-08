@@ -12,7 +12,7 @@ public interface FieldMapper {
      * @param field 字段对象
      * @return 影响的行数
      */
-    int insertField(@Param("field") Field field);
+    int insertField(Field field);
 
     /**
      * 更新字段信息
