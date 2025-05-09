@@ -1,7 +1,10 @@
 package com.dipper.monitor.controller.elsatic.dic;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.dic.Dic;
+import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
 import com.dipper.monitor.entity.elastic.dic.Field;
+import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -23,6 +26,27 @@ public class WordController {
 
     @Autowired
     private WordService wordService;
+
+    @Operation(summary = "获取所有字段列表",
+            description = "Retrieve a list of all dictionaries.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Dic.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/getAllFields")
+    public JSONObject getAllFields(@RequestBody WordPageInfo wordPageInfo) {
+        try {
+            Integer total = wordService.getWordNum(wordPageInfo);
+            List<Dic> dics = wordService.getWordByPage(wordPageInfo);
+            return ResultUtils.onSuccessWithPageTotal(total,dics);
+        } catch (Exception e) {
+            log.error("Error retrieving dictionaries", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 
     @Operation(summary = "添加字段",
             description = "Add a new field to the dictionary.",

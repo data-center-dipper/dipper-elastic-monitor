@@ -1,6 +1,8 @@
 package com.dipper.monitor.service.elastic.dic.impl;
 
+import com.dipper.monitor.entity.elastic.dic.Dic;
 import com.dipper.monitor.entity.elastic.dic.Field;
+import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
 import com.dipper.monitor.mapper.FieldMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
@@ -74,6 +76,24 @@ public class WordServiceImpl implements WordService {
             existField(field.getEnName());
             fieldMapper.insertField(field);
         }
+    }
+
+    @Override
+    public Integer getWordNum(WordPageInfo wordPageInfo) {
+        String keyword = wordPageInfo.getKeyword();
+        return fieldMapper.getWordNum(keyword);
+    }
+
+    @Override
+    public List<Dic> getWordByPage(WordPageInfo wordPageInfo) {
+        Integer pageNum = wordPageInfo.getPageNum();
+        if(pageNum == null){
+            pageNum = 0;
+        }else {
+            pageNum = pageNum - 1;
+        }
+        wordPageInfo.setPageNum(pageNum);
+        return fieldMapper.getWordByPage(wordPageInfo);
     }
 
     private void checkField(Field field) {

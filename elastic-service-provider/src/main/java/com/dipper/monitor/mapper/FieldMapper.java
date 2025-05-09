@@ -1,6 +1,8 @@
 package com.dipper.monitor.mapper;
 
+import com.dipper.monitor.entity.elastic.dic.Dic;
 import com.dipper.monitor.entity.elastic.dic.Field;
+import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -54,4 +56,18 @@ public interface FieldMapper {
      * @return 字段对象
      */
     Field getFieldByEnName(@Param("enName") String enName);
+
+    /**
+     * 根据英文名称判断字段是否存在
+     * @param keyword
+     * @return
+     */
+    Integer getWordNum(String keyword);
+
+    /**
+     * 获取分页字段信息
+     * @param wordPageInfo
+     * @return
+     */
+    List<Dic> getWordByPage(WordPageInfo wordPageInfo);
 }

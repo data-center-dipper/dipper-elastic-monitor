@@ -53,4 +53,29 @@
         WHERE en_name = #{enName}
     </select>
 
+
+    <select id="getWordNum" resultType="int">
+        SELECT COUNT(*)
+        FROM t_field
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
+                OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getWordByPage" resultType="com.dipper.monitor.entity.elastic.dic.Dic">
+        SELECT *
+        FROM t_field
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
+                OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        LIMIT #{pageSize} OFFSET #{pageNum}
+    </select>
+
 </mapper>
