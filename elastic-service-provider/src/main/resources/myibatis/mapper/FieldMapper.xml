@@ -62,6 +62,9 @@
                 AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
                 OR en_name LIKE CONCAT('%', #{keyword}, '%'))
             </if>
+            <if test="dicId != null ">
+                AND dic_id = #{dicId}
+            </if>
         </where>
     </select>
 
@@ -73,6 +76,9 @@
             <if test="keyword != null and keyword != ''">
                 AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
                 OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="dicId != null ">
+                AND dic_id = #{dicId}
             </if>
         </where>
         LIMIT #{pageSize} OFFSET #{pageNum}

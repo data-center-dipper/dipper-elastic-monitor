@@ -62,7 +62,8 @@ public interface FieldMapper {
      * @param keyword
      * @return
      */
-    Integer getWordNum(String keyword);
+    Integer getWordNum(@Param("keyword") String keyword,
+                       @Param("dicId") Integer dicId);
 
     /**
      * 获取分页字段信息

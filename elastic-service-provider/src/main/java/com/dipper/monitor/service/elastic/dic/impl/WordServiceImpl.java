@@ -81,7 +81,15 @@ public class WordServiceImpl implements WordService {
     @Override
     public Integer getWordNum(WordPageInfo wordPageInfo) {
         String keyword = wordPageInfo.getKeyword();
-        return fieldMapper.getWordNum(keyword);
+        String dicName = wordPageInfo.getDicName();
+        Integer dicId = null;
+        if(StringUtils.isNotBlank(keyword)){
+            Dic dic = dicService.getDicByName(dicName);
+            if(dic != null){
+                dicId = dic.getId();
+            }
+        }
+        return fieldMapper.getWordNum(keyword,dicId);
     }
 
     @Override
