@@ -3,6 +3,7 @@ package com.dipper.monitor.mapper;
 import com.dipper.monitor.entity.elastic.dic.Dic;
 import com.dipper.monitor.entity.elastic.dic.Field;
 import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
+import com.dipper.monitor.entity.elastic.dic.WordPageSearch;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -58,6 +59,14 @@ public interface FieldMapper {
     Field getFieldByEnName(@Param("enName") String enName);
 
     /**
+     * 根据字典ID和英文名称获取字段信息
+     * @param dicId
+     * @param enName
+     * @return
+     */
+    Field getFieldByDicIdAndEnName(@Param("dicId") Integer dicId,@Param("enName")  String enName);
+
+    /**
      * 根据英文名称判断字段是否存在
      * @param keyword
      * @return
@@ -67,8 +76,9 @@ public interface FieldMapper {
 
     /**
      * 获取分页字段信息
-     * @param wordPageInfo
+     * @param wordPageSearch
      * @return
      */
-    List<Dic> getWordByPage(WordPageInfo wordPageInfo);
+    List<Field> getWordByPage(WordPageSearch wordPageSearch);
+
 }

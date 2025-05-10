@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.dic;
 
 import com.dipper.monitor.entity.elastic.dic.Dic;
 import com.dipper.monitor.entity.elastic.dic.Field;
+import com.dipper.monitor.entity.elastic.dic.WodListView;
 import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
 
 import java.util.List;
@@ -34,5 +35,5 @@ public interface WordService {
      * @param wordPageInfo
      * @return
      */
-    List<Dic> getWordByPage(WordPageInfo wordPageInfo);
+    List<WodListView> getWordByPage(WordPageInfo wordPageInfo);
 }

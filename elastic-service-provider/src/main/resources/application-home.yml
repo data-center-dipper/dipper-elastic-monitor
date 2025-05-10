@@ -1,0 +1,38 @@
+server:
+  port: 9751
+  # servlet:
+  #   context-path: /monitor
+
+spring:
+  application:
+    name: elastic-monitor
+  datasource:
+    url: jdbc:mysql://192.168.56.33:3306/elastic_monitor
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: false
+  windows:
+    use:
+      mock: false
+  aop:
+    proxy-target-class: true
+
+# MyBatis ??
+mybatis:
+  mapper-locations: classpath:myibatis/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# ????
+logging:
+  path: D:/lcc/logs
+  config: classpath:logback-windows.xml
+
+# ??????
+plugins:
+  config:
+    dir: \\elastic-service-provider\\src\\main\\resources\\plugins
+  jar:
+    dir: plugins

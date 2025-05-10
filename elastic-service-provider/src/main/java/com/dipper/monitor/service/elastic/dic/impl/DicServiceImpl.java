@@ -5,11 +5,14 @@ import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
 import com.dipper.monitor.mapper.DicMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class DicServiceImpl implements DicService {
@@ -98,6 +101,32 @@ public class DicServiceImpl implements DicService {
         }
         dicPageInfo.setPageNum(pageNum);
         return dicMapper.getDicByPage(dicPageInfo);
+    }
+
+    @Override
+    public Integer getDicIdByName(String dicName) {
+        Integer dicId = null;
+        if(StringUtils.isNotBlank(dicName)){
+            Dic dic = getDicByName(dicName);
+            if(dic != null){
+                dicId = dic.getId();
+            }
+        }
+        return dicId;
+    }
+
+    @Override
+    public Map<String,Dic> getAllDicMap() {
+        List<Dic> allDics = getAllDics();
+        Map<String, Dic> collect = allDics.stream().collect(Collectors.toMap(Dic::getEnName, dic -> dic));
+        return collect;
+    }
+
+    @Override
+    public Map<Integer, Dic> getAllDicIdMap() {
+        List<Dic> allDics = getAllDics();
+        Map<Integer, Dic> collect = allDics.stream().collect(Collectors.toMap(Dic::getId, dic -> dic));
+        return collect;
     }
 
     private void check(Dic dic) {

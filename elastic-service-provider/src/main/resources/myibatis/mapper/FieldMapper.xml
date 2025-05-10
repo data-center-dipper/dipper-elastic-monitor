@@ -53,6 +53,12 @@
         WHERE en_name = #{enName}
     </select>
 
+    <select id="getFieldByDicIdAndEnName" resultType="com.dipper.monitor.entity.elastic.dic.Field" >
+        SELECT id, dic_id AS dicId, zh_name AS zhName, en_name AS enName,
+        field_type AS fieldType, es_mapping_type AS esMappingType
+        FROM t_field
+        WHERE en_name = #{enName} AND dic_id = #{dicId}
+    </select>
 
     <select id="getWordNum" resultType="int">
         SELECT COUNT(*)
@@ -69,7 +75,7 @@
     </select>
 
 
-    <select id="getWordByPage" resultType="com.dipper.monitor.entity.elastic.dic.Dic">
+    <select id="getWordByPage" resultType="com.dipper.monitor.entity.elastic.dic.Field">
         SELECT *
         FROM t_field
         <where>
@@ -81,7 +87,7 @@
                 AND dic_id = #{dicId}
             </if>
         </where>
-        LIMIT #{pageSize} OFFSET #{pageNum}
+        LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
 </mapper>

@@ -1,10 +1,7 @@
 package com.dipper.monitor.controller.elsatic.dic;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.dic.Dic;
-import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
-import com.dipper.monitor.entity.elastic.dic.Field;
-import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
+import com.dipper.monitor.entity.elastic.dic.*;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -40,7 +37,7 @@ public class WordController {
     public JSONObject getAllFields(@RequestBody WordPageInfo wordPageInfo) {
         try {
             Integer total = wordService.getWordNum(wordPageInfo);
-            List<Dic> dics = wordService.getWordByPage(wordPageInfo);
+            List<WodListView> dics = wordService.getWordByPage(wordPageInfo);
             return ResultUtils.onSuccessWithPageTotal(total,dics);
         } catch (Exception e) {
             log.error("Error retrieving dictionaries", e);

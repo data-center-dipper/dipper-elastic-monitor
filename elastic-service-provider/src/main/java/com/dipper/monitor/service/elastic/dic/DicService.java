@@ -4,6 +4,7 @@ import com.dipper.monitor.entity.elastic.dic.Dic;
 import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DicService {
     Dic addDic(Dic dic);
@@ -30,4 +31,10 @@ public interface DicService {
      * @return
      */
     List<Dic> getDicByPage(DicPageInfo dicPageInfo);
+
+    Integer getDicIdByName(String dicName);
+
+    Map<String,Dic> getAllDicMap();
+
+    Map<Integer, Dic> getAllDicIdMap();
 }

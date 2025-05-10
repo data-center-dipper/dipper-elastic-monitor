@@ -1,17 +1,18 @@
 package com.dipper.monitor.service.elastic.dic.impl;
 
-import com.dipper.monitor.entity.elastic.dic.Dic;
-import com.dipper.monitor.entity.elastic.dic.Field;
-import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
+import com.dipper.monitor.entity.elastic.dic.*;
 import com.dipper.monitor.mapper.FieldMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
 import com.dipper.monitor.utils.elastic.ElasticFieldMapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class WordServiceImpl implements WordService {
@@ -24,6 +25,7 @@ public class WordServiceImpl implements WordService {
     @Override
     public Field addField(Field field) {
         checkField(field);
+        Integer dicId = field.getDicId();
         validateDicId(field.getDicId());
 
         String fieldType = field.getFieldType();
@@ -37,7 +39,7 @@ public class WordServiceImpl implements WordService {
         }
         field.setEsMappingType(esMappingType);
 
-        existField(field.getEnName());
+        existField(dicId,field.getEnName());
 
         int result = fieldMapper.insertField(field);
         return result > 0 ? field : null;
@@ -49,17 +51,17 @@ public class WordServiceImpl implements WordService {
             throw new IllegalArgumentException("Fields list cannot be null or empty.");
         }
 
-        Integer commonDicId = null;
+        Integer dicId = null;
         for (Field field : fields) {
             checkField(field);
-            if (commonDicId == null) {
-                commonDicId = field.getDicId();
-            } else if (!commonDicId.equals(field.getDicId())) {
+            if (dicId == null) {
+                dicId = field.getDicId();
+            } else if (!dicId.equals(field.getDicId())) {
                 throw new IllegalArgumentException("All fields must belong to the same dictionary.");
             }
         }
 
-        validateDicId(commonDicId);
+        validateDicId(dicId);
 
         for (Field field : fields) {
             String fieldType = field.getFieldType();
@@ -73,7 +75,7 @@ public class WordServiceImpl implements WordService {
             }
             field.setEsMappingType(esMappingType);
 
-            existField(field.getEnName());
+            existField(dicId,field.getEnName());
             fieldMapper.insertField(field);
         }
     }
@@ -82,26 +84,51 @@ public class WordServiceImpl implements WordService {
     public Integer getWordNum(WordPageInfo wordPageInfo) {
         String keyword = wordPageInfo.getKeyword();
         String dicName = wordPageInfo.getDicName();
-        Integer dicId = null;
-        if(StringUtils.isNotBlank(keyword)){
-            Dic dic = dicService.getDicByName(dicName);
-            if(dic != null){
-                dicId = dic.getId();
-            }
-        }
+        Integer dicId = dicService.getDicIdByName(dicName);
         return fieldMapper.getWordNum(keyword,dicId);
     }
 
     @Override
-    public List<Dic> getWordByPage(WordPageInfo wordPageInfo) {
+    public List<WodListView> getWordByPage(WordPageInfo wordPageInfo) {
+        // 设置默认页码为0（如果未提供）
         Integer pageNum = wordPageInfo.getPageNum();
-        if(pageNum == null){
-            pageNum = 0;
-        }else {
-            pageNum = pageNum - 1;
+        if(pageNum == null || pageNum < 1){
+            pageNum = 1;
         }
-        wordPageInfo.setPageNum(pageNum);
-        return fieldMapper.getWordByPage(wordPageInfo);
+
+        // 计算offset
+        Integer offset = (pageNum - 1) * wordPageInfo.getPageSize();
+
+        // 获取字典ID通过字典名称
+        Integer dicId = dicService.getDicIdByName(wordPageInfo.getDicName());
+
+        // 创建WordPageSearch对象并复制WordPageInfo中的属性
+        WordPageSearch wordPageSearch = new WordPageSearch();
+        BeanUtils.copyProperties(wordPageInfo, wordPageSearch);
+        wordPageSearch.setDicId(dicId); // 设置字典ID
+        wordPageSearch.setOffset(offset); // 设置偏移量
+
+        // 查询数据库获取分页后的词列表
+        List<Field> wordByPage = fieldMapper.getWordByPage(wordPageSearch);
+
+        // 获取所有字典的映射
+        Map<Integer, Dic> allDicMap = dicService.getAllDicIdMap();
+
+        // 转换为WodListView列表
+        List<WodListView> wodListViewList = new ArrayList<>();
+        for (Field field : wordByPage) {
+            WodListView wodListView = new WodListView();
+            BeanUtils.copyProperties(field, wodListView);
+
+            Dic dic = allDicMap.get(field.getDicId());
+            if(dic != null){
+                wodListView.setDicZhName(dic.getZhName());
+                wodListView.setDicEnName(dic.getEnName());
+            }
+
+            wodListViewList.add(wodListView);
+        }
+        return wodListViewList;
     }
 
     private void checkField(Field field) {
@@ -132,11 +159,11 @@ public class WordServiceImpl implements WordService {
      * 根据英文名称判断字段名是否存在
      * @param enName 英文名称
      */
-    private void existField(String enName) {
+    private void existField(Integer dicId,String enName) {
         if (StringUtils.isBlank(enName)) {
             throw new IllegalArgumentException("Field English name cannot be null or empty.");
         }
-        Field existingField = fieldMapper.getFieldByEnName(enName);
+        Field existingField = fieldMapper.getFieldByDicIdAndEnName(dicId,enName);
         if (existingField != null) {
             throw new RuntimeException("Field with this English name already exists: " + enName);
         }
