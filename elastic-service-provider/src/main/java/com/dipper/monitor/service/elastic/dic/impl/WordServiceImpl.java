@@ -5,6 +5,7 @@ import com.dipper.monitor.mapper.FieldMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
 import com.dipper.monitor.utils.elastic.ElasticFieldMapUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +130,15 @@ public class WordServiceImpl implements WordService {
             wodListViewList.add(wodListView);
         }
         return wodListViewList;
+    }
+
+    @Override
+    public void deleteFieldBatch(WordDelFieldBatch wordDelFieldBatch) {
+        List<Integer> ids = wordDelFieldBatch.getIds();
+        if(CollectionUtils.isEmpty(ids)){
+            throw new IllegalArgumentException("Ids cannot be empty.");
+        }
+        fieldMapper.deleteFieldBatch(ids);
     }
 
     private void checkField(Field field) {

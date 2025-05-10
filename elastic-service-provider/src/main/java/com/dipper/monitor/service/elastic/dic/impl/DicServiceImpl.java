@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.dic.impl;
 
 import com.dipper.monitor.entity.elastic.dic.Dic;
 import com.dipper.monitor.entity.elastic.dic.DicPageInfo;
+import com.dipper.monitor.entity.elastic.dic.Field;
 import com.dipper.monitor.mapper.DicMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
@@ -40,6 +41,10 @@ public class DicServiceImpl implements DicService {
     public void deleteDic(Integer dicId) {
         if (dicId == null || dicId <= 0) {
             throw new IllegalArgumentException("Invalid dicId: " + dicId + ". dicId must be a positive integer.");
+        }
+        List<Field> fieldsByDicId = wordService.getFieldsByDicId(dicId);
+        if (fieldsByDicId != null && !fieldsByDicId.isEmpty()) {
+            throw new IllegalArgumentException("Dictionary cannot be deleted because it contains fields.");
         }
         dicMapper.deleteDicById(dicId);
         wordService.deleteWordsByDicId(dicId);

@@ -81,4 +81,5 @@ public interface FieldMapper {
      */
     List<Field> getWordByPage(WordPageSearch wordPageSearch);
 
+    void deleteFieldBatch(@Param("wordIds") List<Integer> wordIds);
 }

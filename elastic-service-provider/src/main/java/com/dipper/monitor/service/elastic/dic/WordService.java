@@ -39,4 +39,6 @@ public interface WordService {
      * @return
      */
     List<WodListView> getWordByPage(WordPageInfo wordPageInfo);
+
+    void deleteFieldBatch(WordDelFieldBatch wordDelFieldBatch);
 }

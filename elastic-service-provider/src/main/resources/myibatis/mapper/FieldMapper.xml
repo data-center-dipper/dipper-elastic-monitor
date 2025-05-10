@@ -90,4 +90,12 @@
         LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
+    <delete id="deleteFieldBatch">
+        DELETE FROM t_field
+        WHERE id IN
+        <foreach item="wordId" collection="wordIds" open="(" separator="," close=")">
+            #{wordId}
+        </foreach>
+    </delete>
+
 </mapper>

@@ -132,6 +132,27 @@ public class WordController {
         }
     }
 
+
+    @Operation(summary = "删除字段",
+            description = "Delete a field by ID.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Field deleted successfully"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/deleteFieldBatch")
+    public JSONObject deleteFieldBatch(@RequestBody WordDelFieldBatch wordDelFieldBatch) {
+        try {
+            wordService.deleteFieldBatch(wordDelFieldBatch);
+            return ResultUtils.onSuccess(null);
+        } catch (Exception e) {
+            log.error("Error deleting field", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
+
+
     @Operation(summary = "获取字段详情",
             description = "Retrieve a field by ID.",
             security = @SecurityRequirement(name = "bearerAuth"),
