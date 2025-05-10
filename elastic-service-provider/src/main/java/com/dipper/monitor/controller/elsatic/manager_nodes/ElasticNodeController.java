@@ -87,9 +87,28 @@ public class ElasticNodeController {
      * @return 节点详情响应数据
      */
     @GetMapping("/getOneNodeOriginal")
-    public Map<String, Object> getOneNodeOriginal(@RequestParam Integer nodeId) {
+    public Map<String, Object> getOneNodeOriginal(@Parameter(description = "nodeId")  Integer nodeId) {
         try {
             JSONObject nodeStatus = elasticRealNodeService.getOneNodeOriginal(nodeId);
+            return ResultUtils.onSuccess(nodeStatus);
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error updating cluster", e);
+            return ResultUtils.onFail("操作异常" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取节点原始统计信息
+     * @param nodeId 节点 ID
+     * @return 节点详情响应数据
+     */
+    @GetMapping("/getOneNodeOriginalStataInfo")
+    public Map<String, Object> getOneNodeOriginalStataInfo(@Parameter(description = "nodeId")  Integer nodeId) {
+        try {
+            JSONObject nodeStatus = elasticRealNodeService.getOneNodeOriginalStataInfo(nodeId);
             return ResultUtils.onSuccess(nodeStatus);
         } catch (IllegalArgumentException e) {
             log.error("异常", e);

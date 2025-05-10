@@ -167,6 +167,13 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
         return elasticNodeDisks.stream().collect(Collectors.toMap(ElasticNodeDisk::getName, Function.identity()));
     }
 
+    @Override
+    public JSONObject getOneNodeOriginalStataInfo(Integer nodeId) throws IOException {
+        String nodeInfoResult = elasticClientService.executeGetApi(ElasticRestApi.ES_NODES_STAT_MESSAGE.getApiPath());
+        JSONObject jsonObject = JSONObject.parseObject(nodeInfoResult);
+        return jsonObject;
+    }
+
     private List<ElasticNodeDisk> getEsNodeDiskList() throws IOException {
         ListHighDiskRiskNodesHandler listHighMemoryRiskNodesHandler = new ListHighDiskRiskNodesHandler(elasticClientService);
         List<ElasticNodeDisk> elasticNodeDisks = listHighMemoryRiskNodesHandler.listHighDiskRiskNodes();

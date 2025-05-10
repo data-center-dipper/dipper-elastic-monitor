@@ -79,4 +79,11 @@ public interface ElasticRealNodeService {
     List<ElasticNodeDisk>  nodeDiskTop10() throws IOException;
 
     Map<String, ElasticNodeDisk> getEsNodeDiskMap() throws IOException;
+
+    /**
+     * 获取节点原始统计信息
+     * @param nodeId
+     * @return
+     */
+    JSONObject getOneNodeOriginalStataInfo(Integer nodeId) throws IOException;
 }
