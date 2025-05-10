@@ -1,16 +1,19 @@
 package com.dipper.monitor.service.elastic.dic;
 
-import com.dipper.monitor.entity.elastic.dic.Dic;
-import com.dipper.monitor.entity.elastic.dic.Field;
-import com.dipper.monitor.entity.elastic.dic.WodListView;
-import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
+import com.dipper.monitor.entity.elastic.dic.*;
 
 import java.util.List;
 
 public interface WordService {
 
     Field addField(Field field);
-    Field updateField(Field field);
+
+    /**
+     * 更新字段
+     * @param updateFieldReq
+     * @return
+     */
+    Field updateField(UpdateFieldReq updateFieldReq);
     void deleteField(Integer id);
     Field getField(Integer id);
     List<Field> getFieldsByDicId(Integer dicId);

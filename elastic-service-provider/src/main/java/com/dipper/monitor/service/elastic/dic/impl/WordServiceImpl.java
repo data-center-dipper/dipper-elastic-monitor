@@ -170,8 +170,35 @@ public class WordServiceImpl implements WordService {
     }
 
     @Override
-    public Field updateField(Field field) {
-        checkField(field);
+    public Field updateField(UpdateFieldReq updateFieldReq) {
+        if (updateFieldReq == null) {
+            throw new IllegalArgumentException("Field object cannot be null.");
+        }
+        if (StringUtils.isBlank(updateFieldReq.getZhName())) {
+            throw new IllegalArgumentException("Chinese name cannot be null or empty.");
+        }
+        if (StringUtils.isBlank(updateFieldReq.getEnName())) {
+            throw new IllegalArgumentException("English name cannot be null or empty.");
+        }
+        if (StringUtils.isBlank(updateFieldReq.getFieldType())) {
+            throw new IllegalArgumentException("Field type cannot be null or empty.");
+        }
+        if (StringUtils.isBlank(updateFieldReq.getDicName())) {
+            throw new IllegalArgumentException("Dictionary dicName must be a positive integer.");
+        }
+        Integer dicIdByName = dicService.getDicIdByName(updateFieldReq.getDicName());
+        if (dicIdByName == null) {
+            throw new IllegalArgumentException("Dictionary dicName must be a positive integer.");
+        }
+
+        Field field = new Field();
+        field.setId(updateFieldReq.getId());
+        field.setZhName(updateFieldReq.getZhName());
+        field.setEnName(updateFieldReq.getEnName());
+        field.setFieldType(updateFieldReq.getFieldType());
+        field.setEsMappingType(updateFieldReq.getEsType());
+        field.setDicId(dicIdByName);
+
         int result = fieldMapper.updateField(field);
         return result > 0 ? field : null;
     }

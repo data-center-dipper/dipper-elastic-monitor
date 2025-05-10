@@ -22,7 +22,7 @@ public interface FieldMapper {
      * @param field 字段对象
      * @return 影响的行数
      */
-    int updateField(@Param("field") Field field);
+    int updateField(Field field);
 
     /**
      * 根据ID删除字段

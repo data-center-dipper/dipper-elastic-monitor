@@ -100,11 +100,10 @@ public class WordController {
                     @ApiResponse(responseCode = "404", description = "Field not found"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PutMapping("/{id}")
-    public JSONObject updateField(@PathVariable("id") Integer id, @RequestBody Field field) {
+    @PostMapping("/updateField")
+    public JSONObject updateField(@RequestBody UpdateFieldReq updateFieldReq) {
         try {
-            field.setId(id);
-            Field updatedField = wordService.updateField(field);
+            Field updatedField = wordService.updateField(updateFieldReq);
             if (updatedField == null) {
                 return ResultUtils.onFail("Field not found");
             }
