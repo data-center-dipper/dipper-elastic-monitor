@@ -1,14 +1,12 @@
 package com.dipper.monitor.entity.elastic.template.unconverted;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.util.Map;
 
-/**
- * es未经转换的模版
- */
 @Data
-public class EsUnconvertedTemplate {
+public class PrefabricateTemplateEntity {
     // 模版名称
     private String zhName;
     private String enName;
@@ -34,8 +32,6 @@ public class EsUnconvertedTemplate {
     // 滚动周期 最小 天 30 60 90 180 365
     private Integer rollingPeriod;
 
-    private String templateContent; // JSON内容
-
-    private String statMessage; // 统计信息
+    private JSONObject templateContent; // JSON内容
 
 }

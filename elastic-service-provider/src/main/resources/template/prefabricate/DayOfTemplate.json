@@ -1,0 +1,32 @@
+{
+  "zhName": "按天滚动的模板",
+  "enName": "log_template",
+  "dicName": "log_dictionary",
+  "indexPatterns": "logs-yyyyMMdd-*",
+  "aliansPatterns": "logs-yyyyMMdd",
+  "numberOfShards": 3,
+  "numberOfReplicas": 2,
+  "enableAutoShards": true,
+  "refreshInterval": "30s",
+  "shardSize": 50,
+  "rollingPeriod": 90,
+  "templateContent": {
+    "index_patterns": ["logs-2025.*"],
+    "settings": {
+      "number_of_shards": 3,
+      "number_of_replicas": 2,
+      "refresh_interval": "30s",
+      "index.lifecycle.name": "log_policy"
+    },
+    "mappings": {
+      "properties": {
+        "timestamp": { "type": "date" },
+        "message": { "type": "text" },
+        "level": { "type": "keyword" }
+      }
+    },
+    "aliases": {
+      "logs_read": {}
+    }
+  }
+}

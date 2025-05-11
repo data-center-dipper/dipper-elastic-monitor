@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
+import com.dipper.monitor.service.elastic.template.ElasticPrefabricateTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -30,6 +31,7 @@ public class EsTemplateController {
     private ElasticStoreTemplateService elasticStoreTemplateService;
     @Autowired
     private ElasticRealTemplateService elasticRealTemplateService;
+
 
     @Operation(summary = "预览ES模板",
             description = "Add a new Elasticsearch template.",

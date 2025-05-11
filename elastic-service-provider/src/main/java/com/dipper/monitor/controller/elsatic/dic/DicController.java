@@ -136,4 +136,24 @@ public class DicController {
             return ResultUtils.onFail("Operation error");
         }
     }
+
+    @Operation(summary = "获取所有字典列表",
+            description = "Retrieve a list of all dictionaries.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Dic.class, type = "array"))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/getAllDicsNoPage")
+    public JSONObject getAllDics() {
+        try {
+            List<Dic> dics = dicService.getAllDics();
+            return ResultUtils.onSuccess(dics);
+        } catch (Exception e) {
+            log.error("Error retrieving dictionaries", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 }

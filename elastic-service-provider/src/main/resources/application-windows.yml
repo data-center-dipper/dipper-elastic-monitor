@@ -36,3 +36,7 @@ plugins:
     dir: \\elastic-service-provider\\src\\main\\resources\\plugins
   jar:
     dir: plugins
+
+prefabricate:
+  template:
+    path: \\elastic-service-provider\\src\\main\\resources\\template\\prefabricate
