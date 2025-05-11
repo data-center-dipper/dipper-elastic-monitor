@@ -64,7 +64,16 @@ public class PreviewTemplateHandler {
         Integer numberOfShards = esUnconvertedTemplate.getNumberOfShards();
         Integer numberOfReplicas = esUnconvertedTemplate.getNumberOfReplicas();
 
-        JSONObject index = templateJson.getJSONObject("settings").getJSONObject("index");
+        JSONObject settings = templateJson.getJSONObject("settings");
+        if(settings == null){
+            settings = new JSONObject();
+            templateJson.put("settings", settings);
+        }
+        JSONObject index = settings.getJSONObject("index");
+        if(index == null){
+            index = new JSONObject();
+            templateJson.put("settings", settings);
+        }
         if (numberOfShards != null) {
             index.put("number_of_shards", numberOfShards);
         }
@@ -103,7 +112,12 @@ public class PreviewTemplateHandler {
         }
         // todo: 模版中配置的字段优先级更高
         elasticMapping.putAll(allreadFields);
-        mappings.getJSONObject("_doc").put("properties", elasticMapping);
+        JSONObject docObj = mappings.getJSONObject("_doc");
+        if(docObj == null){
+            mappings.put("properties", elasticMapping);
+        }else {
+            docObj.put("properties", elasticMapping);
+        }
 
         templateJson.put("mappings", mappings);
     }
@@ -112,11 +126,18 @@ public class PreviewTemplateHandler {
         if (mappings == null) {
             return new JSONObject();
         }
-        JSONObject properties = mappings.getJSONObject("_doc").getJSONObject("properties");
+        JSONObject docObj = mappings.getJSONObject("_doc");
+        if (docObj == null) {
+            return new JSONObject();
+        }
+        JSONObject properties = docObj.getJSONObject("properties");
         return properties;
     }
 
     private void addOrUpdateSetting(JSONObject templateJson, Map<String, Object> settings) {
+        if (settings == null || settings.isEmpty()) {
+            return;
+        }
         JSONObject settingsJson = templateJson.getJSONObject("settings");
         JSONObject index = settingsJson.getJSONObject("index");
         for (Map.Entry<String, Object> entry : settings.entrySet()) {
