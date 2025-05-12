@@ -15,6 +15,7 @@ import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
+import com.dipper.monitor.utils.DipperDateUtil;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -151,8 +152,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         for (EsTemplateEntity esTemplateEntity : templateByPage) {
             ElasticTemplateListView elasticTemplateView = new ElasticTemplateListView();
             BeanUtils.copyProperties(esTemplateEntity,elasticTemplateView);
-            elasticTemplateView.setSettings("");
-            elasticTemplateView.setTemplateContent("");
+            elasticTemplateView.setUpdateTime(DipperDateUtil.formatDate(esTemplateEntity.getUpdateTime()));
             elasticTemplateViews.add(elasticTemplateView);
         }
         return elasticTemplateViews;

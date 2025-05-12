@@ -61,4 +61,16 @@ public class DipperDateUtil {
             return 0;
         }
     }
+
+    /**
+     * 将格式为 2025-04-21T13:39:00.000+00:00 的字符串转换为 2025-04-21 13:39:00 的字符串。
+     * @return
+     */
+    public static String formatDate(Date date) {
+        // 定义输出的格式
+        SimpleDateFormat outputFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        // 格式化日期
+        return outputFormatter.format(date);
+    }
 }
