@@ -2,6 +2,7 @@ package com.dipper.monitor.mapper;
 
 
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import org.apache.ibatis.annotations.*;
 
         import java.util.List;
@@ -32,4 +33,12 @@ public interface EsTemplateMapper {
                                          @Param("enName") String enName);
 
     void updateTemplateStat(@Param("id") Long id,@Param("statMessage")  String statMessage);
+
+    Integer getTemplateNum(@Param("clusterCode") String clusterCode,
+                           @Param("keyword")  String keyword);
+
+    List<EsTemplateEntity> getTemplateByPage(@Param("clusterCode") String clusterCode,
+                                                    @Param("keyword") String keyword,
+                                                    @Param("pageSize") Integer pageSize,
+                                                    @Param("offset") Integer offset);
 }

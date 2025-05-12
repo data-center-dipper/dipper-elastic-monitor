@@ -5,7 +5,9 @@ import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
+import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
@@ -14,14 +16,13 @@ import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateService {
@@ -130,6 +131,42 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
             elasticTemplateView.setEsTemplateStat(esTemplateStatEntity);
         }
         return elasticTemplateView;
+    }
+
+    @Override
+    public Integer getTemplateNum(TemplatePageInfo templatePageInfo) {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        String keyword = templatePageInfo.getKeyword();
+        return esTemplateMapper.getTemplateNum(clusterCode,keyword);
+    }
+
+    @Override
+    public List<ElasticTemplateListView> getTemplateListViewByPage(TemplatePageInfo templatePageInfo) {
+        List<EsTemplateEntity> templateByPage = getTemplateByPage(templatePageInfo);
+        if(CollectionUtils.isEmpty(templateByPage)){
+            return Collections.emptyList();
+        }
+        List<ElasticTemplateListView> elasticTemplateViews = new ArrayList<>();
+        for (EsTemplateEntity esTemplateEntity : templateByPage) {
+            ElasticTemplateListView elasticTemplateView = new ElasticTemplateListView();
+            BeanUtils.copyProperties(esTemplateEntity,elasticTemplateView);
+            elasticTemplateView.setSettings("");
+            elasticTemplateView.setTemplateContent("");
+            elasticTemplateViews.add(elasticTemplateView);
+        }
+        return elasticTemplateViews;
+    }
+
+    @Override
+    public  List<EsTemplateEntity> getTemplateByPage(TemplatePageInfo templatePageInfo) {
+        Integer pageNum = templatePageInfo.getPageNum();
+        Integer pageSize = templatePageInfo.getPageSize();
+        String keyword = templatePageInfo.getKeyword();
+        Integer offset = (pageNum - 1) * pageSize; // 计算offset
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        return esTemplateMapper.getTemplateByPage(clusterCode,keyword, pageSize, offset);
     }
 
     /**

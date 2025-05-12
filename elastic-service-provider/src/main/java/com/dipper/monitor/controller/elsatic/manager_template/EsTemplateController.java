@@ -3,7 +3,11 @@ package com.dipper.monitor.controller.elsatic.manager_template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import com.dipper.monitor.entity.elastic.dic.WodListView;
+import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
+import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
+import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.template.ElasticPrefabricateTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
@@ -99,7 +103,46 @@ public class EsTemplateController {
         }
     }
 
+    @Operation(summary = "分页获取所有ES模板",
+            description = "Retrieve all Elasticsearch templates.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Templates retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/getTemplatesByPage")
+    public JSONObject getTemplatesByPage(@RequestBody TemplatePageInfo templatePageInfo) {
+        try {
+            Integer total = elasticStoreTemplateService.getTemplateNum(templatePageInfo);
+            List<ElasticTemplateListView> dics = elasticStoreTemplateService.getTemplateListViewByPage(templatePageInfo);
+            return ResultUtils.onSuccessWithPageTotal(total,dics);
+        } catch (Exception e) {
+            log.error("Error retrieving templates", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 
+    @Operation(summary = "获取所有ES模板",
+            description = "Retrieve all Elasticsearch templates.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Templates retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/getAllTemplates")
+    public JSONObject getAllTemplates() {
+        try {
+            List<EsTemplateEntity> templates = elasticStoreTemplateService.getAllTemplates();
+            return ResultUtils.onSuccess(templates);
+        } catch (Exception e) {
+            log.error("Error retrieving templates", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 
     @Operation(summary = "获取ES模板详情",
             description = "Retrieve details of an Elasticsearch template by ID.",
@@ -168,23 +211,5 @@ public class EsTemplateController {
         }
     }
 
-    @Operation(summary = "获取所有ES模板",
-            description = "Retrieve all Elasticsearch templates.",
-            security = @SecurityRequirement(name = "bearerAuth"),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Templates retrieved successfully",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = EsTemplateEntity.class))),
-                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
-            })
-    @GetMapping("/getAllTemplates")
-    public JSONObject getAllTemplates() {
-        try {
-            List<EsTemplateEntity> templates = elasticStoreTemplateService.getAllTemplates();
-            return ResultUtils.onSuccess(templates);
-        } catch (Exception e) {
-            log.error("Error retrieving templates", e);
-            return ResultUtils.onFail("Operation error");
-        }
-    }
+
 }

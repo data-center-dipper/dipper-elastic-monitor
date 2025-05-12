@@ -83,4 +83,35 @@
         WHERE id=#{id}
     </update>
 
+
+    <select id="getTemplateNum" resultType="int">
+        SELECT COUNT(*)
+        FROM t_elastic_template
+        <where>
+            <if test="clusterCode != null and clusterCode != ''">
+                AND  cluster_code = #{clusterCode}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
+                OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getTemplateByPage" resultType="com.dipper.monitor.entity.db.elastic.EsTemplateEntity">
+        SELECT *
+        FROM t_elastic_template
+        <where>
+            <if test="clusterCode != null and clusterCode != ''">
+                AND  cluster_code = #{clusterCode}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (zh_name LIKE CONCAT('%', #{keyword}, '%')
+                OR en_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
 </mapper>
