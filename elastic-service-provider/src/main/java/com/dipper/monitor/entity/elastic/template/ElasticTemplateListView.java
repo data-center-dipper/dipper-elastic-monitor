@@ -11,7 +11,7 @@ import java.util.Date;
  */
 @Data
 public class ElasticTemplateListView   {
-    private Long id;
+    private Integer id;
     private String clusterCode;
 
     // 模版名称

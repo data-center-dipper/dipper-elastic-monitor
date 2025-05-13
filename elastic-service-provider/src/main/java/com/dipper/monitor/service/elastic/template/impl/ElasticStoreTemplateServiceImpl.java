@@ -184,6 +184,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
             ElasticTemplateListView elasticTemplateView = new ElasticTemplateListView();
             BeanUtils.copyProperties(esTemplateEntity,elasticTemplateView);
             elasticTemplateView.setUpdateTime(DipperDateUtil.formatDate(esTemplateEntity.getUpdateTime()));
+            elasticTemplateView.setId(esTemplateEntity.getId());
             elasticTemplateViews.add(elasticTemplateView);
         }
         return elasticTemplateViews;
