@@ -72,13 +72,44 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     }
 
     @Override
-    public EsTemplateEntity updateTemplate(EsTemplateEntity esTemplateEntity) {
+    public EsTemplateEntity updateTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
+        // 转换成 EsTemplateEntity
+        EsTemplateEntity esTemplateEntity = convertToEsTemplateEntity(esUnconvertedTemplate);
+        
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
         esTemplateEntity.setClusterCode(clusterCode);
-
+    
         validate(esTemplateEntity);
         esTemplateMapper.updateTemplate(esTemplateEntity);
+        return esTemplateEntity;
+    }
+
+    /**
+     * 将未转换的模板转换为模板实体
+     * @param esUnconvertedTemplate 未转换的模板
+     * @return 模板实体
+     */
+    private EsTemplateEntity convertToEsTemplateEntity(EsUnconvertedTemplate esUnconvertedTemplate) {
+        EsTemplateEntity esTemplateEntity = new EsTemplateEntity();
+        
+        // 设置基本属性
+        esTemplateEntity.setId(esUnconvertedTemplate.getId());
+        esTemplateEntity.setZhName(esUnconvertedTemplate.getZhName());
+        esTemplateEntity.setEnName(esUnconvertedTemplate.getEnName());
+        esTemplateEntity.setDicName(esUnconvertedTemplate.getDicName());
+        esTemplateEntity.setIndexPatterns(esUnconvertedTemplate.getIndexPatterns());
+        esTemplateEntity.setAliansPatterns(esUnconvertedTemplate.getAliansPatterns());
+        esTemplateEntity.setNumberOfShards(esUnconvertedTemplate.getNumberOfShards());
+        esTemplateEntity.setNumberOfReplicas(esUnconvertedTemplate.getNumberOfReplicas());
+        esTemplateEntity.setEnableAutoShards(esUnconvertedTemplate.getEnableAutoShards());
+        
+        // 设置模板内容
+        esTemplateEntity.setTemplateContent(esUnconvertedTemplate.getTemplateContent());
+        
+        // 设置其他必要属性
+        // 如果有其他需要转换的属性，在这里添加
+        
         return esTemplateEntity;
     }
 
@@ -156,6 +187,47 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
             elasticTemplateViews.add(elasticTemplateView);
         }
         return elasticTemplateViews;
+    }
+
+    @Override
+    public EsUnconvertedTemplate getOneUnconvertedTemplate(Long id) {
+        EsTemplateEntity templateById = esTemplateMapper.getTemplateById(id);
+        // 转成 EsUnconvertedTemplate
+        if (templateById == null) {
+            return null;
+        }
+        
+        EsUnconvertedTemplate unconvertedTemplate = new EsUnconvertedTemplate();
+        
+        // 复制基本属性
+        unconvertedTemplate.setId(templateById.getId());
+        unconvertedTemplate.setZhName(templateById.getZhName());
+        unconvertedTemplate.setEnName(templateById.getEnName());
+        unconvertedTemplate.setDicName(templateById.getDicName());
+        unconvertedTemplate.setIndexPatterns(templateById.getIndexPatterns());
+        unconvertedTemplate.setAliansPatterns(templateById.getAliansPatterns());
+        unconvertedTemplate.setNumberOfShards(templateById.getNumberOfShards());
+        unconvertedTemplate.setNumberOfReplicas(templateById.getNumberOfReplicas());
+        unconvertedTemplate.setEnableAutoShards(templateById.getEnableAutoShards());
+        
+        // 设置模板内容
+        unconvertedTemplate.setTemplateContent(templateById.getTemplateContent());
+        
+        // 处理设置信息
+        String settings = templateById.getSettings();
+        if (StringUtils.isNotBlank(settings)) {
+            try {
+                Map<String, Object> settingsMap = JSONObject.parseObject(settings, Map.class);
+                unconvertedTemplate.setSettings(settingsMap);
+            } catch (Exception e) {
+                // 解析失败时设置空的设置
+                unconvertedTemplate.setSettings(new HashMap<>());
+            }
+        } else {
+            unconvertedTemplate.setSettings(new HashMap<>());
+        }
+        
+        return unconvertedTemplate;
     }
 
     @Override

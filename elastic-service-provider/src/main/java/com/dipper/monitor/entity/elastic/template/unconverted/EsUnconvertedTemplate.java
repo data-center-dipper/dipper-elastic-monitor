@@ -9,6 +9,7 @@ import java.util.Map;
  */
 @Data
 public class EsUnconvertedTemplate {
+    private Integer id;
     // 模版名称
     private String zhName;
     private String enName;

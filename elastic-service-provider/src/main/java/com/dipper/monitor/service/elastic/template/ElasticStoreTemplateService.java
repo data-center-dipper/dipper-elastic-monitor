@@ -19,7 +19,12 @@ public interface ElasticStoreTemplateService {
      */
     EsTemplateEntity addOrUpdateTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
     EsTemplateEntity getTemplate(Long id);
-    EsTemplateEntity updateTemplate(EsTemplateEntity esTemplateEntity);
+    /**
+     * 更新模板信息
+     * @param esUnconvertedTemplate 未转换的模板信息
+     * @return 更新后的模板实体
+     */
+    EsTemplateEntity updateTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
     void deleteTemplate(Long id);
     List<EsTemplateEntity> getAllTemplates();
 
@@ -66,4 +71,11 @@ public interface ElasticStoreTemplateService {
      * @return
      */
     List<ElasticTemplateListView> getTemplateListViewByPage(TemplatePageInfo templatePageInfo);
+
+    /**
+     * 获取未经转换的模版详情
+     * @param id
+     * @return
+     */
+    EsUnconvertedTemplate getOneUnconvertedTemplate(Long id);
 }

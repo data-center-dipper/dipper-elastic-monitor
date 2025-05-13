@@ -144,6 +144,30 @@ public class EsTemplateController {
         }
     }
 
+    @Operation(summary = "获取单个ES模板详情",
+            description = "Retrieve details of an Elasticsearch template by ID.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Template retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "404", description = "Template not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/getOneUnconvertedTemplate")
+    public JSONObject getOneUnconvertedTemplate(@RequestParam Long id) {
+        try {
+            EsUnconvertedTemplate elasticTemplateView = elasticStoreTemplateService.getOneUnconvertedTemplate(id);
+            if (elasticTemplateView == null) {
+                return ResultUtils.onFail("Template not found");
+            }
+            return ResultUtils.onSuccess(elasticTemplateView);
+        } catch (Exception e) {
+            log.error("Error retrieving template", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
     @Operation(summary = "获取ES模板详情",
             description = "Retrieve details of an Elasticsearch template by ID.",
             security = @SecurityRequirement(name = "bearerAuth"),
@@ -179,9 +203,9 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @PutMapping("/updateTemplate")
-    public JSONObject updateTemplate(@RequestBody EsTemplateEntity esTemplateEntity) {
+    public JSONObject updateTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
         try {
-            EsTemplateEntity updatedTemplate = elasticStoreTemplateService.updateTemplate(esTemplateEntity);
+            EsTemplateEntity updatedTemplate = elasticStoreTemplateService.updateTemplate(esUnconvertedTemplate);
             if (updatedTemplate == null) {
                 return ResultUtils.onFail("Failed to update template");
             }

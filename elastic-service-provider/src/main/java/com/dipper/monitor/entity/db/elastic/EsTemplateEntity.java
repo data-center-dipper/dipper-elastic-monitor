@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Data
 public class EsTemplateEntity {
-    private Long id;
+    private Integer id;
     private String clusterCode;
 
     // 模版名称
