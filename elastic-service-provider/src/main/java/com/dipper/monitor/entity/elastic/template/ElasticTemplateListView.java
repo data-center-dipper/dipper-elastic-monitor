@@ -1,7 +1,6 @@
 package com.dipper.monitor.entity.elastic.template;
 
-import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
-import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+
 import lombok.Data;
 
 import java.util.Date;

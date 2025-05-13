@@ -3,8 +3,7 @@ package com.dipper.monitor.controller.elsatic.manager_template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
-import com.dipper.monitor.entity.elastic.dic.WodListView;
-import com.dipper.monitor.entity.elastic.dic.WordPageInfo;
+import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
@@ -236,4 +235,27 @@ public class EsTemplateController {
     }
 
 
+    @Operation(summary = "获取ES模板的统计信息",
+            description = "获取ES模板的统计信息",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Template retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "404", description = "Template not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/templateStat/{id}")
+    public JSONObject templateStat(@PathVariable Long id) {
+        try {
+            EsTemplateStatEntity esTemplateStat = elasticStoreTemplateService.templateStat(id);
+            if (esTemplateStat == null) {
+                return ResultUtils.onFail("模版没有统计信息");
+            }
+            return ResultUtils.onSuccess(esTemplateStat);
+        } catch (Exception e) {
+            log.error("Error retrieving template", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 }

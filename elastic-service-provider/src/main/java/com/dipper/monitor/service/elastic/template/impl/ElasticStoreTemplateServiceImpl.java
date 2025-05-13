@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
@@ -17,6 +18,7 @@ import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplate
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.utils.DipperDateUtil;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import com.dipper.monitor.utils.mock.MockAllData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -156,12 +158,6 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         }
         ElasticTemplateView elasticTemplateView = new ElasticTemplateView();
         BeanUtils.copyProperties(template, elasticTemplateView);
-
-        String statMessage = template.getStatMessage();
-        if (StringUtils.isNotBlank(statMessage)) {
-            EsTemplateStatEntity esTemplateStatEntity = JSONObject.parseObject(statMessage, EsTemplateStatEntity.class);
-            elasticTemplateView.setEsTemplateStat(esTemplateStatEntity);
-        }
         return elasticTemplateView;
     }
 
@@ -229,6 +225,23 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         }
         
         return unconvertedTemplate;
+    }
+
+    @Override
+    public EsTemplateStatEntity templateStat(Long id) {
+        if(ApplicationUtils.isWindows()){
+            return MockAllData.templateStat(id);
+        }
+        EsTemplateEntity template = getTemplate(id);
+        if (template == null) {
+            throw new IllegalArgumentException("template not exist");
+        }
+        String statMessage = template.getStatMessage();
+        if(StringUtils.isBlank(statMessage)) {
+            return null;
+        }
+        EsTemplateStatEntity esTemplateStatEntity = JSONObject.parseObject(statMessage, EsTemplateStatEntity.class);
+        return esTemplateStatEntity;
     }
 
     @Override

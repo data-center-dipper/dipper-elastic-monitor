@@ -2,6 +2,7 @@ package com.dipper.monitor.utils.mock;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
+import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,4 +65,24 @@ public class MockAllData {
         return shardList;
     }
 
+    public static EsTemplateStatEntity templateStat(Long id) {
+        // 创建一个新的 EsTemplateStatEntity 实例
+        EsTemplateStatEntity entity = new EsTemplateStatEntity();
+
+        // 设置一些示例数据
+        entity.setId(id); // 假设 id 是从方法参数中传入的
+        entity.setRollingCycleError(5); // 示例错误数
+        entity.setShardCount(20); // 示例分片总数
+        entity.setShardUnassigned(1); // 示例未分配分片数
+        entity.setCountIndex(10); // 示例索引数量
+        entity.setOpenIndex(8); // 示例打开的索引数量
+        entity.setCloseIndex(2); // 示例关闭的索引数量
+        entity.setExceptionIndex(0); // 示例异常索引数量
+        entity.setFreezeIndex(0); // 示例冻结索引数量
+        entity.setSegmetCount(150); // 示例段数量
+        entity.setSegmentSize(1024L); // 示例段大小，单位为字节
+
+        // 返回填充好的实体对象
+        return entity;
+    }
 }

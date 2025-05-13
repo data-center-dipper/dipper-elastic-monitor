@@ -78,4 +78,11 @@ public interface ElasticStoreTemplateService {
      * @return
      */
     EsUnconvertedTemplate getOneUnconvertedTemplate(Long id);
+
+    /**
+     * 获取模版统计信息
+     * @param id
+     * @return
+     */
+    EsTemplateStatEntity templateStat(Long id);
 }

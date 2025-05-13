@@ -67,3 +67,6 @@ CREATE TABLE t_module_task_map (
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+ALTER TABLE elastic_monitor.t_elastic_template ADD stat_message TEXT NULL;
+
