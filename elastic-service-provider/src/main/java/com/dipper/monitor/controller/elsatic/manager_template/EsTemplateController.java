@@ -155,7 +155,7 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @GetMapping("/showTemplate")
-    public JSONObject showTemplate(@PathVariable Long id) {
+    public JSONObject showTemplate(@RequestParam Long id) {
         try {
             ElasticTemplateView elasticTemplateView = elasticStoreTemplateService.getTemplateAndStat(id);
             if (elasticTemplateView == null) {
