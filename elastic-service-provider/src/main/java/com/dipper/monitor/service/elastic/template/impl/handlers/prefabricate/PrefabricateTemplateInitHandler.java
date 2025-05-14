@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -54,6 +56,7 @@ public class PrefabricateTemplateInitHandler {
             log.error("初始化预制模版失败", e);
         }
         log.info("预制模版初始化完成, size: {}", esUnconvertedTemplateList.size());
+        esUnconvertedTemplateList.sort(Comparator.comparing(PrefabricateTemplateEntity::getOrder, Comparator.nullsLast(Integer::compareTo)));
     }
 
     /**

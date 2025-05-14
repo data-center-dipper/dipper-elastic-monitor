@@ -8,6 +8,8 @@ import java.util.Map;
 @Data
 public class PrefabricateTemplateEntity {
     // 模版名称
+    private Integer order;
+    // 模版名称
     private String zhName;
     private String enName;
 

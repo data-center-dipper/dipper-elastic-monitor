@@ -1,0 +1,42 @@
+{
+  "order": 15,
+  "zhName": "15天滚动一次的模板",
+  "enName": "15",
+  "dicName": "log_dictionary",
+  "indexPatterns": "logs-yyyyMMdd-*",
+  "aliansPatterns": "logs-yyyyMMdd",
+  "numberOfShards": 3,
+  "numberOfReplicas": 2,
+  "enableAutoShards": true,
+  "refreshInterval": "30s",
+  "shardSize": 50,
+  "rollingPeriod": 15,
+  "templateContent": {
+    "settings": {
+      "index": {
+        "translog.flush_threshold_size": "1024mb",
+        "refresh_interval": "60s",
+        "merge.policy.max_merge_at_once": "30",
+        "unassigned.node_left.delayed_timeout": "10m",
+        "merge.scheduler.auto_throttle": "true",
+        "number_of_replicas": "0",
+        "search.slowlog.threshold.query.info": "10s",
+        "translog.generation_threshold_size": "128mb",
+        "mode": "logsdb",
+        "codec": "best_compression",
+        "lifecycle.rollover_alias": "ailpha-securitylog-flow-yyyyMMdd",
+        "indexing.slowlog.threshold.index.info": "5s",
+        "merge.scheduler.max_thread_count": "1",
+        "number_of_shards": "3",
+        "lifecycle.name": "securitylog-flow-policy",
+        "merge.policy.floor_segment": "10mb",
+        "mapping.ignore_malformed": "true",
+        "merge.scheduler.max_merge_count": "100",
+        "merge.policy.segments_per_tier": "60",
+        "merge.policy.max_merged_segment": "1gb",
+        "translog.durability": "async",
+        "search.slowlog.threshold.fetch.info": "5s"
+      }
+    }
+  }
+}
