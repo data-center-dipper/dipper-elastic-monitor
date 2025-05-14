@@ -10,6 +10,5 @@ public class LifePolicyResponse {
     private String zhName;
     private String enName;
     private String policyContent;
-    private Date createTime;
-    private Date updateTime;
+    private String updateTime;
 }

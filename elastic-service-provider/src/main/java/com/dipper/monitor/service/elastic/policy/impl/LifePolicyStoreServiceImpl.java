@@ -7,6 +7,7 @@ import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.entity.db.elastic.LifePolicyEntity;
 import com.dipper.monitor.mapper.LifePolicyStoreMapper;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
+import com.dipper.monitor.utils.DipperDateUtil;
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -194,8 +195,7 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         response.setZhName(entity.getZhName());
         response.setEnName(entity.getEnName());
         response.setPolicyContent(entity.getPolicyValue());
-        response.setCreateTime(entity.getCreateTime());
-        response.setUpdateTime(entity.getUpdateTime());
+        response.setUpdateTime(DipperDateUtil.formatDate(entity.getUpdateTime()));
         
         return response;
     }
