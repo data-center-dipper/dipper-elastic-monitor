@@ -17,6 +17,7 @@
         number_of_shards,
         number_of_replicas,
         enable_auto_shards,
+        rolling_period,
         life_policy,
         template_content,
         create_time,
@@ -32,6 +33,7 @@
         #{numberOfShards},
         #{numberOfReplicas},
         #{enableAutoShards},
+        #{rollingPeriod},
         #{lifePolicy},
         #{templateContent},
         NOW(),
@@ -47,20 +49,22 @@
     <!-- 更新模板 -->
     <update id="updateTemplate">
         UPDATE t_elastic_template
-        SET
-        cluster_code=#{clusterCode},
-        zh_name=#{zhName},
-        en_name=#{enName},
-        settings=#{settings},
-        dic_name=#{dicName},
-        index_patterns=#{indexPatterns},
-        alians_patterns=#{aliansPatterns},
-        number_of_shards=#{numberOfShards},
-        number_of_replicas=#{numberOfReplicas},
-        enable_auto_shards=#{enableAutoShards},
-        life_policy=#{lifePolicy},
-        template_content=#{templateContent},
-        update_time=NOW()
+        <set>
+            <if test="clusterCode != null and clusterCode != ''">cluster_code=#{clusterCode},</if>
+            <if test="zhName != null and zhName != ''">zh_name=#{zhName},</if>
+            <if test="enName != null and enName != ''">en_name=#{enName},</if>
+            <if test="settings != null and settings != ''">settings=#{settings},</if>
+            <if test="dicName != null and dicName != ''">dic_name=#{dicName},</if>
+            <if test="indexPatterns != null and indexPatterns != ''">index_patterns=#{indexPatterns},</if>
+            <if test="aliansPatterns != null and aliansPatterns != ''">alians_patterns=#{aliansPatterns},</if>
+            <if test="numberOfShards != null">number_of_shards=#{numberOfShards},</if>
+            <if test="numberOfReplicas != null">number_of_replicas=#{numberOfReplicas},</if>
+            <if test="enableAutoShards != null">enable_auto_shards=#{enableAutoShards},</if>
+            <if test="rollingPeriod != null ">rolling_period=#{rollingPeriod},</if>
+            <if test="lifePolicy != null and lifePolicy != ''">life_policy=#{lifePolicy},</if>
+            <if test="templateContent != null and templateContent != ''">template_content=#{templateContent},</if>
+            update_time=NOW()
+        </set>
         WHERE id=#{id}
     </update>
 

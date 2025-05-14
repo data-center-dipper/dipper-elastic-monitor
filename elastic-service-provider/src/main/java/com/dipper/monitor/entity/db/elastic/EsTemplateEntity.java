@@ -29,6 +29,10 @@ public class EsTemplateEntity {
     // 是否开启自动 shard 计算
     private Boolean enableAutoShards;
     /**
+     * 滚动周期
+     */
+    private Integer rollingPeriod;
+    /**
      * 数据生命周期策略
      */
     private String lifePolicy;

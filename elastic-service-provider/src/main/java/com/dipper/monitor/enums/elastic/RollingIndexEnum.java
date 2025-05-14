@@ -4,12 +4,12 @@ public enum RollingIndexEnum {
 
     NONE("none", 0, "不需要滚动的"),
     DAILY("ONE", 1, "按天滚动的"),
-    EVERY_2_DAYS("SECOND", 2, "2天滚动一次的"),
-    EVERY_5_DAYS("FIVE_5", 5, "5天滚动一次的"),
+    EVERY_7_DAYS("SECOND", 7, "7天滚动一次的"),
     EVERY_10_DAYS("TEN", 10, "10天滚动一次的"),
     EVERY_15_DAYS("FIFTEEN", 15, "15天滚动一次的"),
     EVERY_30_DAYS("THIRTY", 30, "30天滚动一次的"),
     EVERY_60_DAYS("SIXTY", 60, "60天滚动一次的"),
+    EVERY_90_DAYS("ninety", 90, "90天滚动一次的"),
     EVERY_180_DAYS("HALF_YEAR", 180, "半年滚动一次的"),
     EVERY_365_DAYS("YEAR", 365, "1年滚动一次的");
 

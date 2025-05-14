@@ -35,7 +35,9 @@ public class RollingIndexByTemplateHandler {
             throw new IllegalArgumentException("集群健康状态异常");
         }
         String status = healthData.getStatus();
-        if (!"green".equals(status)) {
+        if ("green".equals(status) || "yellow".equals(status)) {
+
+        }else {
             throw new IllegalArgumentException("集群状态异常");
         }
         String activeShardsPercent = healthData.getActiveShardsPercent();
@@ -72,13 +74,9 @@ public class RollingIndexByTemplateHandler {
                 DailyRollingIndexHandler dailyRollingIndexHandler = new DailyRollingIndexHandler(esUnconvertedTemplate);
                 dailyRollingIndexHandler.handle();
                 break;
-            case EVERY_2_DAYS:
+            case EVERY_7_DAYS:
                 Every2DaysRollingIndexHandler every2DaysRollingIndexHandler = new Every2DaysRollingIndexHandler(esUnconvertedTemplate);
                 every2DaysRollingIndexHandler.handle();
-                break;
-            case EVERY_5_DAYS:
-                Every5DaysRollingIndexHandler every5DaysRollingIndexHandler = new Every5DaysRollingIndexHandler(esUnconvertedTemplate);
-                every5DaysRollingIndexHandler.handle();
                 break;
             case EVERY_10_DAYS:
                 Every10DaysRollingIndexHandler every10DaysRollingIndexHandler = new Every10DaysRollingIndexHandler(esUnconvertedTemplate);
@@ -95,6 +93,10 @@ public class RollingIndexByTemplateHandler {
             case EVERY_60_DAYS:
                 Every60DaysRollingIndexHandler every60DaysRollingIndexHandler = new Every60DaysRollingIndexHandler(esUnconvertedTemplate);
                 every60DaysRollingIndexHandler.handle();
+                break;
+            case EVERY_90_DAYS:
+                Every90DaysRollingIndexHandler every90DaysRollingIndexHandler = new Every90DaysRollingIndexHandler(esUnconvertedTemplate);
+                every90DaysRollingIndexHandler.handle();
                 break;
             case EVERY_180_DAYS:
                 Every180DaysRollingIndexHandler every180DaysRollingIndexHandler = new Every180DaysRollingIndexHandler(esUnconvertedTemplate);

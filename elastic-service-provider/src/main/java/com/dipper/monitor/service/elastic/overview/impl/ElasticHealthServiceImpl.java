@@ -1,5 +1,8 @@
 package com.dipper.monitor.service.elastic.overview.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
@@ -43,19 +46,39 @@ public class ElasticHealthServiceImpl implements ElasticHealthService {
             String httpResult = EntityUtils.toString(response.getEntity(), "UTF-8");
             log.info("获取返回值信息：{}", httpResult);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            // 反序列化JSON数组为List<ClusterHealth>
-            List<ClusterHealth> clusterHealthList = objectMapper.readValue(httpResult, new TypeReference<List<ClusterHealth>>(){});
+            // 使用 FastJSON 解析
+            JSONArray jsonArray = JSON.parseArray(httpResult);
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                JSONObject jsonObject = jsonArray.getJSONObject(0);
 
-            // 假设我们只关心第一个元素
-            if (clusterHealthList != null && !clusterHealthList.isEmpty()) {
-                return clusterHealthList.get(0);
+                ClusterHealth health = new ClusterHealth();
+
+                health.setEpoch(jsonObject.getString("epoch"));
+                health.setTimestamp(jsonObject.getString("timestamp"));
+                health.setCluster(jsonObject.getString("cluster"));
+                health.setStatus(jsonObject.getString("status"));
+                health.setNodeTotal(jsonObject.getInteger("node.total"));
+                health.setNodeData(jsonObject.getInteger("node.data"));
+                health.setShards(jsonObject.getString("shards"));
+                health.setPri(jsonObject.getString("pri"));
+                health.setRelo(jsonObject.getString("relo"));
+                health.setInit(jsonObject.getString("init"));
+                health.setUnassign(jsonObject.getString("unassign"));
+
+                // 注意这个特殊字段 unassign.pri
+                health.setUnassignPri(jsonObject.getString("unassign.pri"));
+
+                health.setPendingTasks(jsonObject.getString("pending_tasks"));
+                health.setMaxTaskWaitTime(jsonObject.getString("max_task_wait_time"));
+                health.setActiveShardsPercent(jsonObject.getString("active_shards_percent"));
+
+                return health;
             } else {
-                return null; // 或者根据需求抛出异常、返回默认实例等
+                return null;
             }
         } catch (Exception e) {
             log.error("获取集群信息异常", e);
-            return null; // 或者根据需要返回一个默认的ClusterHealth实例
+            return null;
         }
     }
 }

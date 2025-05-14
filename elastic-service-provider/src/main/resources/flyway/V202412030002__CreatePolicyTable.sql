@@ -9,3 +9,4 @@ CREATE TABLE t_life_policy (
 ) COMMENT='生命周期策略表';
 
 ALTER TABLE elastic_monitor.t_elastic_template ADD life_policy varchar(100) NULL;
+ALTER TABLE elastic_monitor.t_elastic_template ADD rolling_period INT NULL;

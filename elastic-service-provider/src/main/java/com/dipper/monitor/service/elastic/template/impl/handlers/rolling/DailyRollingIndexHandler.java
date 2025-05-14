@@ -2,7 +2,7 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
 
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 
-public class DailyRollingIndexHandler {
+public class DailyRollingIndexHandler extends AbstractRollingIndexByTemplateHandler {
     public DailyRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
     }
 

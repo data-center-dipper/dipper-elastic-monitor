@@ -93,6 +93,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
      */
     private EsTemplateEntity convertToEsTemplateEntity(EsUnconvertedTemplate esUnconvertedTemplate) {
         EsTemplateEntity esTemplateEntity = new EsTemplateEntity();
+        BeanUtils.copyProperties(esUnconvertedTemplate, esTemplateEntity);
         
         // 设置基本属性
         esTemplateEntity.setId(esUnconvertedTemplate.getId());
@@ -188,6 +189,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         unconvertedTemplate.setAliansPatterns(templateById.getAliansPatterns());
         unconvertedTemplate.setNumberOfShards(templateById.getNumberOfShards());
         unconvertedTemplate.setNumberOfReplicas(templateById.getNumberOfReplicas());
+        unconvertedTemplate.setRollingPeriod(templateById.getRollingPeriod());
         unconvertedTemplate.setEnableAutoShards(templateById.getEnableAutoShards());
         unconvertedTemplate.setLifePolicy(templateById.getLifePolicy());
 
