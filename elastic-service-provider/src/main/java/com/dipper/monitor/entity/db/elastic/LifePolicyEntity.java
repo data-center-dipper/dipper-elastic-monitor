@@ -1,6 +1,7 @@
 package com.dipper.monitor.entity.db.elastic;
 
 import lombok.Data;
+import java.util.Date;
 
 @Data
 public class LifePolicyEntity {
@@ -13,4 +14,8 @@ public class LifePolicyEntity {
      * json格式的内容
      **/
     private String policyValue;
+    // 创建时间
+    private Date createTime;
+    // 更新时间
+    private Date updateTime;
 }

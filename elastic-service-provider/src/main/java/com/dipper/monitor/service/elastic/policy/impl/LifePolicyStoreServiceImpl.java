@@ -1,15 +1,179 @@
 package com.dipper.monitor.service.elastic.policy.impl;
 
+import com.dipper.monitor.dto.request.LifePolicyRequest;
+import com.dipper.monitor.dto.request.PolicyPageRequest;
+import com.dipper.monitor.dto.response.LifePolicyResponse;
+import com.dipper.monitor.entity.db.elastic.LifePolicyEntity;
 import com.dipper.monitor.mapper.LifePolicyStoreMapper;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
+import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-@Service
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
+@Service
 public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
 
     @Autowired
     private LifePolicyStoreMapper lifePolicyStoreMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LifePolicyResponse addPolicy(LifePolicyRequest request) {
+        // 参数校验
+        if (!StringUtils.hasText(request.getZhName())) {
+            throw new IllegalArgumentException("中文名称不能为空");
+        }
+        if (!StringUtils.hasText(request.getEnName())) {
+            throw new IllegalArgumentException("英文名称不能为空");
+        }
+        if (!StringUtils.hasText(request.getPolicyContent())) {
+            throw new IllegalArgumentException("策略内容不能为空");
+        }
+        
+        // 检查英文名称是否已存在
+        if (lifePolicyStoreMapper.checkEnNameExists(request.getEnName(), -1) > 0) {
+            throw new IllegalArgumentException("英文名称已存在");
+        }
+        
+        // 转换为实体对象
+        LifePolicyEntity entity = new LifePolicyEntity();
+        entity.setZhName(request.getZhName());
+        entity.setEnName(request.getEnName());
+        entity.setPolicyValue(request.getPolicyContent());
+        
+        // 保存到数据库
+        lifePolicyStoreMapper.insert(entity);
+        
+        // 返回结果
+        return convertToResponse(entity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LifePolicyResponse updatePolicy(LifePolicyRequest request) {
+        // 参数校验
+        if (request.getId() == null) {
+            throw new IllegalArgumentException("策略ID不能为空");
+        }
+        if (!StringUtils.hasText(request.getZhName())) {
+            throw new IllegalArgumentException("中文名称不能为空");
+        }
+        if (!StringUtils.hasText(request.getEnName())) {
+            throw new IllegalArgumentException("英文名称不能为空");
+        }
+        if (!StringUtils.hasText(request.getPolicyContent())) {
+            throw new IllegalArgumentException("策略内容不能为空");
+        }
+        
+        // 检查策略是否存在
+        LifePolicyEntity existingEntity = lifePolicyStoreMapper.selectById(request.getId());
+        if (existingEntity == null) {
+            throw new IllegalArgumentException("策略不存在");
+        }
+        
+        // 检查英文名称是否已存在（排除自身）
+        if (lifePolicyStoreMapper.checkEnNameExists(request.getEnName(), request.getId()) > 0) {
+            throw new IllegalArgumentException("英文名称已存在");
+        }
+        
+        // 更新实体对象
+        existingEntity.setZhName(request.getZhName());
+        existingEntity.setEnName(request.getEnName());
+        existingEntity.setPolicyValue(request.getPolicyContent());
+        
+        // 更新数据库
+        lifePolicyStoreMapper.update(existingEntity);
+        
+        // 返回结果
+        return convertToResponse(existingEntity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deletePolicy(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("策略ID不能为空");
+        }
+        
+        // 检查策略是否存在
+        LifePolicyEntity existingEntity = lifePolicyStoreMapper.selectById(id);
+        if (existingEntity == null) {
+            throw new IllegalArgumentException("策略不存在");
+        }
+        
+        // 删除策略
+        int result = lifePolicyStoreMapper.deleteById(id);
+        return result > 0;
+    }
+
+    @Override
+    public LifePolicyResponse getOnePolicy(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("策略ID不能为空");
+        }
+        
+        // 查询策略
+        LifePolicyEntity entity = lifePolicyStoreMapper.selectById(id);
+        if (entity == null) {
+            return null;
+        }
+        
+        // 返回结果
+        return convertToResponse(entity);
+    }
+
+    @Override
+    public Tuple2<List<LifePolicyResponse>,Long> getPoliciesByPage(PolicyPageRequest request) {
+        if (request == null) {
+            request = new PolicyPageRequest();
+        }
+        
+        // 计算分页参数
+        int pageNum = Math.max(request.getPageNum(), 1);
+        int pageSize = Math.max(request.getPageSize(), 1);
+        int offset = (pageNum - 1) * pageSize;
+        
+        // 查询数据
+        List<LifePolicyEntity> entities = lifePolicyStoreMapper.selectByPage(
+                request.getKeyword(), offset, pageSize);
+        
+        // 查询总数
+        long total = lifePolicyStoreMapper.countByCondition(request.getKeyword());
+        
+        // 转换为响应对象
+        List<LifePolicyResponse> responses = entities.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+        
+        // 返回分页结果
+        return Tuple2.of(responses, total);
+    }
+    
+    /**
+     * 将实体对象转换为响应对象
+     */
+    private LifePolicyResponse convertToResponse(LifePolicyEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        
+        LifePolicyResponse response = new LifePolicyResponse();
+        response.setId(entity.getId());
+        response.setZhName(entity.getZhName());
+        response.setEnName(entity.getEnName());
+        response.setPolicyContent(entity.getPolicyValue());
+        response.setCreateTime(entity.getCreateTime());
+        response.setUpdateTime(entity.getUpdateTime());
+        
+        return response;
+    }
 }

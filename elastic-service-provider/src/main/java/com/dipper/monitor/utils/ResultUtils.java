@@ -92,6 +92,12 @@ public class ResultUtils {
                 .fluentPut(MESSAGE, error);
     }
 
+    public static JSONObject onFail(int code, String message) {
+        return new JSONObject()
+                .fluentPut(CODE, code)
+                .fluentPut(MESSAGE, message);
+    }
+
     /**
      * 构建一个仅表示失败的响应，使用默认的未知错误信息。
      *
@@ -278,4 +284,6 @@ public class ResultUtils {
         int end = Math.min(page * size, c.size());
         return onSuccess(c.subList(start, end)).fluentPut("total", c.size());
     }
+
+
 }
