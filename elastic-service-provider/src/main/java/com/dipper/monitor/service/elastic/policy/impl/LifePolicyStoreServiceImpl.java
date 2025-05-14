@@ -1,11 +1,13 @@
 package com.dipper.monitor.service.elastic.policy.impl;
 
+import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.policy.LifePolicyRequest;
 import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
 import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.entity.db.elastic.LifePolicyEntity;
 import com.dipper.monitor.mapper.LifePolicyStoreMapper;
+import com.dipper.monitor.service.elastic.policy.LifePolicyRealService;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
 import com.dipper.monitor.utils.DipperDateUtil;
 import com.dipper.monitor.utils.Tuple2;
@@ -17,8 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -162,7 +167,23 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         List<LifePolicyResponse> responses = entities.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
-        
+
+        LifePolicyRealService lifePolicyRealService = SpringUtil.getBean(LifePolicyRealService.class);
+        Map<String, String> relMap = new HashMap<>();
+        try {
+            relMap = lifePolicyRealService.policyList();
+        } catch (IOException e) {
+            log.error("获取策略失败", e);
+        }
+        for (LifePolicyResponse response : responses) {
+            String realPolicy = relMap.get(response.getEnName());
+            if(org.apache.commons.lang3.StringUtils.isBlank(realPolicy)){
+                response.setEffectStatus("未生效");
+            }else {
+                response.setEffectStatus("生效中");
+            }
+        }
+
         // 返回分页结果
         return Tuple2.of(responses, total);
     }

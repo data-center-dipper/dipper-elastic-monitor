@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.policy.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -46,5 +49,18 @@ public class LifePolicyRealServiceImpl implements LifePolicyRealService {
             String responseData = EntityUtils.toString(response.getEntity());
             log.error("策略生效失败,{}", responseData);
         }
+    }
+
+    @Override
+    public Map<String,String>  policyList() throws UnsupportedEncodingException, IOException {
+        // 获取所有策略 根据这个接口 GET /_ilm/policy
+        String api = "/_ilm/policy";
+        String response = elasticClientService.executeGetApi(api);
+        JSONObject jsonObject = JSONObject.parseObject(response);
+        Map<String,String> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            result.put(entry.getKey(),entry.getValue().toString());
+        }
+        return result;
     }
 }

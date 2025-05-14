@@ -16,14 +16,15 @@ public interface ElasticRealTemplateService {
 
    List<EsTemplateConfigMes> statTemplate(String name) throws IOException;
 
-    /**
-     * 预览生成的模版
-     * @param esUnconvertedTemplate
-     * @return
-     */
-    JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
 
-    EsTemplateEntity getTemplate(Long id);
+    EsTemplateEntity getTemplate(Integer id);
 
     List<String> getIndexPatternList(String indexPatterns);
+
+    /**
+     * 滚动索引
+     * @param id
+     * @return
+     */
+    JSONObject rollTemplate(Integer id) throws Exception;
 }

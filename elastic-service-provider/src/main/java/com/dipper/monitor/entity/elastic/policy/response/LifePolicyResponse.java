@@ -10,5 +10,7 @@ public class LifePolicyResponse {
     private String zhName;
     private String enName;
     private String policyContent;
+    // 生效状态
+    private String effectStatus;
     private String updateTime;
 }

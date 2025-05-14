@@ -65,7 +65,7 @@ public class MockAllData {
         return shardList;
     }
 
-    public static EsTemplateStatEntity templateStat(Long id) {
+    public static EsTemplateStatEntity templateStat(Integer id) {
         // 创建一个新的 EsTemplateStatEntity 实例
         EsTemplateStatEntity entity = new EsTemplateStatEntity();
 

@@ -12,9 +12,8 @@ import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
-import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
-import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
+import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.utils.DipperDateUtil;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
@@ -69,7 +68,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     }
 
     @Override
-    public EsTemplateEntity getTemplate(Long id) {
+    public EsTemplateEntity getTemplate(Integer id) {
         return esTemplateMapper.getTemplateById(id);
     }
 
@@ -125,33 +124,17 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         return esTemplateMapper.getAllTemplates();
     }
 
-
-
-    @Override
-    public void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
-        addOrUpdateTemplate(esUnconvertedTemplate);
-        rollTemplate(esUnconvertedTemplate);
-    }
-
-    @Override
-    public void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
-        ElasticRealTemplateService elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
-        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,
-                this,elasticRealTemplateService);
-        rollingIndexByTemplateHandler.rollIndexByTemplate(esUnconvertedTemplate);
-    }
-
     @Override
     public void updateTemplateStat(List<EsTemplateStatEntity> templateStat) {
         for (EsTemplateStatEntity item: templateStat) {
-            Long id = item.getId();
+            Integer id = item.getId();
             String statMessage = JSONObject.toJSONString(item);
             esTemplateMapper.updateTemplateStat(id, statMessage);
         }
     }
 
     @Override
-    public ElasticTemplateView getTemplateAndStat(Long id) {
+    public ElasticTemplateView getTemplateAndStat(Integer id) {
         EsTemplateEntity template = getTemplate(id);
         if (template == null) {
             throw new IllegalArgumentException("template not exist");
@@ -187,7 +170,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     }
 
     @Override
-    public EsUnconvertedTemplate getOneUnconvertedTemplate(Long id) {
+    public EsUnconvertedTemplate getOneUnconvertedTemplate(Integer id) {
         EsTemplateEntity templateById = esTemplateMapper.getTemplateById(id);
         // 转成 EsUnconvertedTemplate
         if (templateById == null) {
@@ -229,7 +212,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     }
 
     @Override
-    public EsTemplateStatEntity templateStat(Long id) {
+    public EsTemplateStatEntity templateStat(Integer id) {
         if(ApplicationUtils.isWindows()){
             return MockAllData.templateStat(id);
         }

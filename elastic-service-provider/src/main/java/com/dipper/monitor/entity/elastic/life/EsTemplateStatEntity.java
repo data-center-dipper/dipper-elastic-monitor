@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class EsTemplateStatEntity {
-    private Long id;
+    private Integer id;
     private Integer rollingCycleError;
     private Integer shardCount;
     private Integer shardUnassigned;

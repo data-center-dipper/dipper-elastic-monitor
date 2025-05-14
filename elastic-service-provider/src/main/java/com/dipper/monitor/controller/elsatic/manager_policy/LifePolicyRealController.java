@@ -35,4 +35,21 @@ public class LifePolicyRealController {
         }
     }
 
+
+    @GetMapping("/policyList")
+    @Operation(summary = "查看已经生效的策略", description = "查看已经生效的策略")
+    public JSONObject policyList() {
+        try {
+            lifePolicyRealService.policyList();
+            return  ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.warn("获取策略参数错误: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("获取策略失败", e);
+            return ResultUtils.onFail(500, "获取策略失败: " + e.getMessage());
+        }
+    }
+
+
 }

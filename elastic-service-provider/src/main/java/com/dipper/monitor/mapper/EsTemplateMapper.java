@@ -13,7 +13,7 @@ public interface EsTemplateMapper {
 
     int insertTemplate(EsTemplateEntity esTemplateEntity);
 
-    EsTemplateEntity getTemplateById(@Param("id") Long id);
+    EsTemplateEntity getTemplateById(@Param("id") Integer id);
 
 
     int updateTemplate(EsTemplateEntity esTemplateEntity);
@@ -32,7 +32,7 @@ public interface EsTemplateMapper {
     EsTemplateEntity getTemplateByEnName(@Param("clusterCode") String clusterCode,
                                          @Param("enName") String enName);
 
-    void updateTemplateStat(@Param("id") Long id,@Param("statMessage")  String statMessage);
+    void updateTemplateStat(@Param("id") Integer id,@Param("statMessage")  String statMessage);
 
     Integer getTemplateNum(@Param("clusterCode") String clusterCode,
                            @Param("keyword")  String keyword);

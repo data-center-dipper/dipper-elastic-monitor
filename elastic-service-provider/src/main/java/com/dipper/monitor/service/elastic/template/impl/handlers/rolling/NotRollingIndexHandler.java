@@ -1,9 +1,11 @@
 package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,14 +25,16 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
     private EsUnconvertedTemplate esUnconvertedTemplate;
     private ElasticStoreTemplateService elasticStoreTemplateService; // 假设这是你的服务类，用于处理模板相关的逻辑
 
+    private TemplatePreviewService templatePreviewService;
     private ElasticRealTemplateService elasticRealTemplateService;
 
     public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate,
                                   ElasticStoreTemplateService elasticStoreTemplateService,
-                                  ElasticRealTemplateService elasticRealTemplateService) {
+                                  TemplatePreviewService templatePreviewService) {
         this.esUnconvertedTemplate = esUnconvertedTemplate;
         this.elasticStoreTemplateService = elasticStoreTemplateService;
-        this.elasticRealTemplateService = elasticRealTemplateService;
+        this.templatePreviewService = templatePreviewService;
+        this.elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
     }
 
 
@@ -40,7 +44,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
         log.info("开始处理索引模式: {}", indexPatterns);
 
         // 生成新的模板信息
-        JSONObject templateJson = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
+        JSONObject templateJson = templatePreviewService.previewTemplate(esUnconvertedTemplate);
 
         // 保存或更新模板
         elasticRealTemplateService.saveOrUpdateTemplate(enName,templateJson);

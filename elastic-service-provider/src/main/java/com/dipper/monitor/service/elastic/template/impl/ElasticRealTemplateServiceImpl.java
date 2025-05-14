@@ -2,17 +2,20 @@ package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.params.elasticsearch.Response;
+import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
-import com.dipper.monitor.service.elastic.template.impl.handlers.PreviewTemplateHandler;
+import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
+import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.StatTemplateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.nio.entity.NStringEntity;
@@ -39,6 +42,10 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
     private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     @Autowired
     private ElasticStoreTemplateService elasticStoreTemplateService;
+    @Autowired
+    private TemplatePreviewService templatePreviewService;
+    @Autowired
+    private ElasticHealthService elasticHealthService;
 
     public boolean isExistTemplate(String name) throws IOException {
         String api = "/_template/" + name;
@@ -81,14 +88,10 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
         return statTemplateHandler.statTemplate(name);
     }
 
-    @Override
-    public JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
-        PreviewTemplateHandler previewTemplateHandler = new PreviewTemplateHandler();
-        return previewTemplateHandler.previewTemplate(esUnconvertedTemplate);
-    }
+
 
     @Override
-    public EsTemplateEntity getTemplate(Long id) {
+    public EsTemplateEntity getTemplate(Integer id) {
         EsTemplateEntity template = elasticStoreTemplateService.getTemplate(id);
         return template;
     }
@@ -109,6 +112,20 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
             indexPatternList.add(indexPrefxi);
             return indexPatternList;
         }
+
+    @Override
+    public JSONObject rollTemplate(Integer id) throws Exception {
+        EsUnconvertedTemplate oneUnconvertedTemplate = elasticStoreTemplateService.getOneUnconvertedTemplate(id);
+//        JSONObject jsonObject = templatePreviewService.previewEffectTemplate(id);
+        if(oneUnconvertedTemplate == null){
+            throw new RuntimeException("模板不存在");
+        }
+
+        RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,
+                elasticStoreTemplateService,templatePreviewService);
+        rollingIndexByTemplateHandler.rollIndexByTemplate(oneUnconvertedTemplate);
+        return null;
+    }
 
 
 }

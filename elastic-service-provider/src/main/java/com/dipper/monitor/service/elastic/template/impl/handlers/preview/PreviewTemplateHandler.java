@@ -1,4 +1,4 @@
-package com.dipper.monitor.service.elastic.template.impl.handlers;
+package com.dipper.monitor.service.elastic.template.impl.handlers.preview;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.beans.SpringUtil;

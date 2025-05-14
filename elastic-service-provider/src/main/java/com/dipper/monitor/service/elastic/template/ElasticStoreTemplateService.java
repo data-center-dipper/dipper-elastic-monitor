@@ -18,7 +18,8 @@ public interface ElasticStoreTemplateService {
      * @return
      */
     EsTemplateEntity addOrUpdateTemplate(EsUnconvertedTemplate esUnconvertedTemplate);
-    EsTemplateEntity getTemplate(Long id);
+
+    EsTemplateEntity getTemplate(Integer id);
     /**
      * 更新模板信息
      * @param esUnconvertedTemplate 未转换的模板信息
@@ -28,19 +29,6 @@ public interface ElasticStoreTemplateService {
     void deleteTemplate(Long id);
     List<EsTemplateEntity> getAllTemplates();
 
-    /**
-     * 添加模版信息，并实时生效,滚动索引
-     *
-     * @param esUnconvertedTemplate
-     * @return
-     */
-    void addAndRollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception;
-
-    /**
-     * 滚动模版
-     * @param esUnconvertedTemplate
-     */
-    void rollTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception;
 
     void updateTemplateStat(List<EsTemplateStatEntity> templateStat);
 
@@ -49,7 +37,7 @@ public interface ElasticStoreTemplateService {
      * @param id
      * @return
      */
-    ElasticTemplateView getTemplateAndStat(Long id);
+    ElasticTemplateView getTemplateAndStat(Integer id);
 
     /**
      * 根据条件查询模版
@@ -77,12 +65,12 @@ public interface ElasticStoreTemplateService {
      * @param id
      * @return
      */
-    EsUnconvertedTemplate getOneUnconvertedTemplate(Long id);
+    EsUnconvertedTemplate getOneUnconvertedTemplate(Integer id);
 
     /**
      * 获取模版统计信息
      * @param id
      * @return
      */
-    EsTemplateStatEntity templateStat(Long id);
+    EsTemplateStatEntity templateStat(Integer id);
 }

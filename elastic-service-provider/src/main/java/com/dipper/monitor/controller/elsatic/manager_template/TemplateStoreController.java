@@ -8,7 +8,6 @@ import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
-import com.dipper.monitor.service.elastic.template.ElasticPrefabricateTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -26,9 +25,9 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/dipper/monitor/api/v1/elastic/es-template")
+@RequestMapping("/dipper/monitor/api/v1/elastic/template_store")
 @Tag(name = "ES模板管理", description = "管理和维护Elasticsearch模板")
-public class EsTemplateController {
+public class TemplateStoreController {
 
     @Autowired
     private ElasticStoreTemplateService elasticStoreTemplateService;
@@ -36,26 +35,6 @@ public class EsTemplateController {
     private ElasticRealTemplateService elasticRealTemplateService;
 
 
-    @Operation(summary = "预览ES模板",
-            description = "Add a new Elasticsearch template.",
-            security = @SecurityRequirement(name = "bearerAuth"),
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Template added successfully",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = EsTemplateEntity.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request"),
-                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
-            })
-    @PostMapping("/previewTemplate")
-    public JSONObject previewTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
-        try {
-            JSONObject jsonObject = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
-            return ResultUtils.onSuccess(jsonObject);
-        } catch (Exception e) {
-            log.error("Error adding template", e);
-            return ResultUtils.onFail("Operation error");
-        }
-    }
 
     @Operation(summary = "添加ES模板-仅仅保存",
             description = "Add a new Elasticsearch template.",
@@ -75,27 +54,6 @@ public class EsTemplateController {
                 return ResultUtils.onFail("Failed to add template");
             }
             return ResultUtils.onSuccess(addedTemplate);
-        } catch (Exception e) {
-            log.error("Error adding template", e);
-            return ResultUtils.onFail("Operation error");
-        }
-    }
-
-    @Operation(summary = "添加ES模板-实时生效",
-            description = "Add a new Elasticsearch template.",
-            security = @SecurityRequirement(name = "bearerAuth"),
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Template added successfully",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = EsTemplateEntity.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request"),
-                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
-            })
-    @PostMapping("/addAndRollTemplate")
-    public JSONObject addAndRollTemplate(@RequestBody EsUnconvertedTemplate esUnconvertedTemplate) {
-        try {
-            elasticStoreTemplateService.addAndRollTemplate(esUnconvertedTemplate);
-            return ResultUtils.onSuccess();
         } catch (Exception e) {
             log.error("Error adding template", e);
             return ResultUtils.onFail("Operation error");
@@ -154,7 +112,7 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @GetMapping("/getOneUnconvertedTemplate")
-    public JSONObject getOneUnconvertedTemplate(@RequestParam Long id) {
+    public JSONObject getOneUnconvertedTemplate(@RequestParam Integer id) {
         try {
             EsUnconvertedTemplate elasticTemplateView = elasticStoreTemplateService.getOneUnconvertedTemplate(id);
             if (elasticTemplateView == null) {
@@ -178,7 +136,7 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @GetMapping("/showTemplate")
-    public JSONObject showTemplate(@RequestParam Long id) {
+    public JSONObject showTemplate(@RequestParam Integer id) {
         try {
             ElasticTemplateView elasticTemplateView = elasticStoreTemplateService.getTemplateAndStat(id);
             if (elasticTemplateView == null) {
@@ -246,7 +204,7 @@ public class EsTemplateController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @GetMapping("/templateStat/{id}")
-    public JSONObject templateStat(@PathVariable Long id) {
+    public JSONObject templateStat(@PathVariable Integer id) {
         try {
             EsTemplateStatEntity esTemplateStat = elasticStoreTemplateService.templateStat(id);
             if (esTemplateStat == null) {
