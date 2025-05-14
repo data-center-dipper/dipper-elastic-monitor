@@ -44,4 +44,6 @@ public interface LifePolicyStoreMapper {
      * 检查英文名称是否已存在
      */
     int checkEnNameExists(@Param("enName") String enName, @Param("excludeId") Integer excludeId);
+
+    List<LifePolicyEntity> getAllPolicies();
 }

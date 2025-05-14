@@ -1,14 +1,13 @@
 package com.dipper.monitor.controller.elsatic.manager_policy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.dto.request.LifePolicyRequest;
-import com.dipper.monitor.dto.request.PolicyPageRequest;
-import com.dipper.monitor.dto.response.LifePolicyResponse;
+import com.dipper.monitor.entity.elastic.policy.LifePolicyRequest;
+import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
+import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +98,18 @@ public class LifePolicyStoreController {
         } catch (Exception e) {
             log.error("分页查询策略失败", e);
             return ResultUtils.onFail(500, "分页查询策略失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "获取所有策略", description = "获取所有生命周期策略（不分页）")
+    public JSONObject getAllPolicies() {
+        try {
+            List<LifePolicyResponse> policies = lifePolicyStoreService.getAllPolicies();
+            return ResultUtils.onSuccess(policies);
+        } catch (Exception e) {
+            log.error("获取所有策略失败", e);
+            return ResultUtils.onFail(500, "获取所有策略失败: " + e.getMessage());
         }
     }
 }

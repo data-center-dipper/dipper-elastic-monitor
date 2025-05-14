@@ -67,4 +67,9 @@
         </if>
     </select>
 
+    <select id="getAllPolicies" resultType="com.dipper.monitor.entity.db.elastic.LifePolicyEntity">
+        SELECT *
+        FROM t_life_policy
+    </select>
+
 </mapper>

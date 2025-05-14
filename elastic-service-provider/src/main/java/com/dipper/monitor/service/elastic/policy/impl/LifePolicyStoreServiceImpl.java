@@ -1,17 +1,17 @@
 package com.dipper.monitor.service.elastic.policy.impl;
 
-import com.dipper.monitor.dto.request.LifePolicyRequest;
-import com.dipper.monitor.dto.request.PolicyPageRequest;
-import com.dipper.monitor.dto.response.LifePolicyResponse;
+import com.dipper.monitor.entity.elastic.policy.LifePolicyRequest;
+import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
+import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.entity.db.elastic.LifePolicyEntity;
 import com.dipper.monitor.mapper.LifePolicyStoreMapper;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -157,7 +157,21 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         // 返回分页结果
         return Tuple2.of(responses, total);
     }
-    
+
+    @Override
+    public List<LifePolicyResponse> getAllPolicies() {
+        List<LifePolicyEntity> entitys = lifePolicyStoreMapper.getAllPolicies();
+        if(CollectionUtils.isEmpty(entitys)){
+            return new ArrayList<>();
+        }
+        List<LifePolicyResponse> lifePolicyResponses = new ArrayList<>();
+        for (LifePolicyEntity entity : entitys) {
+            LifePolicyResponse lifePolicyResponse = convertToResponse(entity);
+            lifePolicyResponses.add(lifePolicyResponse);
+        }
+        return lifePolicyResponses;
+    }
+
     /**
      * 将实体对象转换为响应对象
      */
