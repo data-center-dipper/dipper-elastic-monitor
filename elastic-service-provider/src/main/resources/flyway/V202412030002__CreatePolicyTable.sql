@@ -7,3 +7,5 @@ CREATE TABLE t_life_policy (
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY unique_en_name (en_name) COMMENT '英文名称唯一'
 ) COMMENT='生命周期策略表';
+
+ALTER TABLE elastic_monitor.t_elastic_template ADD life_policy varchar(100) NULL;

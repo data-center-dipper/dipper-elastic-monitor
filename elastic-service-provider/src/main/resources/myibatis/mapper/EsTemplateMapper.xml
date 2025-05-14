@@ -17,6 +17,7 @@
         number_of_shards,
         number_of_replicas,
         enable_auto_shards,
+        life_policy,
         template_content,
         create_time,
         update_time
@@ -31,6 +32,7 @@
         #{numberOfShards},
         #{numberOfReplicas},
         #{enableAutoShards},
+        #{lifePolicy},
         #{templateContent},
         NOW(),
         NOW()
@@ -56,6 +58,7 @@
         number_of_shards=#{numberOfShards},
         number_of_replicas=#{numberOfReplicas},
         enable_auto_shards=#{enableAutoShards},
+        life_policy=#{lifePolicy},
         template_content=#{templateContent},
         update_time=NOW()
         WHERE id=#{id}

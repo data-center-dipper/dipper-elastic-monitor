@@ -28,6 +28,10 @@ public class EsTemplateEntity {
     private Integer numberOfReplicas;
     // 是否开启自动 shard 计算
     private Boolean enableAutoShards;
+    /**
+     * 数据生命周期策略
+     */
+    private String lifePolicy;
 
     private String templateContent; // JSON内容
 

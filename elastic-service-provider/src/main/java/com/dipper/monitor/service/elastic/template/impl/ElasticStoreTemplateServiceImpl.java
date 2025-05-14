@@ -206,7 +206,8 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         unconvertedTemplate.setNumberOfShards(templateById.getNumberOfShards());
         unconvertedTemplate.setNumberOfReplicas(templateById.getNumberOfReplicas());
         unconvertedTemplate.setEnableAutoShards(templateById.getEnableAutoShards());
-        
+        unconvertedTemplate.setLifePolicy(templateById.getLifePolicy());
+
         // 设置模板内容
         unconvertedTemplate.setTemplateContent(templateById.getTemplateContent());
         

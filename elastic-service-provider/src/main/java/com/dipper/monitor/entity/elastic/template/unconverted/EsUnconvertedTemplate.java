@@ -28,6 +28,10 @@ public class EsUnconvertedTemplate {
     private Integer numberOfReplicas;
 
     private String refreshInterval;
+    /**
+     * 数据生命周期策略
+     */
+    private String lifePolicy;
     // 是否开启自动 shard 计算
     private Boolean enableAutoShards;
     // 分片大小
