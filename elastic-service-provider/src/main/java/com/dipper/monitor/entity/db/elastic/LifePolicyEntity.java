@@ -6,6 +6,8 @@ import java.util.Date;
 @Data
 public class LifePolicyEntity {
     private Integer id;
+    // 所属集群
+    private String clusterCode;
     // 中文名称
     private String zhName;
     // 英文名称

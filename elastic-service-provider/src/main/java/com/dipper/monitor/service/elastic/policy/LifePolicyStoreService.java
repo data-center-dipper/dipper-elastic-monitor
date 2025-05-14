@@ -7,6 +7,9 @@ import com.dipper.monitor.utils.Tuple2;
 
 import java.util.List;
 
+/**
+ * 策略存储与定义
+ */
 public interface LifePolicyStoreService {
     /**
      * 添加策略

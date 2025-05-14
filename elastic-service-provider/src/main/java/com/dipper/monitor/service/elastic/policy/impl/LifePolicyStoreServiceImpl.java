@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.policy.impl;
 
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.policy.LifePolicyRequest;
 import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
 import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
@@ -7,6 +8,7 @@ import com.dipper.monitor.entity.db.elastic.LifePolicyEntity;
 import com.dipper.monitor.mapper.LifePolicyStoreMapper;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
 import com.dipper.monitor.utils.Tuple2;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,14 +40,17 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         if (!StringUtils.hasText(request.getPolicyContent())) {
             throw new IllegalArgumentException("策略内容不能为空");
         }
-        
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+
         // 检查英文名称是否已存在
-        if (lifePolicyStoreMapper.checkEnNameExists(request.getEnName(), -1) > 0) {
+        if (lifePolicyStoreMapper.checkEnNameExists(clusterCode,request.getEnName(), -1) > 0) {
             throw new IllegalArgumentException("英文名称已存在");
         }
         
         // 转换为实体对象
         LifePolicyEntity entity = new LifePolicyEntity();
+        entity.setClusterCode(clusterCode);
         entity.setZhName(request.getZhName());
         entity.setEnName(request.getEnName());
         entity.setPolicyValue(request.getPolicyContent());
@@ -73,15 +78,18 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         if (!StringUtils.hasText(request.getPolicyContent())) {
             throw new IllegalArgumentException("策略内容不能为空");
         }
-        
+
         // 检查策略是否存在
         LifePolicyEntity existingEntity = lifePolicyStoreMapper.selectById(request.getId());
         if (existingEntity == null) {
             throw new IllegalArgumentException("策略不存在");
         }
-        
+
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+
         // 检查英文名称是否已存在（排除自身）
-        if (lifePolicyStoreMapper.checkEnNameExists(request.getEnName(), request.getId()) > 0) {
+        if (lifePolicyStoreMapper.checkEnNameExists(clusterCode,request.getEnName(), request.getId()) > 0) {
             throw new IllegalArgumentException("英文名称已存在");
         }
         
@@ -182,6 +190,7 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         
         LifePolicyResponse response = new LifePolicyResponse();
         response.setId(entity.getId());
+        response.setClusterCode(entity.getClusterCode());
         response.setZhName(entity.getZhName());
         response.setEnName(entity.getEnName());
         response.setPolicyContent(entity.getPolicyValue());
