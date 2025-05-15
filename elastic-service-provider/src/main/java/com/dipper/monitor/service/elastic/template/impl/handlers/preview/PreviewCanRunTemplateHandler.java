@@ -1,38 +1,21 @@
 package com.dipper.monitor.service.elastic.template.impl.handlers.preview;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PreviewCanRunTemplateHandler extends AbstractPreviewHandler {
 
+    @Override
+    protected void addOrUpdateMappings(JSONObject templateJson, String dicName) {
+        // 这个处理器不需要实现映射添加逻辑，保留空实现
+    }
+
     /**
      * 替换模板中所有符合 yyyyMMdd 等格式的占位符为当前日期
-     *
-     * 示例输入：
-     * {
-     *   "aliases": {
-     *     "logs-yyyyMMdd": {
-     *       "is_write_index": true
-     *     }
-     *   },
-     *   "index_patterns": "logs-yyyyMMdd-*"
-     * }
-     *
-     * 输出：
-     * {
-     *   "aliases": {
-     *     "logs-20250514": {
-     *       "is_write_index": true
-     *     }
-     *   },
-     *   "index_patterns": "logs-20250514-*"
-     * }
      *
      * @param jsonObject 原始模板 JSON 对象
      * @return 替换后可运行的 JSON 模板
@@ -73,12 +56,6 @@ public class PreviewCanRunTemplateHandler extends AbstractPreviewHandler {
 
     /**
      * 替换字符串中的日期占位符
-     *
-     * 支持格式：
-     * yyyy
-     * yyyyMM
-     * yyyyMMdd
-     * yyyyMMddHH
      */
     private String replaceDatePlaceholder(String input, String dateStr) {
         if (input == null || dateStr == null) return input;

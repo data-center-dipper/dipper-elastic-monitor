@@ -59,16 +59,16 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
             NStringEntity nStringEntity = new NStringEntity(templateJson.toJSONString());
             Response response = null;
             if("POST".equalsIgnoreCase(method)){
-                response = elasticClientService.executePostApiReturnResponse("/_template/" + name, nStringEntity);
+                response = elasticClientService.executePostApiReturnResponse("/_index_template/" + name, nStringEntity);
             }else {
-                response = elasticClientService.executePutApiReturnResponse("/_template/" + name, nStringEntity);
+                response = elasticClientService.executePutApiReturnResponse("/_index_template/" + name, nStringEntity);
             }
             if (response.getStatusLine().getStatusCode() == 200) {
                 return true;
             }
             log.error("索引模板创建失败：{}", response);
             return false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("索引模板创建失败：{}",templateJson, e);
             return false;
         }

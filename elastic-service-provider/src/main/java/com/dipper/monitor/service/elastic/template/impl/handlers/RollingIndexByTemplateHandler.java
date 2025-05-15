@@ -1,7 +1,6 @@
 package com.dipper.monitor.service.elastic.template.impl.handlers;
 
 import com.dipper.monitor.beans.SpringUtil;
-import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.enums.elastic.RollingIndexEnum;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
@@ -30,7 +29,7 @@ public class RollingIndexByTemplateHandler {
     }
 
     public void rollIndexByTemplate(EsUnconvertedTemplate esUnconvertedTemplate) throws Exception {
-        ClusterHealth healthData = elasticHealthService.getHealthData();
+        com.dipper.monitor.entity.elastic.cluster.ClusterHealth healthData = elasticHealthService.getHealthData();
         if (healthData == null) {
             throw new IllegalArgumentException("集群健康状态异常");
         }

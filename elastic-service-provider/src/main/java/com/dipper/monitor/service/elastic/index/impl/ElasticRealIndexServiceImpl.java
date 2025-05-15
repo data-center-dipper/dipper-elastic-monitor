@@ -114,10 +114,56 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         return indexEntities;
     }
 
+    /**
+     * 根据前缀获取索引列表
+     * @param indexPrefix 索引前缀 ailpha-baas-flow-
+     * @param indexXing 索引模糊匹配 ailpha-baas-flow-*
+     * @return
+     * @throws IOException
+     */
     @Override
     public List<IndexEntity> listIndexNameByPrefix(String indexPrefix, String indexXing) throws IOException {
-        return List.of();
+        String api = "/_cat/indices/" + indexXing + "?format=json";
+        log.info("获取某种类型的索引：{}", api);
+        String res1 = this.elasticClientService.executeGetApi(api);
+        JSONArray jsonArray = JSON.parseArray(res1);
+
+        List<JSONObject> filteredList = jsonArray.toJavaList(JSONObject.class).stream()
+                .filter(jsonObject -> ((JSONObject) jsonObject).getString("index").startsWith(indexPrefix))
+                .collect(Collectors.toList());
+
+        log.info("前缀为 {} 的索引个数：{}", indexPrefix, filteredList.size());
+
+        List<List<JSONObject>> indexList = ListUtils.splitListBySize(filteredList, 200);
+        if (CollectionUtils.isEmpty(indexList)) {
+            return Collections.emptyList();
+        }
+
+        List<Future<Map<String, IndexEntity>>> futureList = new ArrayList<>();
+        for (List<JSONObject> childList : indexList) {
+            log.info("多线程提交获取索引的设置：{}", childList.size());
+            ListenableFuture<Map<String, IndexEntity>> listenableFuture = this.executorService.submit(
+                    new IndexSettingCallable(childList, true, this.elasticClientService));
+            futureList.add(listenableFuture);
+        }
+
+        List<IndexEntity> allResult = new ArrayList<>();
+        for (Future<Map<String, IndexEntity>> future : futureList) {
+            try {
+                Map<String, IndexEntity> result = future.get(40L, TimeUnit.SECONDS);
+                if (result != null) {
+                    allResult.addAll(result.values());
+                }
+            } catch (Exception e) {
+                log.error("从多线程中获取索引执行结果异常：{} feature:{} isCancelled:{}",
+                        e.getMessage(), future.isDone(), future.isCancelled(), e);
+            }
+        }
+
+        log.info("获取多线程执行的总结果：{}", allResult.size());
+        return allResult;
     }
+
 
     public List<IndexEntity> searchIndex(IndexFilterReq indexFilterReq) throws IOException {
         IndexSearchHandler indexListHandler = new IndexSearchHandler(elasticClientService);
@@ -450,6 +496,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         JSONObject jsonObjectSetting = setting.getJSONObject(index);
         return parseIndexSetting(index, jsonObjectSetting);
     }
+
 
 
 

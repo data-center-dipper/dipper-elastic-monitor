@@ -2,7 +2,6 @@ package com.dipper.monitor.entity.elastic.cluster;
 
 import lombok.Data;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 @Data
 public class ClusterHealth {

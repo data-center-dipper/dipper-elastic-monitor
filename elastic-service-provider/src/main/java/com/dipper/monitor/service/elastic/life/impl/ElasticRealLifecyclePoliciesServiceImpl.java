@@ -132,8 +132,8 @@ public class ElasticRealLifecyclePoliciesServiceImpl implements ElasticRealLifec
         try {
             // 构建生命周期结束的请求体
             String body = "{\n" +
-                    "  \"lifecycle\": {\n" +
-                    "    \"enabled\": false\n" +
+                    "  \"settings\": {\n" +
+                    "    \"index.lifecycle.indexing_complete\": true\n" +
                     "  }\n" +
                     "}";
 

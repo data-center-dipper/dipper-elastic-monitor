@@ -96,18 +96,18 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
      */
     /**
      * 根据索引模式获取别名列表
-     * @param indexPatterns 索引模式
+     * @param indexPatternsPrefixNoDateAddXing 索引模式
      * @return 别名列表
      */
     @Override
-    public List<String> listAliansByIndexPatterns(String indexPatterns) {
-        if (StringUtils.isBlank(indexPatterns)) {
+    public List<String> listAliansByIndexPatterns(String indexPatternsPrefixNoDateAddXing) {
+        if (StringUtils.isBlank(indexPatternsPrefixNoDateAddXing)) {
             return Collections.emptyList();
         }
         
         try {
             // 使用索引模式查询别名信息
-            String aliasData = elasticClientService.executeGetApi(indexPatterns + "/_alias");
+            String aliasData = elasticClientService.executeGetApi(indexPatternsPrefixNoDateAddXing + "/_alias");
             if (StringUtils.isBlank(aliasData)) {
                 return Collections.emptyList();
             }
@@ -129,7 +129,7 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
             
             return new ArrayList<>(aliasSet);
         } catch (Exception e) {
-            log.error("获取索引模式别名列表异常：indexPatterns:{} ex:{}", indexPatterns, e.getMessage(), e);
+            log.error("获取索引模式别名列表异常：indexPatterns:{} ex:{}", indexPatternsPrefixNoDateAddXing, e.getMessage(), e);
             return Collections.emptyList();
         }
     }
@@ -248,8 +248,9 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
                 "  \"actions\": [\n" +
                 "    {\n" +
                 "      \"add\": {\n" +
-                "        \"index\": \"\" + indexName + \"\",\n" +
-                "        \"alias\": \"\" + aliasName + \"\"\n" +
+                "        \"index\": \""+indexName+"\",\n" +
+                "        \"alias\": \""+aliasName+"\",\n" +
+                "        \"is_write_index\": true\n" +
                 "      }\n" +
                 "    }\n" +
                 "  ]\n" +
