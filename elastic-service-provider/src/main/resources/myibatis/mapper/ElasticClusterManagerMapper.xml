@@ -68,4 +68,10 @@
         DELETE FROM t_elastic_cluster
     </delete>
 
+    <update id="updateClusterVersion">
+        UPDATE t_elastic_cluster
+        SET cluster_version= #{clusterVersion}
+        WHERE cluster_code = #{clusterCode}
+    </update>
+
 </mapper>

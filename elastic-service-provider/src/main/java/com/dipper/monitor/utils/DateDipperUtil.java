@@ -3,9 +3,7 @@ package com.dipper.monitor.utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.sql.CallableStatement;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -15,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Slf4j
-public class DipperDateUtil {
+public class DateDipperUtil {
     private static ThreadLocal<DateFormat> df0 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
     private static ThreadLocal<DateFormat> dfMill = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 

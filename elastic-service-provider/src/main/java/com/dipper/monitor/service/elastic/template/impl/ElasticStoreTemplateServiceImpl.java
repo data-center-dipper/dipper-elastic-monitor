@@ -2,7 +2,6 @@ package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.common.lib.utils.ApplicationUtils;
-import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
@@ -13,9 +12,7 @@ import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTempl
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
-import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
-import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
-import com.dipper.monitor.utils.DipperDateUtil;
+import com.dipper.monitor.utils.DateDipperUtil;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.dipper.monitor.utils.mock.MockAllData;
 import org.apache.commons.collections4.CollectionUtils;
@@ -163,7 +160,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         for (EsTemplateEntity esTemplateEntity : templateByPage) {
             ElasticTemplateListView elasticTemplateView = new ElasticTemplateListView();
             BeanUtils.copyProperties(esTemplateEntity,elasticTemplateView);
-            elasticTemplateView.setUpdateTime(DipperDateUtil.formatDate(esTemplateEntity.getUpdateTime()));
+            elasticTemplateView.setUpdateTime(DateDipperUtil.formatDate(esTemplateEntity.getUpdateTime()));
             elasticTemplateView.setId(esTemplateEntity.getId());
             elasticTemplateViews.add(elasticTemplateView);
         }

@@ -34,4 +34,9 @@ public interface ElasticClusterManagerService {
     List<ElasticClusterView> getAllCluster();
 
 
+    /**
+     * 获取集群版本信息
+     * @return
+     */
+    void updateClusterVersion();
 }

@@ -4,14 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import com.dipper.common.lib.utils.TelnetUtils;
 import com.dipper.common.lib.utils.Tuple2;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
-import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
-import com.dipper.monitor.entity.elastic.cluster.CurrentClusterReq;
-import com.dipper.monitor.entity.elastic.cluster.ElasticClusterRegisterReq;
-import com.dipper.monitor.entity.elastic.cluster.ElasticClusterView;
+import com.dipper.monitor.entity.elastic.cluster.*;
 import com.dipper.monitor.listeners.publish.RefreshNodesEventPublisher;
 import com.dipper.monitor.mapper.ElasticClusterManagerMapper;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
+import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +32,8 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
     private ElasticRealNodeService elasticRealNodeService;
     @Autowired
     private RefreshNodesEventPublisher refreshNodesEventPublisher;
+    @Autowired
+    private ElasticHealthService elasticHealthService;
 
     private final static Cache<String, CurrentClusterEntity> currentMap = CacheBuilder.newBuilder()
             .maximumSize(7)
@@ -189,19 +189,6 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
     }
 
 
-    private String getZkSuffix(String zookeeperAddress) {
-        // 获取zk地址后缀 地址如： localhost:2181,localhost:2182,localhost:2183/elastic 获取 /elastic
-        if (StringUtils.isBlank(zookeeperAddress)) {
-            return "";
-        }
-        String[] split = zookeeperAddress.split("/");
-        if (split.length == 1) {
-            return "";
-        }
-        return split[split.length - 1];
-    }
-
-
 
     @Override
     public ElasticClusterEntity getCurrentClusterDetail(String clusterCode) {
@@ -242,6 +229,19 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
 
 
         return allClusterViewList;
+    }
+
+    @Override
+    public void updateClusterVersion() {
+        ClusterHealth healthData = elasticHealthService.getHealthData();
+        if(healthData == null){
+            log.error("获取集群健康信息失败");
+            return;
+        }
+        String clusterVersion = healthData.getCluster();
+        CurrentClusterEntity currentCluster = getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        elasticClusterManagerMapper.updateClusterVersion(clusterCode,clusterVersion);
     }
 
 

@@ -1,4 +1,4 @@
-package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
+package com.dipper.monitor.service.elastic.template.impl.handlers.rolling.immediately;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.beans.SpringUtil;
@@ -19,54 +19,56 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 按照月滚动的模版
- * 索引模版 格式 lcc-logs-yyyyMM-*
- * 比如 lcc-logs-202302-*
- * 那么这个对应的索引是 lcc-logs-202302-0000001
- * 那么滚动一次变成 lcc-logs-202302-0000002
+ * 按照天滚动的模版
+ * 索引模版 格式 lcc-logs-yyyyMMdd-*
+ * 比如 lcc-logs-20230201-*
+ * 那么这个对应的索引是 lcc-logs-20230201-0000001
+ * 那么滚动一次变成 lcc-logs-20230201-0000002
  */
-public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTemplateHandler {
+public class DaysOfRollingIndexHandler extends AbstractRollingIndexByTemplateHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(Every30DaysRollingIndexHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(DaysOfRollingIndexHandler.class);
 
-    private EsUnconvertedTemplate esUnconvertedTemplate;
-    private ElasticClientService elasticClientService;
-    private TemplatePreviewService templatePreviewService;
-    private ElasticRealTemplateService elasticRealTemplateService;
-    private ElasticAliansService elasticAliansService;
-    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
-    private ElasticRealIndexService elasticRealIndexService;
 
-    // 索引模版 格式 lcc-logs-yyyyMM-*
+
+    // 索引模版 格式 lcc-logs-yyyyMMdd-*
     private String indexPatterns = null;
-    // 索引前缀 带时间 lcc-logs-yyyyMM
+    // 索引前缀 带时间 lcc-logs-yyyyMMdd
     private String indexPatternsPrefixHaveDate = null;
     // 索引前缀 不带时间 lcc-logs-
     private String indexPatternsPrefixNoDate = null;
     // 索引前缀 不带时间,增加*号 lcc-logs-* 或者 lcc-logs*
     private String indexPatternsPrefixNoDateAddXing = null;
 
-    public Every30DaysRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
-        this.esUnconvertedTemplate = esUnconvertedTemplate;
-        elasticClientService = SpringUtil.getBean(ElasticClientService.class);
-        templatePreviewService = SpringUtil.getBean(TemplatePreviewService.class);
-        elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
-        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
-        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
-        elasticRealIndexService = SpringUtil.getBean(ElasticRealIndexService.class);
+    public DaysOfRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
+        super(esUnconvertedTemplate);
 
         indexPatterns = esUnconvertedTemplate.getIndexPatterns();
         indexPatternsPrefixHaveDate = getIndexPrefixHaveDate();
         indexPatternsPrefixNoDate = getIndexPrefixNoDateAndTail();
-        indexPatternsPrefixNoDateAddXing = indexPatternsPrefixNoDate + "*";
+        indexPatternsPrefixNoDateAddXing = indexPatternsPrefixNoDate+ "*";
     }
 
     /**
-     * 获取索引前缀，去除 yyyyMM 时间格式部分，并清理结尾的特殊符号。
+     * 获取索引前缀不带时间
+     * indexPatterns 格式有以下几种样式
+     * lcc-logs-yyyyMMdd-*
+     * lcc-yyyyMMdd-*
+     * lcc-yyyyMMdd
+     *
+     * 清解析成
+     *
+     * lcc-logs-
+     * lcc--
+     * lcc-
+     *
+     */
+    /**
+     * 获取索引前缀，去除 yyyyMMdd 时间格式部分，并清理结尾的特殊符号。
      * 支持格式：
-     * - lcc-logs-yyyyMM-*
-     * - lcc-yyyyMM-*
-     * - lcc-yyyyMM
+     * - lcc-logs-yyyyMMdd-*
+     * - lcc-yyyyMMdd-*
+     * - lcc-yyyyMMdd
      *
      * @return 清理后的前缀，如 "lcc-logs" 或 "lcc"
      */
@@ -76,9 +78,9 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
             return "";
         }
 
-        int dateIndex = indexPatterns.indexOf("yyyyMM");
+        int dateIndex = indexPatterns.indexOf("yyyyMMdd");
         if (dateIndex == -1) {
-            log.warn("indexPatterns 中未找到 'yyyyMM'：{}", indexPatterns);
+            log.warn("indexPatterns 中未找到 'yyyyMMdd'：{}", indexPatterns);
             return "";
         }
 
@@ -89,19 +91,18 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
     }
 
     /**
-     * 获取索引前缀，包含时间格式部分，但去除尾部的特殊符号
      * indexPatterns 格式有以下几种样式
-     * lcc-logs-yyyyMM-*
-     * lcc--yyyyMM-*
-     * lcc--yyyyMM
+     * lcc-logs-yyyyMMdd-*
+     * lcc--yyyyMMdd-*
+     * lcc--yyyyMMdd
      *
      * 清解析成
      *
-     * lcc-logs-yyyyMM
-     * lcc--yyyyMM
-     * lcc--yyyyMM
+     * lcc-logs-yyyyMMdd
+     * lcc--yyyyMMdd
+     * lcc--yyyyMMdd
      *
-     * @return 包含时间格式的前缀
+     * @return
      */
     private String getIndexPrefixHaveDate() {
         if (indexPatterns == null || indexPatterns.isEmpty()) {
@@ -121,9 +122,9 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
         // 去除结尾可能的连续 -
         prefix = prefix.replaceAll("-+$", "");
 
-        // 确保包含 yyyyMM
-        if (!prefix.contains("yyyyMM")) {
-            log.warn("indexPatterns 不包含 yyyyMM: {}", indexPatterns);
+        // 确保包含 yyyyMMdd
+        if (!prefix.contains("yyyyMMdd")) {
+            log.warn("indexPatterns 不包含 yyyyMMdd: {}", indexPatterns);
             return "";
         }
 
@@ -142,6 +143,22 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
 
         // 滚动索引
         rollIndex(indexPatterns);
+
+        // 创建未来索引
+        createFeatureIndex();
+    }
+
+    /**
+     * 创建未来索引
+     * 当前时间比如是 20250515 那么未来索引就是 20250516,20250517,20250518
+     * 我们创建未来15天的索引
+     * lcc-logs-20250516-0000001
+     * lcc-logs-20250517-0000001
+     * lcc-logs-20250518-0000001
+     * ....
+     * 等等
+     */
+    private void createFeatureIndex() {
     }
 
     private void rollIndex(String indexPatterns) {
@@ -156,16 +173,16 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
                 return;
             }
             
-            // 3. 把所有进行排序，获取第一个，得到当前最新索引 比如索引 aaa-xxx-yyyyMM-0000001
+            // 3. 把所有进行排序，获取第一个，得到当前最新索引 比如索引 aaa-xxx-yyyyMMDD-0000001
             indices.sort((a, b) -> b.compareTo(a)); // 降序排序，最新的索引在前面
             String currentLatestIndex = indices.get(0);
             log.info("当前最新索引: {}", currentLatestIndex);
             
-            // 4. 生成新的索引名称 （当前最新索引+1） 比如索引 aaa-xxx-yyyyMM-0000002
+            // 4. 生成新的索引名称 （当前最新索引+1） 比如索引 aaa-xxx-yyyyMMDD-0000002
             String newIndexName = generateNextIndexName(currentLatestIndex);
             log.info("新生成的索引名称: {}", newIndexName);
             
-            // 5. 生成最新的别名信息 比如索引 aaa-xxx-yyyyMM 指向 aaa-xxx-yyyyMM-0000002
+            // 5. 生成最新的别名信息 比如索引 aaa-xxx-yyyyMMDD 指向 aaa-xxx-yyyyMMDD-0000002
             String aliasName = generateAliasName(currentLatestIndex);
             log.info("生成的别名: {}", aliasName);
             
@@ -184,7 +201,7 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
             elasticAliansService.addAlias(newIndexName, aliasName);
             
             // 9.添加索引可写
-            elasticAliansService.changeIndexWrite(newIndexName, aliasName, true);
+            elasticAliansService.changeIndexWrite(newIndexName,aliasName, true);
             
             log.info("索引滚动完成: {} -> {}", currentLatestIndex, newIndexName);
         } catch (Exception e) {
@@ -193,8 +210,8 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
     }
 
     private String generateNextIndexName(String currentIndexName) {
-        // 假设索引格式为 aaa-xxx-yyyyMM-0000001
-        Pattern pattern = Pattern.compile("(.*-\\d{6})-(\\d+)$");
+        // 假设索引格式为 aaa-xxx-yyyyMMDD-0000001
+        Pattern pattern = Pattern.compile("(.*-\\d{8})-(\\d+)$");
         Matcher matcher = pattern.matcher(currentIndexName);
         
         if (matcher.find()) {
@@ -202,34 +219,34 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
             int sequence = Integer.parseInt(matcher.group(2));
             return String.format("%s-%07d", prefix, sequence + 1);
         } else {
-            // 如果不符合预期格式，添加当前月份和序列号
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-            String currentMonth = sdf.format(new Date());
-            return String.format("%s-%s-%07d", currentIndexName, currentMonth, 1);
+            // 如果不符合预期格式，添加当前日期和序列号
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            return String.format("%s-%s-%07d", currentIndexName, today, 1);
         }
     }
 
     private String generateAliasName(String indexName) {
         // 从索引名称中提取别名，去掉最后的序列号部分
-        Pattern pattern = Pattern.compile("(.*-\\d{6})-\\d+$");
+        Pattern pattern = Pattern.compile("(.*-\\d{8})-\\d+$");
         Matcher matcher = pattern.matcher(indexName);
         
         if (matcher.find()) {
             return matcher.group(1);
         } else {
             // 如果不符合预期格式，使用索引名称作为别名基础
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-            String currentMonth = sdf.format(new Date());
-            return indexName + "-" + currentMonth;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            return indexName + "-" + today;
         }
     }
 
     private void createNowTemplate() {
         try {
             // 1. 获取当前时间
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-            String currentMonth = sdf.format(new Date());
-            log.info("当前月份: {}", currentMonth);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            log.info("当前日期: {}", today);
             
             // 2. 生成当前时间模版
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
@@ -256,18 +273,18 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
             }
             
             // 3. 获取当前时间
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-            String currentMonth = sdf.format(new Date());
-            int currentDate = Integer.parseInt(currentMonth);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            int currentDate = Integer.parseInt(today);
             
-            // 4. 循环索引，获取索引的时间 比如索引 aaa-xxx-yyyyMM-0000001 获取到 202003
+            // 4. 循环索引，获取索引的时间 比如索引 aaa-xxx-yyyyMMDD-0000001 获取到 20200301
             for (String indexName : indices) {
                 int indexDate = extractDateFromIndex(indexName);
                 
                 // 5. 如果索引时间大于当前时间，删除索引（未来索引）
                 if (indexDate > currentDate) {
                     log.info("删除未来索引: {}, 索引日期: {}, 当前日期: {}", indexName, indexDate, currentDate);
-                    elasticClientService.executeDeleteApi(indexName, null);
+                    elasticClientService.executeDeleteApi(indexName,null);
                 }
             }
         } catch (Exception e) {
@@ -276,8 +293,8 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
     }
     
     private int extractDateFromIndex(String indexName) {
-        // 从索引名称中提取日期部分，假设格式为 aaa-xxx-yyyyMM-0000001
-        Pattern pattern = Pattern.compile(".*-(\\d{6})-\\d+$");
+        // 从索引名称中提取日期部分，假设格式为 aaa-xxx-yyyyMMDD-0000001
+        Pattern pattern = Pattern.compile(".*-(\\d{8})-\\d+$");
         Matcher matcher = pattern.matcher(indexName);
         
         if (matcher.find()) {
@@ -295,28 +312,28 @@ public class Every30DaysRollingIndexHandler extends AbstractRollingIndexByTempla
             // 1. 获取索引模式
             String indexPatterns = esUnconvertedTemplate.getIndexPatterns();
 
-            // 2. 获取当前月份
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-            String currentMonth = sdf.format(new Date());
-            log.info("当前月份: {}", currentMonth);
+            // 2. 获取当前日期
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            log.info("当前日期: {}", today);
 
-            // 3. 提取前缀，去除 yyyyMM 和 *
+            // 3. 提取前缀，去除 yyyyMMdd 和 *
             if(indexPatterns.endsWith("-*")){
                 indexPatterns = indexPatterns.substring(0, indexPatterns.length() - 2);
             }else if(indexPatterns.endsWith("*") ) {
                 indexPatterns = indexPatterns.substring(0, indexPatterns.length() - 1);
             }
-            // ailpha-logs-yyyyMM 获取时间之前的前缀信息
-            String prefix = indexPatterns.replace("-yyyyMM", "");
-            prefix = prefix.replace("yyyyMM", "");
+            // ailpha-logs-yyyyMMdd 获取时间之前的前缀信息
+            String prefix = indexPatterns.replace("-yyyyMMdd", "");
+            prefix = prefix.replace("yyyyMMdd", "");
             log.info("前缀: {}", prefix);
 
-            // 4. 生成第一个索引名称，格式为：ailpha-logs-202302-0000001
-            String firstIndexName = String.format("%s-%s-%07d", prefix, currentMonth, 1);
+            // 4. 生成第一个索引名称，格式为：ailpha-logs-20250515-0000001
+            String firstIndexName = String.format("%s-%s-%07d", prefix, today, 1);
             log.info("生成第一个索引名称: {}", firstIndexName);
 
-            // 5. 生成别名，格式为：ailpha-logs-202302
-            String aliasName = String.format("%s-%s", prefix, currentMonth);
+            // 5. 生成别名，格式为：ailpha-logs-20250515
+            String aliasName = String.format("%s-%s", prefix, today);
             log.info("生成别名: {}", aliasName);
 
             // 6. 创建索引

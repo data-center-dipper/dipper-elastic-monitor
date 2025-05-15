@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.disk.DiskAllocationInfo;
 import com.dipper.monitor.entity.elastic.disk.DiskWatermarkInfo;
 import com.dipper.monitor.entity.elastic.nodes.service.EsNodeFailed;
@@ -29,10 +30,8 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
         if (StringUtils.isBlank(result)) {
             return "未发现未分配的";
         }
-        String clusterHealth = elasticClientService.executeGetApi(ElasticRestApi.CLUSTER_HEALTH.getApiPath());
-        JSONArray clusterHealthArray = JSON.parseArray(clusterHealth);
-        JSONObject healthObj = (JSONObject)clusterHealthArray.get(0);
-        String clusterStatus = healthObj.getString("status");
+        ClusterHealth healthData = elasticHealthService.getHealthData();
+        String clusterStatus = healthData.getStatus();
         if ("green".equalsIgnoreCase(clusterStatus)) {
             builder.append("集群信息为绿色，没有异常的分片\r\n");
         } else if ("yellow".equalsIgnoreCase(clusterStatus)) {

@@ -1,15 +1,7 @@
-package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
+package com.dipper.monitor.service.elastic.template.impl.handlers.rolling.immediately;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
-import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
-import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
-import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
-import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
-import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +22,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
 
     private static final Logger log = LoggerFactory.getLogger(NotRollingIndexHandler.class);
 
-    private EsUnconvertedTemplate esUnconvertedTemplate;
-    private ElasticClientService elasticClientService;
-    private TemplatePreviewService templatePreviewService;
-    private ElasticRealTemplateService elasticRealTemplateService;
-    private ElasticAliansService elasticAliansService;
-    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
-    private ElasticRealIndexService elasticRealIndexService;
-    
+
     // 索引模式，例如 log-xxx-*
     private String indexPatterns = null;
     // 索引前缀，例如 log-xxx
@@ -46,13 +31,8 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
     private String indexPrefixWithStar = null;
 
     public NotRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
-        this.esUnconvertedTemplate = esUnconvertedTemplate;
-        elasticClientService = SpringUtil.getBean(ElasticClientService.class);
-        templatePreviewService = SpringUtil.getBean(TemplatePreviewService.class);
-        elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
-        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
-        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
-        elasticRealIndexService = SpringUtil.getBean(ElasticRealIndexService.class);
+        super(esUnconvertedTemplate);
+
 
         indexPatterns = esUnconvertedTemplate.getIndexPatterns();
         indexPrefix = getIndexPrefix();
@@ -149,7 +129,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
 
     private String generateNextIndexName(String currentIndexName) {
         // 假设索引格式为 log-xxx-0000001
-        Pattern pattern = Pattern.compile("(.*?)-(\d+)$");
+        Pattern pattern = Pattern.compile("(.*?)-(\\d+)$");
         Matcher matcher = pattern.matcher(currentIndexName);
         
         if (matcher.find()) {
@@ -164,7 +144,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
 
     private String generateAliasName(String indexName) {
         // 从索引名称中提取别名，去掉最后的序列号部分
-        Pattern pattern = Pattern.compile("(.*?)-(\d+)$");
+        Pattern pattern = Pattern.compile("(.*?)-(\\d+)$");
         Matcher matcher = pattern.matcher(indexName);
         
         if (matcher.find()) {

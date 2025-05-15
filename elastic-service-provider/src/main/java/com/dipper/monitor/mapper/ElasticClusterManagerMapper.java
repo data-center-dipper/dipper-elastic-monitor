@@ -31,4 +31,6 @@ public interface ElasticClusterManagerMapper {
 
     void clearMonitoringPolicy(@Param("clusterCode") String clusterCode);
 
+    void updateClusterVersion(@Param("clusterCode") String clusterCode,
+                              @Param("clusterVersion")  String clusterVersion);
 }

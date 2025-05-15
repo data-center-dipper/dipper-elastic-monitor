@@ -20,6 +20,8 @@ public class CurrentClusterEntity {
     private String clusterDesc;
     // 集群的地址
     private String address;
+    // 集群的版本
+    private String clusterVersion;
     // 是否是当前集群
     private Boolean currentCluster;
     // 是否是 默认集群

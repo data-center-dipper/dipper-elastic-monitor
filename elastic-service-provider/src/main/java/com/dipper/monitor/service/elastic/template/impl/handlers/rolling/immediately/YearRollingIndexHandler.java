@@ -1,4 +1,4 @@
-package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
+package com.dipper.monitor.service.elastic.template.impl.handlers.rolling.immediately;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.beans.SpringUtil;
@@ -25,17 +25,10 @@ import java.util.regex.Pattern;
  * 那么这个对应的索引是 lcc-logs-2023-0000001
  * 那么滚动一次变成 lcc-logs-2023-0000002
  */
-public class Every360DaysRollingIndexHandler extends AbstractRollingIndexByTemplateHandler {
+public class YearRollingIndexHandler extends AbstractRollingIndexByTemplateHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(Every360DaysRollingIndexHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(YearRollingIndexHandler.class);
 
-    private EsUnconvertedTemplate esUnconvertedTemplate;
-    private ElasticClientService elasticClientService;
-    private TemplatePreviewService templatePreviewService;
-    private ElasticRealTemplateService elasticRealTemplateService;
-    private ElasticAliansService elasticAliansService;
-    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
-    private ElasticRealIndexService elasticRealIndexService;
 
     // 索引模版 格式 lcc-logs-yyyy-*
     private String indexPatterns = null;
@@ -46,14 +39,8 @@ public class Every360DaysRollingIndexHandler extends AbstractRollingIndexByTempl
     // 索引前缀 不带时间,增加*号 lcc-logs-* 或者 lcc-logs*
     private String indexPatternsPrefixNoDateAddXing = null;
 
-    public Every360DaysRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
-        this.esUnconvertedTemplate = esUnconvertedTemplate;
-        elasticClientService = SpringUtil.getBean(ElasticClientService.class);
-        templatePreviewService = SpringUtil.getBean(TemplatePreviewService.class);
-        elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
-        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
-        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
-        elasticRealIndexService = SpringUtil.getBean(ElasticRealIndexService.class);
+    public YearRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
+        super(esUnconvertedTemplate);
 
         indexPatterns = esUnconvertedTemplate.getIndexPatterns();
         indexPatternsPrefixHaveDate = getIndexPrefixHaveDate();
@@ -142,6 +129,19 @@ public class Every360DaysRollingIndexHandler extends AbstractRollingIndexByTempl
 
         // 滚动索引
         rollIndex(indexPatterns);
+        // 创建未来索引
+        createFeatureIndex();
+    }
+
+    /**
+     * 创建未来索引
+     * 当前时间比如是 2025 那么未来索引就是 2026
+     * 我们创建未来1年的索引
+     * lcc-logs-2026-0000001
+     * ....
+     * 等等
+     */
+    private void createFeatureIndex() {
     }
 
     private void rollIndex(String indexPatterns) {

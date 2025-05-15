@@ -8,6 +8,7 @@ import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.*;
+import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.immediately.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -66,11 +67,10 @@ public class RollingIndexByTemplateHandler {
         RollingIndexEnum rollingIndexEnum = RollingIndexEnum.fromDays(rollingPeriod);
         switch (rollingIndexEnum) {
             case NONE:
-                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate,
-                        elasticStoreTemplateService,templatePreviewService);
+                NotRollingIndexHandler notRollingIndexHandler = new NotRollingIndexHandler(esUnconvertedTemplate);
                 notRollingIndexHandler.handle();
             case DAILY:
-                Every1DaysRollingIndexHandler dailyRollingIndexHandler = new Every1DaysRollingIndexHandler(esUnconvertedTemplate);
+                DaysOfRollingIndexHandler dailyRollingIndexHandler = new DaysOfRollingIndexHandler(esUnconvertedTemplate);
                 dailyRollingIndexHandler.handle();
                 break;
             case EVERY_7_DAYS:
@@ -86,8 +86,8 @@ public class RollingIndexByTemplateHandler {
                 every15DaysRollingIndexHandler.handle();
                 break;
             case EVERY_30_DAYS:
-                Every30DaysRollingIndexHandler every30DaysRollingIndexHandler = new Every30DaysRollingIndexHandler(esUnconvertedTemplate);
-                every30DaysRollingIndexHandler.handle();
+                MonthRollingIndexHandler monthRollingIndexHandler = new MonthRollingIndexHandler(esUnconvertedTemplate);
+                monthRollingIndexHandler.handle();
                 break;
             case EVERY_60_DAYS:
                 Every60DaysRollingIndexHandler every60DaysRollingIndexHandler = new Every60DaysRollingIndexHandler(esUnconvertedTemplate);
@@ -98,12 +98,12 @@ public class RollingIndexByTemplateHandler {
                 every90DaysRollingIndexHandler.handle();
                 break;
             case EVERY_180_DAYS:
-                Every180DaysRollingIndexHandler every180DaysRollingIndexHandler = new Every180DaysRollingIndexHandler(esUnconvertedTemplate);
-                every180DaysRollingIndexHandler.handle();
+                HafYearRollingIndexHandler hafYearRollingIndexHandler = new HafYearRollingIndexHandler(esUnconvertedTemplate);
+                hafYearRollingIndexHandler.handle();
                 break;
             case EVERY_365_DAYS:
-                Every360DaysRollingIndexHandler every360DaysRollingIndexHandler = new Every360DaysRollingIndexHandler(esUnconvertedTemplate);
-                every360DaysRollingIndexHandler.handle();
+                YearRollingIndexHandler yearRollingIndexHandler = new YearRollingIndexHandler(esUnconvertedTemplate);
+                yearRollingIndexHandler.handle();
                 break;
             default:
                 throw new IllegalArgumentException("不支持的滚动索引类型");
