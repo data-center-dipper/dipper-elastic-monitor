@@ -10,6 +10,7 @@ import com.dipper.monitor.service.elastic.life.impl.service.CheckLifeCycleErrorS
 import com.dipper.monitor.service.elastic.life.impl.service.RepairLifeCycleErrorService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -119,5 +120,38 @@ public class ElasticRealLifecyclePoliciesServiceImpl implements ElasticRealLifec
             list.add(life);
         }
         return list;
+    }
+
+    @Override
+    public String lifeCycleEnd(String indexName) throws IOException {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("索引名称为空，无法结束生命周期");
+            return "索引名称为空";
+        }
+        
+        try {
+            // 构建生命周期结束的请求体
+            String body = "{\n" +
+                    "  \"lifecycle\": {\n" +
+                    "    \"enabled\": false\n" +
+                    "  }\n" +
+                    "}";
+
+            NStringEntity entity = new NStringEntity(body);
+            try {
+                // 调用ES API设置索引的生命周期为禁用状态
+                String result = elasticClientService.executePutApi(indexName + "/_settings", entity);
+                entity.close();
+                log.info("索引 {} 生命周期结束设置成功", indexName);
+                return result;
+            } catch (Throwable throwable) {
+                entity.close();
+                log.error("索引 {} 生命周期结束设置失败: {}", indexName, throwable.getMessage(), throwable);
+                throw throwable;
+            }
+        } catch (Exception e) {
+            log.error("设置索引生命周期结束异常：index:{} ex:{}", indexName, e.getMessage(), e);
+            throw e;
+        }
     }
 }

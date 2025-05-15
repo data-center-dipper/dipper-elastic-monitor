@@ -36,4 +36,12 @@ public interface ElasticRealLifecyclePoliciesService {
     String openLifeCycle();
 
     List<EsLifeCycleManagement> getLifeCycleExList(String indexXing) throws IOException;
+
+    /**
+     * 结束索引生命周期
+     * @param indexName 索引名称
+     * @return 操作结果
+     * @throws IOException IO异常
+     */
+    String lifeCycleEnd(String indexName) throws IOException;
 }

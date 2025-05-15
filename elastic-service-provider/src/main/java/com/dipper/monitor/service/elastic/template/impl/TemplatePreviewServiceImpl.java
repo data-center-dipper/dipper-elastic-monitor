@@ -5,7 +5,7 @@ import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTempl
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.preview.PreviewCanRunTemplateHandler;
-import com.dipper.monitor.service.elastic.template.impl.handlers.preview.PreviewTemplateHandler;
+import com.dipper.monitor.service.elastic.template.impl.handlers.preview.Preview8xTemplateHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +17,8 @@ public class TemplatePreviewServiceImpl implements TemplatePreviewService {
 
     @Override
     public JSONObject previewTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
-        PreviewTemplateHandler previewTemplateHandler = new PreviewTemplateHandler();
-        return previewTemplateHandler.previewTemplate(esUnconvertedTemplate);
+        Preview8xTemplateHandler preview8xTemplateHandler = new Preview8xTemplateHandler();
+        return preview8xTemplateHandler.previewTemplate(esUnconvertedTemplate);
     }
 
     /**

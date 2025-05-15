@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PreviewCanRunTemplateHandler {
+public class PreviewCanRunTemplateHandler extends AbstractPreviewHandler {
 
     /**
      * 替换模板中所有符合 yyyyMMdd 等格式的占位符为当前日期

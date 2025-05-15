@@ -69,7 +69,7 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
             log.error("索引模板创建失败：{}", response);
             return false;
         } catch (IOException e) {
-            log.error("索引模板创建失败：{}", e);
+            log.error("索引模板创建失败：{}",templateJson, e);
             return false;
         }
     }

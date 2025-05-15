@@ -13,13 +13,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 
 @Slf4j
-public class PreviewTemplateHandler {
+public class Preview8xTemplateHandler extends AbstractPreviewHandler {
 
     private DicService dicService;
     private WordService wordService;
     private ElasticDicService elasticDicService;
 
-    public PreviewTemplateHandler() {
+    public Preview8xTemplateHandler() {
         dicService = SpringUtil.getBean(DicService.class);
         wordService = SpringUtil.getBean(WordService.class);
         elasticDicService = SpringUtil.getBean(ElasticDicService.class);
@@ -105,18 +105,17 @@ public class PreviewTemplateHandler {
         JSONObject mappings = templateJson.getJSONObject("mappings");
         JSONObject allreadFields = getAllreadFields(mappings);
         if (mappings == null) {
-            mappings = new JSONObject();
-            mappings.put("_doc", new JSONObject().fluentPut("properties", elasticMapping));
-            templateJson.put("mappings", mappings);
+            JSONObject jsonObject = new JSONObject().fluentPut("properties", elasticMapping);
+            templateJson.put("mappings", jsonObject);
             return;
         }
         // todo: 模版中配置的字段优先级更高
         elasticMapping.putAll(allreadFields);
-        JSONObject docObj = mappings.getJSONObject("_doc");
-        if(docObj == null){
+        JSONObject propertiesObj = mappings.getJSONObject("properties");
+        if(propertiesObj == null){
             mappings.put("properties", elasticMapping);
         }else {
-            docObj.put("properties", elasticMapping);
+            mappings.put("properties", elasticMapping);
         }
 
         templateJson.put("mappings", mappings);

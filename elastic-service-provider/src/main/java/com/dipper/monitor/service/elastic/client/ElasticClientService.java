@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.client;
 
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
@@ -35,4 +36,13 @@ public interface ElasticClientService {
 
      public String executeDeleteApi(String apiUrl, HttpEntity entity) throws IOException;
 
+    
+    /**
+     * 创建索引
+     * @param indexName 索引名称
+     * @param templateJson 模板JSON
+     * @return 操作结果
+     * @throws IOException IO异常
+     */
+    String createIndex(String indexName, JSONObject templateJson) throws IOException;
 }

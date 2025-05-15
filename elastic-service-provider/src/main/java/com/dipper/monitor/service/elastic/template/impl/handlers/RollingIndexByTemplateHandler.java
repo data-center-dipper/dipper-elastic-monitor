@@ -71,7 +71,7 @@ public class RollingIndexByTemplateHandler {
                         elasticStoreTemplateService,templatePreviewService);
                 notRollingIndexHandler.handle();
             case DAILY:
-                DailyRollingIndexHandler dailyRollingIndexHandler = new DailyRollingIndexHandler(esUnconvertedTemplate);
+                Every1DaysRollingIndexHandler dailyRollingIndexHandler = new Every1DaysRollingIndexHandler(esUnconvertedTemplate);
                 dailyRollingIndexHandler.handle();
                 break;
             case EVERY_7_DAYS:

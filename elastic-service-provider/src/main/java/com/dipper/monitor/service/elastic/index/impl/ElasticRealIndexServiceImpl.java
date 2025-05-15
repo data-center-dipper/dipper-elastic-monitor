@@ -114,6 +114,11 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         return indexEntities;
     }
 
+    @Override
+    public List<IndexEntity> listIndexNameByPrefix(String indexPrefix, String indexXing) throws IOException {
+        return List.of();
+    }
+
     public List<IndexEntity> searchIndex(IndexFilterReq indexFilterReq) throws IOException {
         IndexSearchHandler indexListHandler = new IndexSearchHandler(elasticClientService);
         List<IndexEntity> indexEntities = indexListHandler.searchIndex(indexFilterReq);
@@ -336,16 +341,40 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
 
     /**
-     * 获取某种类型索引的前缀
-     * @param indexPrefix  lcc-log-
-     * @param indexXing  lcc-log-*
-     * @return
-     * @throws IOException
+     * 根据索引模式获取索引列表
+     * @param indexPatterns 索引模式，如 lcc-log-YYYYMMDD
+     * @return 索引列表
+     * @throws IOException 异常
      */
-    public List<IndexEntity> listIndexNameByPrefix(String indexPrefix, String indexXing) throws IOException {
-        IndexListByPrefixHandler indexMapHandler = new IndexListByPrefixHandler(elasticClientService);
-        List<IndexEntity> map = indexMapHandler.listIndexNameByPrefix(indexPrefix,indexXing);
-        return map;
+    @Override
+    public List<String> listIndexNameByPrefix(String indexPatterns) throws IOException {
+        // 从索引模式中提取前缀
+        String indexPrefix = null;
+        String indexXing = null;
+        
+        if (indexPatterns.contains("yyyy")) {
+            // 如果包含日期格式，提取日期前的部分作为前缀
+            indexPrefix = indexPatterns.substring(0, indexPatterns.indexOf("yyyy"));
+            indexXing = indexPrefix + "*";
+        } else {
+            // 如果包含通配符，提取通配符前的部分作为前缀
+            int position = indexPatterns.indexOf("*");
+            if (position < 1) {
+                position = indexPatterns.length();
+            }
+            indexPrefix = indexPatterns.substring(0, position);
+            indexXing = indexPatterns;
+        }
+        
+        // 调用已有方法获取索引实体列表
+        List<IndexEntity> indexEntities = listIndexNameByPrefix(indexPrefix, indexXing);
+        
+        // 转换为索引名称列表
+        List<String> indices = indexEntities.stream()
+                .map(IndexEntity::getIndex)
+                .collect(Collectors.toList());
+        
+        return indices;
     }
 
     /**

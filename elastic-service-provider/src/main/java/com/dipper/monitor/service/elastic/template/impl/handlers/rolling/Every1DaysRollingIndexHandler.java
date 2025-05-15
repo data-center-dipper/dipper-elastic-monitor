@@ -1,0 +1,244 @@
+package com.dipper.monitor.service.elastic.template.impl.handlers.rolling;
+
+import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.beans.SpringUtil;
+import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
+import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
+import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
+import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
+import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Every1DaysRollingIndexHandler extends AbstractRollingIndexByTemplateHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(Every1DaysRollingIndexHandler.class);
+
+    private  EsUnconvertedTemplate esUnconvertedTemplate;
+    private  ElasticClientService elasticClientService;
+    private  TemplatePreviewService templatePreviewService;
+    private  ElasticRealTemplateService elasticRealTemplateService;
+    private  ElasticAliansService elasticAliansService;
+    private ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
+    private ElasticRealIndexService elasticRealIndexService;
+
+    public Every1DaysRollingIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
+
+        this.esUnconvertedTemplate = esUnconvertedTemplate;
+        elasticClientService = SpringUtil.getBean(ElasticClientService.class);
+        templatePreviewService = SpringUtil.getBean(TemplatePreviewService.class);
+        elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
+        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
+        elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
+        elasticRealIndexService = SpringUtil.getBean(ElasticRealIndexService.class);
+    }
+
+    public void handle() {
+        // 1. 循环每个 indexPatterns,这里先是一个吧
+        String indexPatterns = esUnconvertedTemplate.getIndexPatterns();
+        log.info("开始处理索引模式: {}", indexPatterns);
+        
+        // 2. 删除未来索引
+        deleteFeatureTemplate(indexPatterns);
+
+        // 创建模版信息
+        createNowTemplate();
+
+        // 滚动索引
+        rollIndex(indexPatterns);
+    }
+
+    private void rollIndex(String indexPatterns) {
+        try {
+            // 1. 根据模版获取符合模版的索引列表
+            List<String> indices = elasticRealIndexService.listIndexNameByPrefix(indexPatterns);
+            
+            // 2. 如果没有索引，跳过
+            if (indices == null || indices.isEmpty()) {
+                log.info("没有找到符合模式 {} 的索引，跳过滚动操作", indexPatterns);
+                createFirstIndex();
+                return;
+            }
+            
+            // 3. 把所有进行排序，获取第一个，得到当前最新索引 比如索引 aaa-xxx-yyyyMMDD-0000001
+            indices.sort((a, b) -> b.compareTo(a)); // 降序排序，最新的索引在前面
+            String currentLatestIndex = indices.get(0);
+            log.info("当前最新索引: {}", currentLatestIndex);
+            
+            // 4. 生成新的索引名称 （当前最新索引+1） 比如索引 aaa-xxx-yyyyMMDD-0000002
+            String newIndexName = generateNextIndexName(currentLatestIndex);
+            log.info("新生成的索引名称: {}", newIndexName);
+            
+            // 5. 生成最新的别名信息 比如索引 aaa-xxx-yyyyMMDD 指向 aaa-xxx-yyyyMMDD-0000002
+            String aliasName = generateAliasName(currentLatestIndex);
+            log.info("生成的别名: {}", aliasName);
+            
+            // 6. 根据别名前缀获取别名
+            List<String> aliases = elasticAliansService.listAliansByIndexPatterns(indexPatterns);
+            
+            // 7. 循环设置别名不可写，并且索引的生命周期结束
+            for (String alias : aliases) {
+                elasticAliansService.setAliasReadOnly(alias);
+                elasticRealLifecyclePoliciesService.lifeCycleEnd(alias);
+            }
+            
+            // 8. 创建新的索引 并且指定别名信息
+            JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
+            elasticClientService.createIndex(newIndexName, templateJson);
+            elasticAliansService.addAlias(newIndexName, aliasName);
+            
+            // 9.添加索引可写
+            elasticAliansService.changeIndexWrite(newIndexName,aliasName, true);
+            
+            log.info("索引滚动完成: {} -> {}", currentLatestIndex, newIndexName);
+        } catch (Exception e) {
+            log.error("滚动索引时发生错误: {}", e.getMessage(), e);
+        }
+    }
+
+    private String generateNextIndexName(String currentIndexName) {
+        // 假设索引格式为 aaa-xxx-yyyyMMDD-0000001
+        Pattern pattern = Pattern.compile("(.*-\\d{8})-(\\d+)$");
+        Matcher matcher = pattern.matcher(currentIndexName);
+        
+        if (matcher.find()) {
+            String prefix = matcher.group(1);
+            int sequence = Integer.parseInt(matcher.group(2));
+            return String.format("%s-%07d", prefix, sequence + 1);
+        } else {
+            // 如果不符合预期格式，添加当前日期和序列号
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            return String.format("%s-%s-%07d", currentIndexName, today, 1);
+        }
+    }
+
+    private String generateAliasName(String indexName) {
+        // 从索引名称中提取别名，去掉最后的序列号部分
+        Pattern pattern = Pattern.compile("(.*-\\d{8})-\\d+$");
+        Matcher matcher = pattern.matcher(indexName);
+        
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            // 如果不符合预期格式，使用索引名称作为别名基础
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            return indexName + "-" + today;
+        }
+    }
+
+    private void createNowTemplate() {
+        try {
+            // 1. 获取当前时间
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            log.info("当前日期: {}", today);
+            
+            // 2. 生成当前时间模版
+            JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
+            
+            // 3. 创建模版信息
+            String templateName = esUnconvertedTemplate.getEnName();
+            elasticRealTemplateService.saveOrUpdateTemplate(templateName, templateJson);
+            
+            log.info("模板 {} 创建/更新成功", templateName);
+        } catch (Exception e) {
+            log.error("创建模板时发生错误: {}", e.getMessage(), e);
+        }
+    }
+
+    private void deleteFeatureTemplate(String indexPatterns) {
+        try {
+            // 1. 根据模版获取符合模版的索引列表
+            List<String> indices = elasticRealIndexService.listIndexNameByPrefix(indexPatterns);
+            
+            // 2. 如果没有索引，跳过
+            if (indices == null || indices.isEmpty()) {
+                log.info("没有找到符合模式 {} 的索引，跳过删除操作", indexPatterns);
+                return;
+            }
+            
+            // 3. 获取当前时间
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            int currentDate = Integer.parseInt(today);
+            
+            // 4. 循环索引，获取索引的时间 比如索引 aaa-xxx-yyyyMMDD-0000001 获取到 20200301
+            for (String indexName : indices) {
+                int indexDate = extractDateFromIndex(indexName);
+                
+                // 5. 如果索引时间大于当前时间，删除索引（未来索引）
+                if (indexDate > currentDate) {
+                    log.info("删除未来索引: {}, 索引日期: {}, 当前日期: {}", indexName, indexDate, currentDate);
+                    elasticClientService.executeDeleteApi(indexName,null);
+                }
+            }
+        } catch (Exception e) {
+            log.error("删除未来索引时发生错误: {}", e.getMessage(), e);
+        }
+    }
+    
+    private int extractDateFromIndex(String indexName) {
+        // 从索引名称中提取日期部分，假设格式为 aaa-xxx-yyyyMMDD-0000001
+        Pattern pattern = Pattern.compile(".*-(\\d{8})-\\d+$");
+        Matcher matcher = pattern.matcher(indexName);
+        
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return 0; // 如果没有找到日期格式，返回0
+    }
+    
+    /**
+     * 创建第一个索引
+     * 当没有查询到符合模式的索引时，创建初始索引
+     */
+    private void createFirstIndex() {
+        try {
+            // 1. 获取索引模式
+            String indexPatterns = esUnconvertedTemplate.getIndexPatterns();
+            
+            // 2. 获取当前日期
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String today = sdf.format(new Date());
+            log.info("当前日期: {}", today);
+            
+            // 3. 生成第一个索引名称，格式为：索引模式前缀-当前日期-0000001
+            // 从索引模式中提取前缀，假设格式为 prefix-*
+            String prefix = indexPatterns.replace("*", "");
+            if (prefix.endsWith("-")) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+            }
+            
+            String firstIndexName = String.format("%s-%s-%07d", prefix, today, 1);
+            log.info("生成第一个索引名称: {}", firstIndexName);
+            
+            // 4. 生成别名，格式为：索引模式前缀-当前日期
+            String aliasName = String.format("%s-%s", prefix, today);
+            log.info("生成别名: {}", aliasName);
+            
+            // 5. 创建索引
+            JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
+            elasticClientService.createIndex(firstIndexName, templateJson);
+            
+            // 6. 添加别名
+            elasticAliansService.addAlias(firstIndexName, aliasName);
+            
+            // 7. 设置别名可写
+            elasticAliansService.changeIndexWrite(firstIndexName, aliasName, true);
+            
+            log.info("成功创建第一个索引: {}, 别名: {}", firstIndexName, aliasName);
+        } catch (Exception e) {
+            log.error("创建第一个索引时发生错误: {}", e.getMessage(), e);
+        }
+    }
+}

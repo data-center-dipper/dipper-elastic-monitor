@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.client.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.config.ElasticsearchBaseProxyConfig;
 import com.dipper.client.proxy.config.PluginConfig;
@@ -17,8 +18,10 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.nio.entity.NStringEntity;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -140,7 +143,7 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             }
             return response;
         } catch (Exception e) {
-            log.error("执行异常",  e );
+            log.error("执行异常,api:{} ,entity:{}",api,entity.toString(),  e );
             return null;
         }
     }
@@ -192,5 +195,51 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         }
         request.setOptions(builder);
         return request;
+    }
+
+    @Override
+    public String createIndex(String indexName, JSONObject templateJson) throws IOException {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("索引名称为空，无法创建索引");
+            return "索引名称为空";
+        }
+        
+        if (templateJson == null || templateJson.isEmpty()) {
+            log.warn("模板JSON为空，无法创建索引");
+            return "模板JSON为空";
+        }
+        
+        try {
+            // 从模板中提取索引配置和映射
+            JSONObject settings = templateJson.getJSONObject("settings");
+            JSONObject mappings = templateJson.getJSONObject("mappings");
+            
+            // 构建创建索引的请求体
+            JSONObject requestBody = new JSONObject();
+            if (settings != null) {
+                requestBody.put("settings", settings);
+            }
+            if (mappings != null) {
+                requestBody.put("mappings", mappings);
+            }
+            
+            String requestBodyStr = requestBody.toJSONString();
+            NStringEntity entity = new NStringEntity(requestBodyStr);
+            
+            try {
+                // 调用ES API创建索引
+                String result = executePutApi(indexName, entity);
+                entity.close();
+                log.info("创建索引 {} 成功", indexName);
+                return result;
+            } catch (Throwable throwable) {
+                entity.close();
+                log.error("创建索引 {} 失败: {}", indexName, throwable.getMessage(), throwable);
+                throw throwable;
+            }
+        } catch (Exception e) {
+            log.error("创建索引异常：index:{} ex:{}", indexName, e.getMessage(), e);
+            throw e;
+        }
     }
 }

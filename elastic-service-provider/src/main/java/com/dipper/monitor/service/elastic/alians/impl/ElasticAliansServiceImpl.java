@@ -88,6 +88,52 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
         return 0; // No alias has more than one write index
     }
 
+    /**
+     * 根据索引模式获取别名列表
+     * indexPatterns 格式如下 aaa-xxx-20251010-*
+     * @param indexPatterns
+     * @return
+     */
+    /**
+     * 根据索引模式获取别名列表
+     * @param indexPatterns 索引模式
+     * @return 别名列表
+     */
+    @Override
+    public List<String> listAliansByIndexPatterns(String indexPatterns) {
+        if (StringUtils.isBlank(indexPatterns)) {
+            return Collections.emptyList();
+        }
+        
+        try {
+            // 使用索引模式查询别名信息
+            String aliasData = elasticClientService.executeGetApi(indexPatterns + "/_alias");
+            if (StringUtils.isBlank(aliasData)) {
+                return Collections.emptyList();
+            }
+            
+            // 解析别名数据
+            JSONObject jsonObject = JSON.parseObject(aliasData);
+            Set<String> aliasSet = new HashSet<>();
+            
+            // 遍历所有索引
+            for (Map.Entry<String, Object> indexEntry : jsonObject.entrySet()) {
+                JSONObject aliasesJson = ((JSONObject) indexEntry.getValue()).getJSONObject("aliases");
+                if (aliasesJson == null || aliasesJson.isEmpty()) {
+                    continue;
+                }
+                
+                // 将该索引的所有别名添加到集合中
+                aliasSet.addAll(aliasesJson.keySet());
+            }
+            
+            return new ArrayList<>(aliasSet);
+        } catch (Exception e) {
+            log.error("获取索引模式别名列表异常：indexPatterns:{} ex:{}", indexPatterns, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
 
     public String changeIndexWrite(String indexName, String alias, boolean flag) throws Exception {
         String body = "{\n  \"actions\": [\n    {\n      \"add\": {\n        \"index\": \"" + indexName + "\",\n        \"alias\": \"" + alias + "\",\n        \"is_write_index\":" + flag + "\n      }\n    }\n  ]\n}";
@@ -174,5 +220,56 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
             map.put(index, value);
         }
         return map;
+    }
+    
+    @Override
+    public String setAliasReadOnly(String alias) throws Exception {
+        // 获取别名对应的索引
+        String aliasData = this.elasticClientService.executeGetApi(alias + "/_alias");
+        if (StringUtils.isBlank(aliasData)) {
+            log.warn("别名 {} 不存在或没有关联索引", alias);
+            return "别名不存在或没有关联索引";
+        }
+        
+        JSONObject jsonObject = JSON.parseObject(aliasData);
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            String indexName = entry.getKey();
+            // 设置索引对应的别名为不可写
+            changeIndexWrite(indexName, alias, false);
+            log.info("设置别名 {} 在索引 {} 上为只读", alias, indexName);
+        }
+        
+        return "成功设置别名为只读";
+    }
+    
+    @Override
+    public String addAlias(String indexName, String aliasName) throws Exception {
+        String body = "{\n" +
+                "  \"actions\": [\n" +
+                "    {\n" +
+                "      \"add\": {\n" +
+                "        \"index\": \"\" + indexName + \"\",\n" +
+                "        \"alias\": \"\" + aliasName + \"\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        try {
+            NStringEntity entity = new NStringEntity(body);
+            try {
+                String result = elasticClientService.executePostApi("/_aliases", entity);
+                entity.close();
+                log.info("为索引 {} 添加别名 {} 成功", indexName, aliasName);
+                return result;
+            } catch (Throwable throwable) {
+                entity.close();
+                log.error("为索引 {} 添加别名 {} 失败: {}", indexName, aliasName, throwable.getMessage(), throwable);
+                throw throwable;
+            }
+        } catch (Exception e) {
+            log.error("为索引添加别名异常：index:{} alias:{} ex:{}", indexName, aliasName, e.getMessage(), e);
+            throw e;
+        }
     }
 }

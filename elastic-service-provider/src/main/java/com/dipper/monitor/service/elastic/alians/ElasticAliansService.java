@@ -21,4 +21,23 @@ public interface ElasticAliansService {
     Map<String, JSONObject> getAllAliansJson() throws IOException;
 
     int countAliansWrite(String aliasResult);
+
+    List<String> listAliansByIndexPatterns(String indexPatterns);
+    
+    /**
+     * 设置别名为只读
+     * @param alias 别名
+     * @return 操作结果
+     * @throws Exception 异常信息
+     */
+    String setAliasReadOnly(String alias) throws Exception;
+    
+    /**
+     * 为索引添加别名
+     * @param indexName 索引名称
+     * @param aliasName 别名
+     * @return 操作结果
+     * @throws Exception 异常信息
+     */
+    String addAlias(String indexName, String aliasName) throws Exception;
 }
