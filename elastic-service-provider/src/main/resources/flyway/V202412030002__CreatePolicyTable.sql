@@ -10,3 +10,4 @@ CREATE TABLE t_life_policy (
 
 ALTER TABLE elastic_monitor.t_elastic_template ADD life_policy varchar(100) NULL;
 ALTER TABLE elastic_monitor.t_elastic_template ADD rolling_period INT NULL;
+ALTER TABLE elastic_monitor.t_elastic_cluster ADD cluster_version varchar(100) NULL;

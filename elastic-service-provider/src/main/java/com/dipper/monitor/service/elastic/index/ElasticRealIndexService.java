@@ -1,8 +1,10 @@
 package com.dipper.monitor.service.elastic.index;
 
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -24,4 +26,14 @@ public interface ElasticRealIndexService {
     List<IndexEntity> listIndexNameByPrefix(String indexPatterns,String indexPrefix, String indexXing) throws IOException;
 
     Map<String, IndexEntity> listIndexPatternMapThread(boolean b, String indexPatternPrefix, String indexXing) throws IOException;
+
+    /**
+     * 创建索引
+     *
+     * @param firstIndexName
+     * @return
+     */
+    String createIndex(String firstIndexName);
+    String createIndex(String firstIndexName, JSONObject templateJson) throws UnsupportedEncodingException;
+
 }

@@ -34,10 +34,12 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -443,6 +445,54 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         IndexListPatternThreadHandler indexMapHandler = new IndexListPatternThreadHandler(elasticClientService);
         Map<String, IndexEntity> map = indexMapHandler.listIndexPatternMapThread(setting,indexPatternPrefix,indexXing);
         return map;
+    }
+
+    @Override
+    public String createIndex(String indexName) {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("索引名称为空，无法创建索引");
+           throw new RuntimeException("索引名称为空");
+        }
+
+        try {
+            // 调用ES API创建索引
+            String result = elasticClientService.executePutApi(indexName, null);
+
+
+            log.info("创建索引 {} 成功", indexName);
+            return result;
+        } catch (Exception e) {
+            log.error("创建索引异常：index:{}  ex:{}", indexName,e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public String createIndex(String indexName, JSONObject templateJson) throws UnsupportedEncodingException {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("索引名称为空，无法创建索引");
+            throw new RuntimeException("索引名称为空");
+        }
+
+        if (templateJson == null || templateJson.isEmpty()) {
+            log.warn("模板JSON为空，无法创建索引");
+            throw new RuntimeException("模板JSON为空");
+        }
+
+        try {
+
+            String requestBodyStr = templateJson.toJSONString();
+            NStringEntity entity = new NStringEntity(requestBodyStr);
+            // 调用ES API创建索引
+            String result = elasticClientService.executePutApi(indexName, entity);
+            entity.close();
+
+            log.info("创建索引 {} 成功", indexName);
+            return result;
+        } catch (Exception e) {
+            log.error("创建索引异常：index:{} templateJson:{} ex:{}", indexName, templateJson,e.getMessage(), e);
+            throw e;
+        }
     }
 
 

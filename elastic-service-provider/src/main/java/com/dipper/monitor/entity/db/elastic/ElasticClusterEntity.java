@@ -13,12 +13,8 @@ public class ElasticClusterEntity {
     private String clusterDesc;
     // 集群的地址
     private String address;
-    // 集群 jmx 的地址
-    private String kafkaJmxAddress;
-    // 集群的地址
-    private String zookeeperAddress;
-    // 网络的默认速率
-    private Integer networkRate;
+    // 集群的版本
+    private String clusterVersion;
     // 是否是当前集群
     private Boolean currentCluster = false;
     // 是否是 默认集群

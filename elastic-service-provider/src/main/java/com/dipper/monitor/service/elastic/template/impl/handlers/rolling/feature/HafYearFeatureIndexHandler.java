@@ -13,15 +13,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 按照月滚动的模版,生成未来索引
+ * 半年滚动的模版
  * 索引模版 格式 lcc-logs-yyyyMM-*
- * 比如 lcc-logs-202302-*
- * 那么这个对应的索引是 lcc-logs-202302-0000001
- * 那么滚动一次变成 lcc-logs-202303-0000002
+ * 上半年 1-6月
+ *       格式 lcc-logs-yyyyMM-*
+ *       索引
+ *          lcc-logs-202501-0000001
+ *          lcc-logs-202501-0000002
+ *          lcc-logs-202501-0000003
+ * 下半年 7-12月
+ *       格式 lcc-logs-yyyyMM-*
+ *       索引
+ *          lcc-logs-202507-0000001
+ *          lcc-logs-202507-0000002
+ *          lcc-logs-202507-0000003
  */
-public class MonthOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
+public class HafYearFeatureIndexHandler extends AbstractFeatureIndexHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(MonthOfFeatureIndexHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(HafYearFeatureIndexHandler.class);
 
 
 
@@ -34,7 +43,7 @@ public class MonthOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
     // 索引前缀 不带时间,增加*号 lcc-logs-* 或者 lcc-logs*
     private String indexPatternsPrefixNoDateAddXing = null;
 
-    public MonthOfFeatureIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
+    public HafYearFeatureIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
         super(esUnconvertedTemplate);
 
         indexPatterns = esUnconvertedTemplate.getIndexPatterns();
@@ -126,24 +135,31 @@ public class MonthOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
     }
 
     public void handle() {
-        // 创建未来3个月的索引
+        log.info("开始处理半年滚动索引模式: {}", indexPatterns);
+        
+        // 获取当前日期和下一个半年日期
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-    
-        // 1. 循环每个 indexPatterns,这里先是一个吧
-        log.info("开始处理索引模式: {}", indexPatterns);
-        for (int i = 1; i <= 3; i++) {
-            // 计算未来月份
-            Calendar futureCalendar = (Calendar) calendar.clone();
-            futureCalendar.add(Calendar.MONTH, i);
-            String futureDate = sdf.format(futureCalendar.getTime());
-    
-            // 创建未来模版信息
-            createFeatureTemplate(futureDate);
-    
-            // 创建未来索引
-            createFeatureIndex(futureDate);
+        int currentYear = calendar.get(Calendar.YEAR);
+        int currentMonth = calendar.get(Calendar.MONTH) + 1; // Calendar.MONTH 从0开始
+        
+        // 确定当前半年和下一个半年
+        String nextHalfYear;
+        if (currentMonth <= 6) {
+            // 当前是上半年，下一个是当年下半年
+            nextHalfYear = String.format("%d07", currentYear);
+        } else {
+            // 当前是下半年，下一个是明年上半年
+            nextHalfYear = String.format("%d01", currentYear + 1);
         }
+        
+        // 创建下一个半年的索引
+        log.info("准备创建下一个半年 {} 的索引", nextHalfYear);
+        
+        // 创建未来模版信息
+        createFeatureTemplate(nextHalfYear);
+        
+        // 创建未来索引
+        createFeatureIndex(nextHalfYear);
     }
 
     /**

@@ -1,13 +1,15 @@
 package com.dipper.monitor.service.elastic.template.impl.handlers.preview;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PreviewCanRunTemplateHandler extends AbstractPreviewHandler {
+public class Preview8xCanRunTemplateHandler extends AbstractPreviewHandler {
 
     @Override
     protected void addOrUpdateMappings(JSONObject templateJson, String dicName) {
@@ -34,22 +36,28 @@ public class PreviewCanRunTemplateHandler extends AbstractPreviewHandler {
         if (jsonObject == null) return null;
 
         // 处理 aliases
-        JSONObject aliases = jsonObject.getJSONObject("aliases");
+        JSONObject template = jsonObject.getJSONObject("template");
+        JSONObject aliases = template.getJSONObject("aliases");
         if (aliases != null) {
             JSONObject newAliases = new JSONObject();
             for (String key : aliases.keySet()) {
                 String newKey = replaceDatePlaceholder(key, dateStr);
                 newAliases.put(newKey, aliases.get(key));
             }
-            jsonObject.put("aliases", newAliases);
+            template.put("aliases", newAliases);
         }
 
         // 处理 index_patterns 字段
-        Object patternObj = jsonObject.get("index_patterns");
-        if (patternObj instanceof String) {
-            String newPattern = replaceDatePlaceholder((String) patternObj, dateStr);
-            jsonObject.put("index_patterns", newPattern);
+        JSONArray patternArray = jsonObject.getJSONArray("index_patterns");
+        Iterator<Object> iterator = patternArray.iterator();
+        JSONArray patternArrayResult = new JSONArray();
+        while (iterator.hasNext()){
+        String patternItem = (String) iterator.next();
+            String newPattern = replaceDatePlaceholder(patternItem, dateStr);
+            patternArrayResult.add(newPattern);
         }
+        jsonObject.put("index_patterns", patternArrayResult);
+
 
         return jsonObject;
     }

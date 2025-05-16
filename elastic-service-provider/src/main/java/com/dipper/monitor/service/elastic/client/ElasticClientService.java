@@ -37,12 +37,4 @@ public interface ElasticClientService {
      public String executeDeleteApi(String apiUrl, HttpEntity entity) throws IOException;
 
     
-    /**
-     * 创建索引
-     * @param indexName 索引名称
-     * @param templateJson 模板JSON
-     * @return 操作结果
-     * @throws IOException IO异常
-     */
-    String createIndex(String indexName, JSONObject templateJson) throws IOException;
 }

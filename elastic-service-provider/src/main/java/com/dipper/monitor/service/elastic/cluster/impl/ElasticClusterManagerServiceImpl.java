@@ -1,12 +1,16 @@
 package com.dipper.monitor.service.elastic.cluster.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.common.lib.utils.TelnetUtils;
 import com.dipper.common.lib.utils.Tuple2;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
 import com.dipper.monitor.entity.elastic.cluster.*;
+import com.dipper.monitor.entity.elastic.cluster.version.EsClusterInfo;
+import com.dipper.monitor.entity.elastic.cluster.version.Version;
 import com.dipper.monitor.listeners.publish.RefreshNodesEventPublisher;
 import com.dipper.monitor.mapper.ElasticClusterManagerMapper;
+import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +39,8 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
     private RefreshNodesEventPublisher refreshNodesEventPublisher;
     @Autowired
     private ElasticHealthService elasticHealthService;
+    @Autowired
+    private ElasticClientService elasticClientService;
 
     private final static Cache<String, CurrentClusterEntity> currentMap = CacheBuilder.newBuilder()
             .maximumSize(7)
@@ -212,14 +219,6 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
             String address =  getTruncationData(clusterEntity.getAddress(),40);
             elasticClusterView.setAddress(address);
 
-            // 截断jmx地址，超过 60个字符 截断成  xxx...
-            String jmxAddress =  getTruncationData(clusterEntity.getKafkaJmxAddress(),40);
-            elasticClusterView.setKafkaJmxAddress(jmxAddress);
-
-            // 截断zk地址，超过 60个字符 截断成  xxx...
-            String zookeeperAddress =  getTruncationData(clusterEntity.getZookeeperAddress(),40);
-            elasticClusterView.setZookeeperAddress(zookeeperAddress);
-
             // 截断描述，超过 200个字符 截断成  xxx...
             String clusterDesc =  getTruncationData(clusterEntity.getClusterDesc(),130);
             elasticClusterView.setClusterDesc(clusterDesc);
@@ -233,15 +232,116 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
 
     @Override
     public void updateClusterVersion() {
-        ClusterHealth healthData = elasticHealthService.getHealthData();
-        if(healthData == null){
+        EsClusterInfo clusterVersion = getClusterVersion();
+        if(clusterVersion == null){
             log.error("获取集群健康信息失败");
             return;
         }
-        String clusterVersion = healthData.getCluster();
+        String versionNum = clusterVersion.getVersion().getNumber();
         CurrentClusterEntity currentCluster = getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
-        elasticClusterManagerMapper.updateClusterVersion(clusterCode,clusterVersion);
+        elasticClusterManagerMapper.updateClusterVersion(clusterCode,versionNum);
+    }
+
+    /**
+     * {
+     *   "name" : "e1a61cdc0dac",
+     *   "cluster_name" : "docker-cluster",
+     *   "cluster_uuid" : "jn-R_gYhRhqz93wjLmhjig",
+     *   "version" : {
+     *     "number" : "8.17.5",
+     *     "build_flavor" : "default",
+     *     "build_type" : "docker",
+     *     "build_hash" : "55fce5db33c28431e3a504c47d359ddbeadde69d",
+     *     "build_date" : "2025-04-09T22:07:03.265074501Z",
+     *     "build_snapshot" : false,
+     *     "lucene_version" : "9.12.0",
+     *     "minimum_wire_compatibility_version" : "7.17.0",
+     *     "minimum_index_compatibility_version" : "7.0.0"
+     *   },
+     *   "tagline" : "You Know, for Search"
+     * }
+     *
+     * 解析这个结果 并且返回对象
+     *
+     * @throws IOException
+     */
+    private EsClusterInfo getClusterVersion() {
+        String jsonResponse = null;
+        try {
+            jsonResponse = elasticClientService.executeGetApi("/");
+        } catch (Exception e) {
+            log.error("获取集群版本信息失败", e);
+        }
+        if(StringUtils.isEmpty(jsonResponse)){
+            return null;
+        }
+
+        JSONObject root = JSONObject.parseObject(jsonResponse);
+
+        EsClusterInfo info = new EsClusterInfo();
+
+        if (root.containsKey("name")) {
+            info.setName(root.getString("name"));
+        }
+
+        if (root.containsKey("cluster_name")) {
+            info.setClusterName(root.getString("cluster_name"));
+        }
+
+        if (root.containsKey("cluster_uuid")) {
+            info.setClusterUuid(root.getString("cluster_uuid"));
+        }
+
+        if (root.containsKey("tagline")) {
+            info.setTagline(root.getString("tagline"));
+        }
+
+        // 解析 version 子对象
+        if (root.containsKey("version")) {
+            JSONObject versionObj = root.getJSONObject("version");
+            Version version = new Version();
+
+            if (versionObj.containsKey("number")) {
+                version.setNumber(versionObj.getString("number"));
+            }
+
+            if (versionObj.containsKey("build_flavor")) {
+                version.setBuildFlavor(versionObj.getString("build_flavor"));
+            }
+
+            if (versionObj.containsKey("build_type")) {
+                version.setBuildType(versionObj.getString("build_type"));
+            }
+
+            if (versionObj.containsKey("build_hash")) {
+                version.setBuildHash(versionObj.getString("build_hash"));
+            }
+
+            if (versionObj.containsKey("build_date")) {
+                version.setBuildDate(versionObj.getString("build_date"));
+            }
+
+            if (versionObj.containsKey("build_snapshot")) {
+                version.setBuildSnapshot(versionObj.getBoolean("build_snapshot"));
+            }
+
+            if (versionObj.containsKey("lucene_version")) {
+                version.setLuceneVersion(versionObj.getString("lucene_version"));
+            }
+
+            if (versionObj.containsKey("minimum_wire_compatibility_version")) {
+                version.setMinimumWireCompatibilityVersion(versionObj.getString("minimum_wire_compatibility_version"));
+            }
+
+            if (versionObj.containsKey("minimum_index_compatibility_version")) {
+                version.setMinimumIndexCompatibilityVersion(versionObj.getString("minimum_index_compatibility_version"));
+            }
+
+            info.setVersion(version);
+        }
+
+        return info;
     }
 
 
