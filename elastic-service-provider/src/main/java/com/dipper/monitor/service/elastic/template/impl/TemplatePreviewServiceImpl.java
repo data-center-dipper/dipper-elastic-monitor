@@ -51,4 +51,15 @@ public class TemplatePreviewServiceImpl implements TemplatePreviewService {
         return previewCanRunTemplateHandler.previewCanRunTemplate(jsonObject);
     }
 
+    @Override
+    public JSONObject previewEffectTemplateByDate(Integer id, String date) {
+        EsUnconvertedTemplate oneUnconvertedTemplate = elasticStoreTemplateService.getOneUnconvertedTemplate(id);
+        if(oneUnconvertedTemplate == null) {
+            throw new RuntimeException("模板不存在");
+        }
+        JSONObject jsonObject = previewTemplate(oneUnconvertedTemplate);
+        PreviewCanRunTemplateHandler previewCanRunTemplateHandler = new PreviewCanRunTemplateHandler();
+        return previewCanRunTemplateHandler.previewCanRunTemplate(jsonObject,date);
+    }
+
 }

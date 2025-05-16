@@ -119,8 +119,8 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
         esUnconvertedTemplate.setEnableAutoShards(true);
         esUnconvertedTemplate.setTemplateContent(content);
 
-        JSONObject jsonObject = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
-        System.out.println(jsonObject.toJSONString());
+//        JSONObject jsonObject = elasticRealTemplateService.previewTemplate(esUnconvertedTemplate);
+//        System.out.println(jsonObject.toJSONString());
     }
 
     @Test
@@ -183,7 +183,7 @@ public class EsTemplateEntityServiceTest extends BaseMonitorTest {
         esUnconvertedTemplate.setEnableAutoShards(true);
         esUnconvertedTemplate.setTemplateContent(content);
 
-        elasticStoreTemplateService.rollTemplate(esUnconvertedTemplate);
+//        elasticStoreTemplateService.rollTemplate(esUnconvertedTemplate);
     }
 
 

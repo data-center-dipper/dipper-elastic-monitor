@@ -21,4 +21,11 @@ public interface TemplatePreviewService {
      * @return
      */
     JSONObject previewEffectTemplate(Integer id);
+
+    /**
+     *
+     * @param id
+     * @return
+     */
+    JSONObject previewEffectTemplateByDate(Integer id,String date);
 }

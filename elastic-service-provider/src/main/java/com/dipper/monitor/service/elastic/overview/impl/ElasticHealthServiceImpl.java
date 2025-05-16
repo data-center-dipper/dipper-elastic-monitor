@@ -29,8 +29,7 @@ public class ElasticHealthServiceImpl implements ElasticHealthService {
     private static final Logger log = LoggerFactory.getLogger(ElasticHealthServiceImpl.class);
     @Autowired
     private ElasticClientService elasticClientService;
-    @Autowired
-    private ElasticClusterManagerService elasticClusterManagerService;
+
 
 
 
