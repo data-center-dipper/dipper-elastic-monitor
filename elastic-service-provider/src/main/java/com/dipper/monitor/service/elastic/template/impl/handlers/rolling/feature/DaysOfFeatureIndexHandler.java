@@ -37,8 +37,11 @@ public class DaysOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
     private String indexPatternsPrefixNoDate = null;
     // 索引前缀 不带时间,增加*号 lcc-logs-* 或者 lcc-logs*
     private String indexPatternsPrefixNoDateAddXing = null;
-    // 索引前缀 不带时间,增加*号 lcc-logs-20250101*
-    private String indexPatternsPrefixDateAddXing = null;
+    // 索引前缀 带时间 lcc-logs-20250101
+    private String indexPatternsPrefixRealDate = null;
+    // 索引前缀 带时间,增加*号 lcc-logs-20250101*
+    private String indexPatternsPrefixRealDateAddXing = null;
+
 
     public DaysOfFeatureIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, String futureDate) {
         super(esUnconvertedTemplate);
@@ -48,7 +51,8 @@ public class DaysOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
         indexPatternsPrefixHaveDate = IndexPatternsUtils.getIndexPrefixHaveDate(indexPatterns);
         indexPatternsPrefixNoDate = IndexPatternsUtils.getIndexPrefixNoDateAndTail(indexPatterns);
         indexPatternsPrefixNoDateAddXing = indexPatternsPrefixNoDate + "*";
-        indexPatternsPrefixDateAddXing = indexPatternsPrefixHaveDate.replace("yyyyMMdd", futureDate) + "*";
+        indexPatternsPrefixRealDate = indexPatternsPrefixHaveDate.replace("yyyyMMdd", futureDate);
+        indexPatternsPrefixRealDateAddXing = indexPatternsPrefixHaveDate.replace("yyyyMMdd", futureDate) + "*";
 
     }
 
@@ -77,8 +81,8 @@ public class DaysOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
     private void createFeatureIndex() {
         try {
             // 1. 根据模版获取符合模版的索引列表
-            log.info("根据模版获取符合模版的索引列表: {}", indexPatternsPrefixDateAddXing);
-            List<String> indices = elasticRealIndexService.listIndexNameByPrefix(indexPatternsPrefixDateAddXing);
+            log.info("根据模版获取符合模版的索引列表: {}", indexPatternsPrefixRealDateAddXing);
+            List<String> indices = elasticRealIndexService.listIndexNameByPrefix(indexPatternsPrefixRealDateAddXing);
 
             // 2. 如果有索引，跳过
             if (indices != null && !indices.isEmpty()) {
@@ -91,39 +95,6 @@ public class DaysOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
             log.error("滚动索引时发生错误: {}", e.getMessage(), e);
         }
     }
-
-    private String generateNextIndexName(String currentIndexName) {
-        // 假设索引格式为 aaa-xxx-yyyyMMDD-0000001
-        Pattern pattern = Pattern.compile("(.*-\\d{8})-(\\d+)$");
-        Matcher matcher = pattern.matcher(currentIndexName);
-
-        if (matcher.find()) {
-            String prefix = matcher.group(1);
-            int sequence = Integer.parseInt(matcher.group(2));
-            return String.format("%s-%07d", prefix, sequence + 1);
-        } else {
-            // 如果不符合预期格式，添加当前日期和序列号
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-            String today = sdf.format(new Date());
-            return String.format("%s-%s-%07d", currentIndexName, today, 1);
-        }
-    }
-
-    private String generateAliasName(String indexName) {
-        // 从索引名称中提取别名，去掉最后的序列号部分
-        Pattern pattern = Pattern.compile("(.*-\\d{8})-\\d+$");
-        Matcher matcher = pattern.matcher(indexName);
-
-        if (matcher.find()) {
-            return matcher.group(1);
-        } else {
-            // 如果不符合预期格式，使用索引名称作为别名基础
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-            String today = sdf.format(new Date());
-            return indexName + "-" + today;
-        }
-    }
-
     /**
      * 创建未来模版
      */
@@ -132,7 +103,7 @@ public class DaysOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
         JSONObject templateJson = templatePreviewService.previewEffectTemplateByDate(esUnconvertedTemplate.getId(), futureDate);
 
         // 3. 创建模版信息
-        String templateName = esUnconvertedTemplate.getEnName();
+        String templateName = indexPatternsPrefixRealDate;
         elasticRealTemplateService.saveOrUpdateTemplate(templateName, templateJson);
 
         log.info("模板 {} 创建/更新成功", templateName);

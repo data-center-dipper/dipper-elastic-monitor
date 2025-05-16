@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.preview;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +42,7 @@ public class Preview8xCanRunTemplateHandler extends AbstractPreviewHandler {
         if (aliases != null) {
             JSONObject newAliases = new JSONObject();
             for (String key : aliases.keySet()) {
-                String newKey = replaceDatePlaceholder(key, dateStr);
+                String newKey = IndexPatternsUtils.replaceDatePlaceholder(key, dateStr);
                 newAliases.put(newKey, aliases.get(key));
             }
             template.put("aliases", newAliases);
@@ -53,58 +54,13 @@ public class Preview8xCanRunTemplateHandler extends AbstractPreviewHandler {
         JSONArray patternArrayResult = new JSONArray();
         while (iterator.hasNext()){
         String patternItem = (String) iterator.next();
-            String newPattern = replaceDatePlaceholder(patternItem, dateStr);
+            String newPattern = IndexPatternsUtils.replaceDatePlaceholder(patternItem, dateStr);
             patternArrayResult.add(newPattern);
         }
         jsonObject.put("index_patterns", patternArrayResult);
 
 
         return jsonObject;
-    }
-
-    /**
-     * 替换字符串中的日期占位符
-     */
-    private String replaceDatePlaceholder(String input, String dateStr) {
-        if (input == null || dateStr == null) return input;
-
-        // 正则匹配各种格式
-        Pattern pattern = Pattern.compile("(yyyy)(MM)?(dd)?(HH)?");
-        Matcher matcher = pattern.matcher(input);
-
-        StringBuffer result = new StringBuffer();
-        while (matcher.find()) {
-            String format = matcher.group();
-            String replacement = formatDate(dateStr, format);
-            matcher.appendReplacement(result, replacement);
-        }
-        matcher.appendTail(result);
-
-        return result.toString();
-    }
-
-    /**
-     * 根据格式生成实际日期字符串
-     */
-    private String formatDate(String baseDate, String format) {
-        try {
-            LocalDateTime date = LocalDateTime.parse(baseDate, DateTimeFormatter.ISO_DATE_TIME);
-            switch (format) {
-                case "yyyy":
-                    return String.valueOf(date.getYear());
-                case "yyyyMM":
-                    return String.format("%d%02d", date.getYear(), date.getMonthValue());
-                case "yyyyMMdd":
-                    return String.format("%d%02d%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
-                case "yyyyMMddHH":
-                    return String.format("%d%02d%02d%02d", date.getYear(), date.getMonthValue(),
-                            date.getDayOfMonth(), date.getHour());
-                default:
-                    return format; // 不识别的格式保留原样
-            }
-        } catch (Exception e) {
-            return formatWithSystemTime(format); // fallback to current time
-        }
     }
 
     /**
@@ -115,20 +71,5 @@ public class Preview8xCanRunTemplateHandler extends AbstractPreviewHandler {
         return now.format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
-    private String formatWithSystemTime(String format) {
-        LocalDateTime now = LocalDateTime.now();
-        switch (format) {
-            case "yyyy":
-                return String.valueOf(now.getYear());
-            case "yyyyMM":
-                return String.format("%d%02d", now.getYear(), now.getMonthValue());
-            case "yyyyMMdd":
-                return String.format("%d%02d%02d", now.getYear(), now.getMonthValue(), now.getDayOfMonth());
-            case "yyyyMMddHH":
-                return String.format("%d%02d%02d%02d", now.getYear(), now.getMonthValue(),
-                        now.getDayOfMonth(), now.getHour());
-            default:
-                return format;
-        }
-    }
+
 }
