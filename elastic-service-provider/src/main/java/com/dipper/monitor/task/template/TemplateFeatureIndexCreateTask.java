@@ -116,14 +116,23 @@ public class TemplateFeatureIndexCreateTask {
             return;
         }
 
-        log.info("开始创建按天滚动的未来索引，模板数量: {}", templates.size());
+        log.info("开始创建按年滚动的未来索引，模板数量: {}", templates.size());
 
         for (EsUnconvertedTemplate template : templates) {
             try {
-                YearFeatureIndexHandler yearFeatureIndexHandler = new YearFeatureIndexHandler(template);
-                yearFeatureIndexHandler.handle();
+                Calendar calendar = Calendar.getInstance();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+
+                for (int i = 1; i <= 2; i++) {
+                    Calendar futureCalendar = (Calendar) calendar.clone();
+                    futureCalendar.add(Calendar.YEAR, i);  // 修改为按年增加
+                    String futureDate = sdf.format(futureCalendar.getTime());
+
+                    YearFeatureIndexHandler handler = new YearFeatureIndexHandler(template, futureDate);
+                    handler.handle();
+                }
             } catch (Exception e) {
-                log.error("创建日期索引时发生错误: {}", e.getMessage(), e);
+                log.error("创建年度索引时发生错误: {}", e.getMessage(), e);
             }
         }
     }
@@ -139,12 +148,21 @@ public class TemplateFeatureIndexCreateTask {
             return;
         }
 
-        log.info("开始创建按天滚动的未来索引，模板数量: {}", templates.size());
+        log.info("开始创建按月滚动的未来索引，模板数量: {}", templates.size());
 
         for (EsUnconvertedTemplate template : templates) {
             try {
-                MonthOfFeatureIndexHandler monthOfFeatureIndexHandler = new MonthOfFeatureIndexHandler(template);
-                monthOfFeatureIndexHandler.handle();
+                Calendar calendar = Calendar.getInstance();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
+
+                for (int i = 1; i <= 3; i++) {
+                    Calendar futureCalendar = (Calendar) calendar.clone();
+                    futureCalendar.add(Calendar.MONTH, i);  // 修改为按月增加，而不是按天
+                    String futureDate = sdf.format(futureCalendar.getTime());
+
+                    MonthOfFeatureIndexHandler handler = new MonthOfFeatureIndexHandler(template, futureDate);
+                    handler.handle();
+                }
             } catch (Exception e) {
                 log.error("创建日期索引时发生错误: {}", e.getMessage(), e);
             }
@@ -162,14 +180,28 @@ public class TemplateFeatureIndexCreateTask {
             return;
         }
 
-        log.info("开始创建按天滚动的未来索引，模板数量: {}", templates.size());
+        log.info("开始创建按半年滚动的未来索引，模板数量: {}", templates.size());
 
         for (EsUnconvertedTemplate template : templates) {
             try {
-                HafYearFeatureIndexHandler hafYearFeatureIndexHandler = new HafYearFeatureIndexHandler(template);
-                hafYearFeatureIndexHandler.handle();
+                Calendar calendar = Calendar.getInstance();
+                int currentYear = calendar.get(Calendar.YEAR);
+                int currentMonth = calendar.get(Calendar.MONTH) + 1; // Calendar.MONTH 从0开始
+                
+                // 确定下一个半年的日期
+                String nextHalfYear;
+                if (currentMonth <= 6) {
+                    // 当前是上半年，下一个是当年下半年
+                    nextHalfYear = String.format("%d07", currentYear);
+                } else {
+                    // 当前是下半年，下一个是明年上半年
+                    nextHalfYear = String.format("%d01", currentYear + 1);
+                }
+                
+                HafYearFeatureIndexHandler handler = new HafYearFeatureIndexHandler(template, nextHalfYear);
+                handler.handle();
             } catch (Exception e) {
-                log.error("创建日期索引时发生错误: {}", e.getMessage(), e);
+                log.error("创建半年索引时发生错误: {}", e.getMessage(), e);
             }
         }
     }
@@ -189,25 +221,23 @@ public class TemplateFeatureIndexCreateTask {
 
         for (EsUnconvertedTemplate template : templates) {
             try {
-                processOneTemplate(template);
+                Calendar calendar = Calendar.getInstance();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+
+                for (int i = 1; i <= 3; i++) {
+                    Calendar futureCalendar = (Calendar) calendar.clone();
+                    futureCalendar.add(Calendar.DAY_OF_MONTH, i);
+                    String futureDate = sdf.format(futureCalendar.getTime());
+
+                    DaysOfFeatureIndexHandler daysOfFeatureIndexHandler = new DaysOfFeatureIndexHandler(template,futureDate);
+                    daysOfFeatureIndexHandler.handle();
+                }
             } catch (Exception e) {
                 log.error("创建日期索引时发生错误: {}", e.getMessage(), e);
             }
         }
     }
 
-    private void processOneTemplate(EsUnconvertedTemplate template) throws IOException {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
-        for (int i = 1; i <= 3; i++) {
-            Calendar futureCalendar = (Calendar) calendar.clone();
-            futureCalendar.add(Calendar.DAY_OF_MONTH, i);
-            String futureDate = sdf.format(futureCalendar.getTime());
-
-            DaysOfFeatureIndexHandler daysOfFeatureIndexHandler = new DaysOfFeatureIndexHandler(template,futureDate);
-            daysOfFeatureIndexHandler.handle();
-        }
-    }
 
 }

@@ -6,6 +6,7 @@ import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -25,6 +26,8 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
 
     private static final Logger log = LoggerFactory.getLogger(YearFeatureIndexHandler.class);
 
+    // 对应的日期
+    private String futureDate = null;
     // 索引模版 格式 lcc-logs-yyyy-*
     private String indexPatterns = null;
     // 索引前缀 带时间 lcc-logs-yyyy
@@ -33,14 +36,21 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
     private String indexPatternsPrefixNoDate = null;
     // 索引前缀 不带时间,增加*号 lcc-logs-* 或者 lcc-logs*
     private String indexPatternsPrefixNoDateAddXing = null;
+    // 索引前缀 带时间 lcc-logs-2025
+    private String indexPatternsPrefixRealDate = null;
+    // 索引前缀 带时间,增加*号 lcc-logs-2025*
+    private String indexPatternsPrefixRealDateAddXing = null;
 
-    public YearFeatureIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate) {
+    public YearFeatureIndexHandler(EsUnconvertedTemplate esUnconvertedTemplate, String futureDate) {
         super(esUnconvertedTemplate);
 
+        this.futureDate = futureDate;
         indexPatterns = esUnconvertedTemplate.getIndexPatterns();
-        indexPatternsPrefixHaveDate =getIndexPrefixHaveDate();
+        indexPatternsPrefixHaveDate = getIndexPrefixHaveDate();
         indexPatternsPrefixNoDate = getIndexPrefixNoDateAndTail();
-        indexPatternsPrefixNoDateAddXing = indexPatternsPrefixNoDate+ "*";
+        indexPatternsPrefixNoDateAddXing = indexPatternsPrefixNoDate + "*";
+        indexPatternsPrefixRealDate = indexPatternsPrefixHaveDate.replace("yyyy", futureDate);
+        indexPatternsPrefixRealDateAddXing = indexPatternsPrefixHaveDate.replace("yyyy", futureDate) + "*";
     }
 
     /**
@@ -111,25 +121,15 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
         return prefix;
     }
 
-    public void handle() {
-        // 创建未来2年的索引
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
-
+    public void handle() throws IOException {
         // 1. 循环每个 indexPatterns,这里先是一个吧
         log.info("开始处理按年索引模式: {}", indexPatterns);
-        for (int i = 1; i <= 2; i++) {
-            // 计算未来年份
-            Calendar futureCalendar = (Calendar) calendar.clone();
-            futureCalendar.add(Calendar.YEAR, i);
-            String futureDate = sdf.format(futureCalendar.getTime());
 
-            // 创建未来模版信息
-            createFeatureTemplate(futureDate);
+        // 创建未来模版信息
+        createFeatureTemplate();
 
-            // 创建未来索引
-            createFeatureIndex(futureDate);
-        }
+        // 创建未来索引
+        createFeatureIndex();
     }
 
     /**
@@ -140,18 +140,18 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
      * lcc-logs-2027-0000001
      * 等等
      */
-    private void createFeatureIndex(String futureDate) {
+    private void createFeatureIndex() {
         try {
             // 1. 根据模版获取符合模版的索引列表
-            String futurePattern = indexPatterns.replace("yyyy", futureDate);
-            List<String> indices = elasticRealIndexService.listIndexNameByPrefix(futurePattern);
+            log.info("根据模版获取符合模版的索引列表: {}", indexPatternsPrefixRealDateAddXing);
+            List<String> indices = elasticRealIndexService.listIndexNameByPrefix(indexPatternsPrefixRealDateAddXing);
 
             // 2. 如果已经有未来年份的索引，跳过
             if (indices != null && !indices.isEmpty()) {
                 log.info("未来年份 {} 的索引已存在，跳过创建", futureDate);
                 return;
             }
-            createFirstIndex(futureDate);
+            createFirstIndex();
             log.info("年度索引创建完成: {}", futureDate);
         } catch (Exception e) {
             log.error("创建年度索引时发生错误: {}", e.getMessage(), e);
@@ -193,7 +193,7 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
     /**
      * 创建未来模版
      */
-    private void createFeatureTemplate(String futureDate) {
+    private void createFeatureTemplate() {
         try {
             // 2. 生成对应时间模版
             JSONObject templateJson = templatePreviewService.previewEffectTemplateByDate(esUnconvertedTemplate.getId(),futureDate);
@@ -213,7 +213,7 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
      * 创建第一个索引
      * 当没有查询到符合模式的索引时，创建初始索引
      */
-    private void createFirstIndex(String futureDate) {
+    private void createFirstIndex() {
         try {
             // 1. 获取索引模式
             String indexPatterns = esUnconvertedTemplate.getIndexPatterns();
