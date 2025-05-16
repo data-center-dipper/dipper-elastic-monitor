@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.rolling.featur
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
+import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
         super(esUnconvertedTemplate);
 
         indexPatterns = esUnconvertedTemplate.getIndexPatterns();
-        indexPatternsPrefixHaveDate = getIndexPrefixHaveDate();
+        indexPatternsPrefixHaveDate =getIndexPrefixHaveDate();
         indexPatternsPrefixNoDate = getIndexPrefixNoDateAndTail();
         indexPatternsPrefixNoDateAddXing = indexPatternsPrefixNoDate+ "*";
     }
