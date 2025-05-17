@@ -1,4 +1,4 @@
-package com.dipper.monitor.controller.elsatic.manager_overview;
+package com.dipper.monitor.controller.elsatic.overview;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 集群预览控制器类

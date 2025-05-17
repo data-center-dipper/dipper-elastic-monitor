@@ -2,17 +2,11 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.rolling.featur
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
-import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 按照月滚动的模版,生成未来索引
@@ -206,10 +200,10 @@ public class MonthOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
             elasticRealIndexService.createIndex(firstIndexName);
 
             // 7. 添加别名
-            elasticAliansService.addAlias(firstIndexName, aliasName);
+            elasticAliasService.addAlias(firstIndexName, aliasName);
 
             // 8. 设置别名可写
-            elasticAliansService.changeIndexWrite(firstIndexName, aliasName, true);
+            elasticAliasService.changeIndexWrite(firstIndexName, aliasName, true);
 
             log.info("成功创建第一个索引: {}, 别名: {}", firstIndexName, aliasName);
         } catch (Exception e) {

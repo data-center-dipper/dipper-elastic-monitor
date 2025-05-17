@@ -1,4 +1,4 @@
-package com.dipper.monitor.controller.elsatic.manager_policy;
+package com.dipper.monitor.controller.elsatic.policy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.policy.LifePolicyRequest;

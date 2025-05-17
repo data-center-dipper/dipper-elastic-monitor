@@ -73,4 +73,6 @@ public interface ElasticStoreTemplateService {
      * @return
      */
     EsTemplateStatEntity templateStat(Integer id);
+
+    List<String> templateNames(String templateLike);
 }

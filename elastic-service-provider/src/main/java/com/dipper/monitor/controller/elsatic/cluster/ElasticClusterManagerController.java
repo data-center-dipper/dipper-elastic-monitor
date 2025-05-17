@@ -1,4 +1,4 @@
-package com.dipper.monitor.controller.elsatic.manager_cluster;
+package com.dipper.monitor.controller.elsatic.cluster;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;

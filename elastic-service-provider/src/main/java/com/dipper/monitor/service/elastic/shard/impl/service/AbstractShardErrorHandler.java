@@ -1,7 +1,7 @@
 package com.dipper.monitor.service.elastic.shard.impl.service;
 
 import com.dipper.monitor.beans.SpringUtil;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
+import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.disk.ElasticDiskService;
 import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
@@ -21,7 +21,7 @@ public abstract class AbstractShardErrorHandler {
     protected ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     protected ElasticShardService elasticShardService;
     protected ElasticClientService elasticClientService;
-    protected ElasticAliansService elasticAliansService;
+    protected ElasticAliasService elasticAliasService;
     protected ElasticRealNodeService elasticRealNodeService;
     protected ElasticDiskService elasticDiskService;
     protected ElasticHealthService elasticHealthService;
@@ -34,7 +34,7 @@ public abstract class AbstractShardErrorHandler {
         elasticRealLifecyclePoliciesService = SpringUtil.getBean(ElasticRealLifecyclePoliciesService.class);
         elasticShardService = SpringUtil.getBean(ElasticShardService.class);
         elasticClientService = SpringUtil.getBean(ElasticClientService.class);
-        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
+        elasticAliasService = SpringUtil.getBean(ElasticAliasService.class);
         elasticRealNodeService = SpringUtil.getBean(ElasticRealNodeService.class);
         elasticDiskService = SpringUtil.getBean(ElasticDiskService.class);
         elasticHealthService = SpringUtil.getBean(ElasticHealthService.class);

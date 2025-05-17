@@ -1,4 +1,4 @@
-package com.dipper.monitor.controller.elsatic.manager_nodes;
+package com.dipper.monitor.controller.elsatic.nodes;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.LineChartDataResponse;

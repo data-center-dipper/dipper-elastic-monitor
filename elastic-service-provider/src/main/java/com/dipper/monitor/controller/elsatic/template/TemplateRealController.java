@@ -1,4 +1,4 @@
-package com.dipper.monitor.controller.elsatic.manager_template;
+package com.dipper.monitor.controller.elsatic.template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;

@@ -1,9 +1,7 @@
-package com.dipper.monitor.controller.elsatic.manager_policy;
+package com.dipper.monitor.controller.elsatic.policy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.service.elastic.policy.LifePolicyRealService;
-import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
 import com.dipper.monitor.utils.ResultUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

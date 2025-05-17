@@ -105,21 +105,21 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
             log.info("生成的别名: {}", aliasName);
             
             // 6. 获取所有相关别名
-            List<String> aliases = elasticAliansService.listAliansByIndexPatterns(indexPrefixWithStar);
+            List<String> aliases = elasticAliasService.listAliasByIndexPatterns(indexPrefixWithStar);
             
             // 7. 设置现有别名为只读，并结束生命周期
             for (String alias : aliases) {
-                elasticAliansService.setAliasReadOnly(alias);
+                elasticAliasService.setAliasReadOnly(alias);
                 elasticRealLifecyclePoliciesService.lifeCycleEnd(alias);
             }
             
             // 8. 创建新索引并设置别名
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
             elasticRealIndexService.createIndex(newIndexName, templateJson);
-            elasticAliansService.addAlias(newIndexName, aliasName);
+            elasticAliasService.addAlias(newIndexName, aliasName);
             
             // 9. 设置新索引别名为可写
-            elasticAliansService.changeIndexWrite(newIndexName, aliasName, true);
+            elasticAliasService.changeIndexWrite(newIndexName, aliasName, true);
             
             log.info("索引滚动完成: {} -> {}", currentLatestIndex, newIndexName);
         } catch (Exception e) {
@@ -193,10 +193,10 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
             elasticRealIndexService.createIndex(firstIndexName, templateJson);
 
             // 5. 添加别名
-            elasticAliansService.addAlias(firstIndexName, aliasName);
+            elasticAliasService.addAlias(firstIndexName, aliasName);
 
             // 6. 设置别名可写
-            elasticAliansService.changeIndexWrite(firstIndexName, aliasName, true);
+            elasticAliasService.changeIndexWrite(firstIndexName, aliasName, true);
 
             log.info("成功创建第一个索引: {}, 别名: {}", firstIndexName, aliasName);
         } catch (Exception e) {

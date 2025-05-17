@@ -3,7 +3,6 @@ package com.dipper.monitor.service.elastic.life.impl.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -95,17 +94,17 @@ public class RepairLifeCycleErrorService  extends AbstractLifeCycleError {
             builder.append("获取别名信息出错: ").append(e.getMessage()).append("\r\n");
             return;
         }
-        if (!elasticAliansService.isWriteEx(aliansData)) {
+        if (!elasticAliasService.isWriteEx(aliansData)) {
             return;
         }
-        String indexMax = elasticAliansService.getAliansMaxIndexRolling(aliansData);
+        String indexMax = elasticAliasService.getAliasMaxIndexRolling(aliansData);
         if (StringUtils.isBlank(indexMax)) {
             return;
         }
 
         builder.append("添加索引：").append(indexMax).append(" 别名：").append(alians).append(" 设置可写状态\r\n");
         try {
-            elasticAliansService.changeIndexWrite(indexMax, alians, true);
+            elasticAliasService.changeIndexWrite(indexMax, alians, true);
         } catch (Exception e) {
             builder.append("更改索引为可写状态失败：").append(e.getMessage().substring(0, 300)).append("\r\n");
         }

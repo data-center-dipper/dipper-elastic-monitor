@@ -65,7 +65,7 @@ public enum ElasticRestApi {
     /**
      * 获取别名列表。
      */
-    ALIASES_LIST("GET", "/_cat/aliases", "获取别名列表"),
+    ALIASES_LIST("GET", "/_cat/aliases?format=json", "获取别名列表"),
 
     /**
      * 添加别名。

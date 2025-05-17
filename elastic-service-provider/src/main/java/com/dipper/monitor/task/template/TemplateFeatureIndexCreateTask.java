@@ -3,7 +3,7 @@ package com.dipper.monitor.task.template;
 import com.dipper.monitor.annotation.quartz.QuartzJob;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
+import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,7 +38,7 @@ public class TemplateFeatureIndexCreateTask {
     @Autowired
     protected ElasticRealTemplateService elasticRealTemplateService;
     @Autowired
-    protected ElasticAliansService elasticAliansService;
+    protected ElasticAliasService elasticAliasService;
     @Autowired
     protected ElasticRealLifecyclePoliciesService elasticRealLifecyclePoliciesService;
     @Autowired

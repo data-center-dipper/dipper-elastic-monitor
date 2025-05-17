@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateService {
@@ -226,6 +227,23 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         EsTemplateStatEntity esTemplateStatEntity = JSONObject.parseObject(statMessage, EsTemplateStatEntity.class);
         return esTemplateStatEntity;
     }
+
+    @Override
+    public List<String> templateNames(String nameLike) {
+        TemplatePageInfo  templatePageInfo = new TemplatePageInfo();
+        templatePageInfo.setPageNum(1);
+        templatePageInfo.setPageSize(20);
+        templatePageInfo.setKeyword(nameLike);
+
+        List<EsTemplateEntity> allTemplates = getTemplateByPage(templatePageInfo);
+        if(CollectionUtils.isEmpty(allTemplates)){
+            return List.of();
+        }
+        return allTemplates.stream()
+                .map(EsTemplateEntity::getEnName)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public  List<EsTemplateEntity> getTemplateByPage(TemplatePageInfo templatePageInfo) {

@@ -1,8 +1,7 @@
-package com.dipper.monitor.controller.elsatic.manager_template;
+package com.dipper.monitor.controller.elsatic.template;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
-import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.history.TemplateDetailReq;
 import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;

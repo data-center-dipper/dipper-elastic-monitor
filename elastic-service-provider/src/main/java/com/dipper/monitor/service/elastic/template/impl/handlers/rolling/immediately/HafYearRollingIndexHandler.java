@@ -5,9 +5,7 @@ import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTempl
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -172,21 +170,21 @@ public class HafYearRollingIndexHandler extends AbstractRollingIndexByTemplateHa
             log.info("生成的别名: {}", aliasName);
             
             // 6. 根据别名前缀获取别名
-            List<String> aliases = elasticAliansService.listAliansByIndexPatterns(indexPatternsPrefixNoDateAddXing);
+            List<String> aliases = elasticAliasService.listAliasByIndexPatterns(indexPatternsPrefixNoDateAddXing);
             
             // 7. 循环设置别名不可写，并且索引的生命周期结束
             for (String alias : aliases) {
-                elasticAliansService.setAliasReadOnly(alias);
+                elasticAliasService.setAliasReadOnly(alias);
                 elasticRealLifecyclePoliciesService.lifeCycleEnd(alias);
             }
             
             // 8. 创建新的索引 并且指定别名信息
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
             elasticRealIndexService.createIndex(newIndexName, templateJson);
-            elasticAliansService.addAlias(newIndexName, aliasName);
+            elasticAliasService.addAlias(newIndexName, aliasName);
             
             // 9.添加索引可写
-            elasticAliansService.changeIndexWrite(newIndexName, aliasName, true);
+            elasticAliasService.changeIndexWrite(newIndexName, aliasName, true);
             
             log.info("索引滚动完成: {} -> {}", currentLatestIndex, newIndexName);
         } catch (Exception e) {
@@ -321,10 +319,10 @@ public class HafYearRollingIndexHandler extends AbstractRollingIndexByTemplateHa
             elasticRealIndexService.createIndex(firstIndexName, templateJson);
 
             // 7. 添加别名
-            elasticAliansService.addAlias(firstIndexName, aliasName);
+            elasticAliasService.addAlias(firstIndexName, aliasName);
 
             // 8. 设置别名可写
-            elasticAliansService.changeIndexWrite(firstIndexName, aliasName, true);
+            elasticAliasService.changeIndexWrite(firstIndexName, aliasName, true);
 
             log.info("成功创建第一个索引: {}, 别名: {}", firstIndexName, aliasName);
         } catch (Exception e) {

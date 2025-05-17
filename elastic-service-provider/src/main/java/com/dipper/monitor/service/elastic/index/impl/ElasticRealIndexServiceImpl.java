@@ -8,7 +8,7 @@ import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
 import com.dipper.monitor.entity.elastic.index.IndexSetting;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.IndexOperatorType;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
+import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.index.IndexOneOperatorService;
@@ -60,7 +60,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     private ElasticStoreTemplateService elasticStoreTemplateService;
 
     @Autowired
-    private ElasticAliansService elasticAliansService;
+    private ElasticAliasService elasticAliasService;
 
     @Autowired
     private ElasticSegmentService elasticSegmentService;
@@ -227,7 +227,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     private List<IndexEntity> filterByAliansList(List<IndexEntity> indexNames) {
         List<String> alinsEx = new ArrayList<>();
         try {
-            alinsEx = this.elasticAliansService.listExceptionAlians();
+            alinsEx = this.elasticAliasService.listExceptionAlias();
         } catch (IOException e) {
             log.error("获取异常的别名出错：{}", e.getMessage(), e);
         }

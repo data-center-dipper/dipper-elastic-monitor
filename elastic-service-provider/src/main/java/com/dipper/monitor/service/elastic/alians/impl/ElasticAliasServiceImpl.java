@@ -2,9 +2,10 @@ package com.dipper.monitor.service.elastic.alians.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.alians.IndexAlians;
+import com.alibaba.fastjson.TypeReference;
+import com.dipper.monitor.entity.elastic.alians.IndexAlias;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
+import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -14,24 +15,25 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ElasticAliansServiceImpl implements ElasticAliansService {
+public class ElasticAliasServiceImpl implements ElasticAliasService {
 
     @Autowired
     private ElasticClientService elasticClientService ;
 
     @Override
     public boolean isWriteEx(String aliasData) {
-    if (1 < countAliansWrite(aliasData)) {
+    if (1 < countAliasWrite(aliasData)) {
          return true;
       }
    return false;
       }
 
     @Override
-    public String getAliansMaxIndexRolling(String aliansData) {
+    public String getAliasMaxIndexRolling(String aliansData) {
         JSONObject jsonObject = JSON.parseObject(aliansData);
 
         // Convert the keys (index names) from the JSON object into a list.
@@ -49,7 +51,7 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
         return "";
     }
 
-    public int countAliansWrite(String aliasData) {
+    public int countAliasWrite(String aliasData) {
         Map<String, Set<String>> aliasIndexMap = new HashMap<>();
 
         try {
@@ -100,7 +102,7 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
      * @return 别名列表
      */
     @Override
-    public List<String> listAliansByIndexPatterns(String indexPatternsPrefixNoDateAddXing) {
+    public List<String> listAliasByIndexPatterns(String indexPatternsPrefixNoDateAddXing) {
         if (StringUtils.isBlank(indexPatternsPrefixNoDateAddXing)) {
             return Collections.emptyList();
         }
@@ -155,10 +157,10 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
     }
 
     @Override
-    public List<String> listExceptionAlians() throws IOException {
-        Map<String, List<IndexAlians>> mebeyEx = getAlainsHiveManyIndex();
+    public List<String> listExceptionAlias() throws IOException {
+        Map<String, List<IndexAlias>> mebeyEx = getAlainsHiveManyIndex();
         List<String> exAlians = new ArrayList<>();
-        for (Map.Entry<String, List<IndexAlians>> item : mebeyEx.entrySet()) {
+        for (Map.Entry<String, List<IndexAlias>> item : mebeyEx.entrySet()) {
             String alias = item.getKey();
             String aliasData = this.elasticClientService.executeGetApi(alias + "/_alias");
             boolean isWriteIndexGreaterThanOne = isWriteEx(aliasData);
@@ -172,13 +174,13 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
         return exAlians;
     }
 
-    protected Map<String, List<IndexAlians>> getAlainsHiveManyIndex() throws IOException {
-        Map<String, List<IndexAlians>> group = getAliansIndexMap();
+    protected Map<String, List<IndexAlias>> getAlainsHiveManyIndex() throws IOException {
+        Map<String, List<IndexAlias>> group = getAliasIndexMap();
 
-        Map<String, List<IndexAlians>> mebeyEx = new HashMap<>();
+        Map<String, List<IndexAlias>> mebeyEx = new HashMap<>();
 
-        for (Map.Entry<String, List<IndexAlians>> item : group.entrySet()) {
-            List<IndexAlians> value = item.getValue();
+        for (Map.Entry<String, List<IndexAlias>> item : group.entrySet()) {
+            List<IndexAlias> value = item.getValue();
             if (1 < value.size()) {
                 mebeyEx.put(item.getKey(), item.getValue());
             }
@@ -186,28 +188,39 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
         return mebeyEx;
     }
 
-    public Map<String, List<IndexAlians>> getAliansIndexMap() throws IOException {
+    public Map<String, List<IndexAlias>> getAliasIndexMap() throws IOException {
         String result = this.elasticClientService.executeGetApi(ElasticRestApi.ALIASES_LIST.getApiPath());
-        if (StringUtils.isBlank(result)) {
-            return null;
+
+        if (result == null || result.trim().isEmpty()) {
+            return Collections.emptyMap();
         }
-        String[] lines = result.split("\n");
-        Map<String, List<IndexAlians>> map = new HashMap<>();
-        for (String line : lines) {
-            String[] fields = line.split("\\s+");
-            IndexAlians indexAlians = new IndexAlians(fields[0], fields[1], fields[2], fields[3], fields[4]);
-            List<IndexAlians> list = map.get(fields[0]);
-            if (list == null) {
-                list = new ArrayList<>();
-            }
-            list.add(indexAlians);
-            map.put(fields[0], list);
+
+        // 解析 JSON 数组
+        List<Map<String, String>> aliasList = JSON.parseObject(result,
+                new TypeReference<List<Map<String, String>>>() {}.getType());
+
+        Map<String, List<IndexAlias>> map = new HashMap<>();
+
+        for (Map<String, String> item : aliasList) {
+            String alias = item.get("alias");
+            String index = item.get("index");
+            String filter = item.getOrDefault("filter", "-"); // 如果字段不存在，默认为 "-"
+            String routingIndex = item.getOrDefault("routing.index", "-");
+            String routingSearch = item.getOrDefault("routing.search", "-");
+            String isWriteIndex = item.getOrDefault("is_write_index", "-");
+
+            IndexAlias indexAlias = new IndexAlias(alias, index, filter,
+                    routingIndex, routingSearch, isWriteIndex);
+
+            // 使用 computeIfAbsent 方法简化代码
+            map.computeIfAbsent(alias, k -> new ArrayList<>()).add(indexAlias);
         }
+
         return map;
     }
 
     @Override
-    public Map<String, JSONObject> getAllAliansJson() throws IOException {
+    public Map<String, JSONObject> getAllAliasJson() throws IOException {
         String aliansRep = this.elasticClientService.executeGetApi("/*/_alias");
         if (StringUtils.isBlank(aliansRep)) {
             return Collections.emptyMap();
@@ -272,5 +285,24 @@ public class ElasticAliansServiceImpl implements ElasticAliansService {
             log.error("为索引添加别名异常：index:{} alias:{} ex:{}", indexName, aliasName, e.getMessage(), e);
             throw e;
         }
+    }
+
+
+    @Override
+    public List<String> aliasNames(String nameLike) throws IOException {
+        Map<String, List<IndexAlias>> aliasIndexMap = getAliasIndexMap();
+        if (aliasIndexMap == null || aliasIndexMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 如果没有查询条件，则返回所有别名名称
+        if (nameLike == null || nameLike.isBlank()) {
+            return new ArrayList<>(aliasIndexMap.keySet());
+        }
+
+        // 模糊匹配：过滤出包含 nameLike 的别名名称（忽略大小写）
+        return aliasIndexMap.keySet().stream()
+                .filter(aliasName -> aliasName.toLowerCase().contains(nameLike.toLowerCase()))
+                .collect(Collectors.toList());
     }
 }

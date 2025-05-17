@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.dipper.monitor.beans.SpringUtil;
-import com.dipper.monitor.entity.elastic.alians.IndexAlians;
+import com.dipper.monitor.entity.elastic.alians.IndexAlias;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
-import com.dipper.monitor.service.elastic.alians.ElasticAliansService;
+import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.utils.elastic.IndexUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +23,12 @@ import java.util.Map;
 public class IndexSearchHandler extends AbstractIndexHandler {
 
 
-    private ElasticAliansService elasticAliansService;
+    private ElasticAliasService elasticAliasService;
 
     public IndexSearchHandler(ElasticClientService elasticClientService) {
         super(elasticClientService);
 
-        elasticAliansService = SpringUtil.getBean(ElasticAliansService.class);
+        elasticAliasService = SpringUtil.getBean(ElasticAliasService.class);
     }
 
 
@@ -58,21 +58,21 @@ public class IndexSearchHandler extends AbstractIndexHandler {
     }
 
     private List<IndexEntity> getAliansException() throws IOException {
-        List<String> list = this.elasticAliansService.listExceptionAlians();
+        List<String> list = this.elasticAliasService.listExceptionAlias();
 
         if (list.size() < 1) {
             return Collections.emptyList();
         }
 
-        Map<String, List<IndexAlians>> group = this.elasticAliansService.getAliansIndexMap();
-        List<IndexAlians> indexAnlansList = new ArrayList<>();
+        Map<String, List<IndexAlias>> group = this.elasticAliasService.getAliasIndexMap();
+        List<IndexAlias> indexAnlansList = new ArrayList<>();
         for (String index : list) {
             indexAnlansList.addAll(group.get(index));
         }
 
         Map<String, IndexEntity> indexNamesMap = elasticRealIndexService.listIndexMap(false);
         List<IndexEntity> indexNames = new ArrayList<>();
-        for (IndexAlians index : indexAnlansList) {
+        for (IndexAlias index : indexAnlansList) {
             indexNames.add(indexNamesMap.get(index.getIndex()));
         }
         //    indexNames = BusinessRelationUtils.indexClassificationByPattern(indexNames, patterns);
@@ -94,7 +94,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
     public List<IndexEntity> setIndexAlians(List<IndexEntity> indexNames) {
         Map<String, JSONObject> aliansMap = null;
         try {
-            aliansMap = this.elasticAliansService.getAllAliansJson();
+            aliansMap = this.elasticAliasService.getAllAliasJson();
         } catch (Exception e) {
             log.error("获取ES所有别名异常：{}", e.getMessage(), e);
         }
@@ -131,7 +131,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
                 x.setIndexCanWrite(Boolean.valueOf(true));
             }
             String aliasResult = x.getAlians();
-            int writeCount = this.elasticAliansService.countAliansWrite(aliasResult);
+            int writeCount = this.elasticAliasService.countAliasWrite(aliasResult);
             x.setAlinasCanWrite(Integer.valueOf(writeCount));
         }
         return indexNames;
