@@ -8,6 +8,7 @@ import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.template.history.EsTemplateInfo;
 import com.dipper.monitor.entity.elastic.template.history.TemplateDetailView;
+import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
@@ -20,6 +21,12 @@ import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.StatTemplateHandler;
+import com.dipper.monitor.utils.CommonThreadFactory;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +35,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 /**
  *    // 可选接口 GET /_cat/templates?format=json
@@ -54,6 +62,21 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
     private TemplatePreviewService templatePreviewService;
     @Autowired
     private ElasticHealthService elasticHealthService;
+
+
+    private Cache<String, List<TemplateHistoryView>> cacheTemplate;
+    private static final String TEMPLATE_KEY = "template_key";
+
+    @PostConstruct
+    public void init() {
+        this.cacheTemplate = CacheBuilder.newBuilder()
+                .maximumSize(7L)
+                .expireAfterWrite(300L, TimeUnit.SECONDS)
+                .expireAfterAccess(300L, TimeUnit.SECONDS)
+                .concurrencyLevel(7)
+                .build();
+    }
+
 
     public boolean isExistTemplate(String name) throws IOException {
         String api = "/_template/" + name;
@@ -151,49 +174,121 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
         JSONObject jsonObject = JSONObject.parseObject(response);
 
         JSONArray templatesArray = jsonObject.getJSONArray("index_templates");
+        if (templatesArray == null || templatesArray.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<TemplateDetailView> result = new ArrayList<>();
 
         for (int i = 0; i < templatesArray.size(); i++) {
             JSONObject templateObj = templatesArray.getJSONObject(i);
+            if (templateObj == null) continue;
+
             String name = templateObj.getString("name");
 
             JSONObject indexTemplate = templateObj.getJSONObject("index_template");
-            JSONArray indexPatterns = indexTemplate.getJSONArray("index_patterns");
-            Integer priority = indexTemplate.getInteger("priority");
+            if (indexTemplate == null) continue;
+
+            JSONArray indexPatternsArray = indexTemplate.getJSONArray("index_patterns");
+            List<String> indexPatterns = indexPatternsArray != null ?
+                    indexPatternsArray.toJavaList(String.class) : new ArrayList<>();
+
+            Integer priority = null;
+            if (indexTemplate.containsKey("priority")) {
+                priority = indexTemplate.getInteger("priority");
+            }
 
             JSONObject template = indexTemplate.getJSONObject("template");
-            JSONObject settings = template.getJSONObject("settings").getJSONObject("index");
+            JSONObject settingsObj = null;
+            if (template != null && template.containsKey("settings")) {
+                settingsObj = template.getJSONObject("settings");
+            }
 
-            String lifecycleName = settings.getJSONObject("lifecycle").getString("name");
-            String rolloverAlias = settings.getJSONObject("lifecycle").getString("rollover_alias");
-            String numberOfShards = settings.getString("number_of_shards");
-            String numberOfReplicas = settings.getString("number_of_replicas");
-            String refreshInterval = settings.getString("refresh_interval");
-            String codec = settings.getString("codec");
-            String mode = settings.getString("mode");
-            String ignoreMalformed = settings.getJSONObject("mapping").getString("ignore_malformed");
+            JSONObject settings = null;
+            if (settingsObj != null && settingsObj.containsKey("index")) {
+                settings = settingsObj.getJSONObject("index");
+            }
 
-            String slowIndexThreshold = settings.getJSONObject("indexing")
-                    .getJSONObject("slowlog")
-                    .getJSONObject("threshold")
-                    .getJSONObject("index")
-                    .getString("info");
+            String lifecycleName = null;
+            String rolloverAlias = null;
+            if (settings != null && settings.containsKey("lifecycle")) {
+                JSONObject lifecycle = settings.getJSONObject("lifecycle");
+                if (lifecycle != null) {
+                    lifecycleName = lifecycle.getString("name");
+                    rolloverAlias = lifecycle.getString("rollover_alias");
+                }
+            }
 
-            String slowFetchThreshold = settings.getJSONObject("search")
-                    .getJSONObject("slowlog")
-                    .getJSONObject("threshold")
-                    .getJSONObject("fetch")
-                    .getString("info");
+            String numberOfShards = null;
+            if (settings != null && settings.containsKey("number_of_shards")) {
+                numberOfShards = settings.getString("number_of_shards");
+            }
 
-            String slowQueryThreshold = settings.getJSONObject("search")
-                    .getJSONObject("slowlog")
-                    .getJSONObject("threshold")
-                    .getJSONObject("query")
-                    .getString("info");
+            String numberOfReplicas = null;
+            if (settings != null && settings.containsKey("number_of_replicas")) {
+                numberOfReplicas = settings.getString("number_of_replicas");
+            }
+
+            String refreshInterval = null;
+            if (settings != null && settings.containsKey("refresh_interval")) {
+                refreshInterval = settings.getString("refresh_interval");
+            }
+
+            String codec = null;
+            if (settings != null && settings.containsKey("codec")) {
+                codec = settings.getString("codec");
+            }
+
+            String mode = null;
+            if (settings != null && settings.containsKey("mode")) {
+                mode = settings.getString("mode");
+            }
+
+            String ignoreMalformed = null;
+            if (settings != null && settings.containsKey("mapping") &&
+                    settings.getJSONObject("mapping").containsKey("ignore_malformed")) {
+                ignoreMalformed = settings.getJSONObject("mapping").getString("ignore_malformed");
+            }
+
+            String slowIndexThreshold = null;
+            if (settings != null && settings.containsKey("indexing") &&
+                    settings.getJSONObject("indexing").containsKey("slowlog") &&
+                    settings.getJSONObject("indexing").getJSONObject("slowlog").containsKey("threshold") &&
+                    settings.getJSONObject("indexing").getJSONObject("slowlog").getJSONObject("threshold").containsKey("index")) {
+                slowIndexThreshold = settings.getJSONObject("indexing")
+                        .getJSONObject("slowlog")
+                        .getJSONObject("threshold")
+                        .getJSONObject("index")
+                        .getString("info");
+            }
+
+            String slowFetchThreshold = null;
+            if (settings != null && settings.containsKey("search") &&
+                    settings.getJSONObject("search").containsKey("slowlog") &&
+                    settings.getJSONObject("search").getJSONObject("slowlog").containsKey("threshold") &&
+                    settings.getJSONObject("search").getJSONObject("slowlog").getJSONObject("threshold").containsKey("fetch")) {
+                slowFetchThreshold = settings.getJSONObject("search")
+                        .getJSONObject("slowlog")
+                        .getJSONObject("threshold")
+                        .getJSONObject("fetch")
+                        .getString("info");
+            }
+
+            String slowQueryThreshold = null;
+            if (settings != null && settings.containsKey("search") &&
+                    settings.getJSONObject("search").containsKey("slowlog") &&
+                    settings.getJSONObject("search").getJSONObject("slowlog").containsKey("threshold") &&
+                    settings.getJSONObject("search").getJSONObject("slowlog").getJSONObject("threshold").containsKey("query")) {
+                slowQueryThreshold = settings.getJSONObject("search")
+                        .getJSONObject("slowlog")
+                        .getJSONObject("threshold")
+                        .getJSONObject("query")
+                        .getString("info");
+            }
 
             TemplateDetailView vo = new TemplateDetailView();
             vo.setName(name);
-            vo.setIndexPatterns(indexPatterns.toJavaList(String.class));
+            vo.setIndexPatterns(indexPatterns);
             vo.setPriority(priority);
             vo.setLifecycleName(lifecycleName);
             vo.setRolloverAlias(rolloverAlias);
@@ -215,11 +310,121 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
 
     @Override
     public JSONObject getOneTemplateDetail(String templateName) throws IOException {
-        String api = "/_index_template/"+templateName;
-        String response = elasticClientService.executeGetApi(api);
-        JSONObject jsonObject = JSONObject.parseObject(response);
-        return jsonObject;
+        try {
+            String api = "/_template/"+templateName;
+            String response = elasticClientService.executeGetApi(api);
+            JSONObject jsonObject = JSONObject.parseObject(response);
+            return jsonObject;
+        }catch (Exception e){
+            log.error("获取模型异常,templateName:{}",templateName,e.getMessage());
+            String api = "/_index_template/"+templateName;
+            String response = elasticClientService.executeGetApi(api);
+            JSONObject jsonObject = JSONObject.parseObject(response);
+            return jsonObject;
+        }
     }
 
+    @Override
+    public List<TemplateHistoryView> getTemplateHistoryViewCache() {
+        List<TemplateHistoryView> templateHistoryView = cacheTemplate.getIfPresent(TEMPLATE_KEY);
+        if(templateHistoryView == null){
+            templateHistoryView = getTemplateHistoryView();
+            cacheTemplate.put(TEMPLATE_KEY,templateHistoryView);
+        }
+        return templateHistoryView;
+    }
+
+    @Override
+    public List<TemplateHistoryView> getTemplateHistoryView() {
+        try {
+            // 获取模板基本信息
+            List<TemplateDetailView> templateInfoList = getTemplateDetailList();
+
+            List<TemplateHistoryView> result = new ArrayList<>();
+
+            for (TemplateDetailView info : templateInfoList) {
+                TemplateHistoryView view = new TemplateHistoryView();
+                view.setName(info.getName());
+
+                // indexPatterns 转换为字符串（逗号分隔）
+                if (info.getIndexPatterns() != null && !info.getIndexPatterns().isEmpty()) {
+                    view.setIndexPatterns(String.join(",", info.getIndexPatterns()));
+                }
+
+                // 设置 order 字段（假设 priority 对应 order）
+                view.setOrder(info.getPriority());
+
+                // 提取详细设置
+                if (info.getContent() != null) {
+                    try {
+                        JSONObject detailJson = JSONObject.parseObject(info.getContent());
+                        extractTemplateDetails(view, detailJson);
+                    } catch (Exception e) {
+                        log.warn("解析模板 {} 的 content JSON 失败", info.getName(), e);
+                    }
+                }
+
+                result.add(view);
+            }
+
+            return result;
+        } catch (IOException e) {
+            log.error("获取模板列表失败", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 从模板详情中提取更多信息
+     *
+     * @param view 模板视图对象
+     * @param templateDetail 模板详情JSON
+     */
+    private void extractTemplateDetails(TemplateHistoryView view, JSONObject templateDetail) {
+        try {
+            // 适用于新版本 Elasticsearch 的结构
+            if (templateDetail.containsKey("index_templates")) {
+                JSONObject indexTemplate = templateDetail.getJSONArray("index_templates").getJSONObject(0)
+                        .getJSONObject("index_template");
+
+                if (indexTemplate.containsKey("template") &&
+                        indexTemplate.getJSONObject("template").containsKey("settings") &&
+                        indexTemplate.getJSONObject("template").getJSONObject("settings").containsKey("index")) {
+
+                    JSONObject settings = indexTemplate.getJSONObject("template")
+                            .getJSONObject("settings").getJSONObject("index");
+
+                    // 生命周期策略名称（滚动策略）
+                    if (settings.containsKey("lifecycle")) {
+                        JSONObject lifecycle = settings.getJSONObject("lifecycle");
+                        if (lifecycle.containsKey("name")) {
+                            view.setRollingPolicy(lifecycle.getString("name"));
+                        }
+                    }
+
+                    // 保存策略（store_policy）
+                    if (settings.containsKey("store")) {
+                        JSONObject store = settings.getJSONObject("store");
+                        if (store.containsKey("policy")) {
+                            view.setStorePolicy(store.getString("policy"));
+                        }
+                    }
+
+                    // 索引分片数
+                    if (settings.containsKey("number_of_shards")) {
+                        view.setIndexNum(settings.getString("number_of_shards"));
+                    }
+
+                    // 自动关闭天数
+                    if (settings.containsKey("lifecycle_stop_after")) {
+                        view.setCloseDays(settings.getString("lifecycle_stop_after"));
+                    }
+
+                }
+            }
+        } catch (Exception e) {
+            log.warn("提取模板{}详细信息失败: {}", view.getName(), e.getMessage());
+        }
+    }
 
 }

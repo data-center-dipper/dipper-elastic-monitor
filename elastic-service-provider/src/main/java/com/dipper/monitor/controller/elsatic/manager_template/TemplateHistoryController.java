@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
+import com.dipper.monitor.entity.elastic.template.history.TemplateDetailReq;
 import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;
 import com.dipper.monitor.service.elastic.template.TemplateHistoryService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -105,10 +106,10 @@ public class TemplateHistoryController {
                                     schema = @Schema(implementation = EsTemplateEntity.class))),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping("/getOneTemplateDetail/{templateName}")
-    public JSONObject getOneTemplateDetail(@PathVariable String templateName) {
+    @PostMapping("/getOneTemplateDetail")
+    public JSONObject getOneTemplateDetail(@RequestBody TemplateDetailReq templateDetailReq) {
         try {
-            JSONObject dics = templateHistoryService.getOneTemplateDetail(templateName);
+            JSONObject dics = templateHistoryService.getOneTemplateDetail(templateDetailReq);
             return ResultUtils.onSuccess(dics);
         } catch (Exception e) {
             log.error("Error retrieving templates", e);

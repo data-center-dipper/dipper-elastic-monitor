@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.history;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.history.EsTemplateInfo;
+import com.dipper.monitor.entity.elastic.template.history.TemplateDetailView;
 import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;
 import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -85,139 +86,88 @@ public class CurrentHistoryTemplateHandler extends AbstractHistoryTemplateHandle
             return new Tuple2<>(0, new ArrayList<>());
         }
     }
-    
+
     /**
-     * 过滤出当前使用的模板
-     * @param allTemplates 所有模板
-     * @return 当前使用的模板
+     * 过滤出当前使用的模板。
+     * 根据 yyyyMMdd, yyyyMM, yyyy 格式的时间字符串进行匹配。
+     *
+     * @param allTemplates 所有模板列表
+     * @return 符合当前时间条件的模板列表
      */
     private List<TemplateHistoryView> filterCurrentTemplates(List<TemplateHistoryView> allTemplates) {
         LocalDate now = LocalDate.now();
         int currentYear = now.getYear();
         int currentMonth = now.getMonthValue();
         int currentDay = now.getDayOfMonth();
-        
-        return allTemplates.stream()
-            .filter(template -> {
-                if (template.getName() == null || template.getIndexPatterns() == null) {
-                    return false;
-                }
-                
-                String indexPattern = template.getIndexPatterns();
-                
-                // 检查是否为当前日期的模板
-                Matcher dayMatcher = DAY_PATTERN.matcher(indexPattern);
-                if (dayMatcher.matches()) {
-                    int year = Integer.parseInt(dayMatcher.group(1));
-                    int month = Integer.parseInt(dayMatcher.group(2));
-                    int day = Integer.parseInt(dayMatcher.group(3));
-                    return year == currentYear && month == currentMonth && day == currentDay;
-                }
-                
-                // 检查是否为当前月份的模板
-                Matcher monthMatcher = MONTH_PATTERN.matcher(indexPattern);
-                if (monthMatcher.matches()) {
-                    int year = Integer.parseInt(monthMatcher.group(1));
-                    int month = Integer.parseInt(monthMatcher.group(2));
-                    return year == currentYear && month == currentMonth;
-                }
-                
-                // 检查是否为当前年份的模板
-                Matcher yearMatcher = YEAR_PATTERN.matcher(indexPattern);
-                if (yearMatcher.matches()) {
-                    int year = Integer.parseInt(yearMatcher.group(1));
-                    return year == currentYear;
-                }
-                
-                // 如果没有日期信息，默认不是当前模板
-                return false;
-            })
-            .collect(Collectors.toList());
-    }
-    
-    /**
-     * 获取所有模板并转换为TemplateHistoryView
-     * @return 模板列表
-     */
-    private List<TemplateHistoryView> getAllTemplates() {
-        try {
-            // 获取模板基本信息
-            List<EsTemplateInfo> templateInfoList = elasticRealTemplateService.getTemplateList();
-            
-            // 转换为TemplateHistoryView
-            List<TemplateHistoryView> result = new ArrayList<>();
-            for (EsTemplateInfo info : templateInfoList) {
-                TemplateHistoryView view = new TemplateHistoryView();
-                view.setName(info.getName());
-                view.setOrder(info.getOrder());
-                
-                // 处理索引模式
-                if (info.getIndexPatterns() != null && !info.getIndexPatterns().isEmpty()) {
-                    view.setIndexPatterns(String.join(", ", info.getIndexPatterns()));
-                }
-                
-                // 获取模板详情
-                try {
-                    JSONObject templateDetail = elasticRealTemplateService.getOneTemplateDetail(info.getName());
-                    if (templateDetail != null) {
-                        // 设置详情内容
-                        view.setContent(templateDetail.toJSONString());
-                        
-                        // 尝试提取更多信息
-                        extractTemplateDetails(view, templateDetail);
-                    }
-                } catch (Exception e) {
-                    log.warn("获取模板{}详情失败: {}", info.getName(), e.getMessage());
-                }
-                
-                result.add(view);
+
+        // 构造用于匹配的字符串
+        String dayStr = String.format("%d%02d%02d", currentYear, currentMonth, currentDay);   // 20250517
+        String monthStr = String.format("%d%02d", currentYear, currentMonth);                  // 202505
+        String yearStr = String.valueOf(currentYear);
+
+        int dayInt = Integer.parseInt(dayStr);// 2025
+        int monthInt = Integer.parseInt(monthStr);// 2025
+        int yearInt = Integer.parseInt(yearStr);// 2025
+
+        List<TemplateHistoryView> result = new ArrayList<>();
+
+        for (TemplateHistoryView template : allTemplates) {
+            if (template.getName() == null || template.getIndexPatterns() == null) {
+                continue;
             }
-            
-            return result;
-        } catch (IOException e) {
-            log.error("获取模板列表失败", e);
-            return new ArrayList<>();
+
+            String name = template.getName();
+
+            // 跳过以点开头的系统模板（如 .monitoring-*）
+            if (name.startsWith(".")) {
+                continue;
+            }
+
+            // 如果不包含时间，那么直接跳过，说明没有时间信息
+            if (!name.contains(yearStr)) {
+                continue;
+            }
+            // 获取时间信息 ailpha-logs-20250518
+            String dateTemplate = name.substring(name.lastIndexOf("-") + 1);
+            Integer dateTemplateInt = Integer.parseInt(dateTemplate);
+
+
+            if(dateTemplate.length() == 8){
+              if(dayInt <= dateTemplateInt){
+                result.add(template);
+              }
+            }
+
+            if(dateTemplate.length() == 6){
+                if(monthInt <= dateTemplateInt){
+                    result.add(template);
+                }
+            }
+
+            if(dateTemplate.length() == 4){
+                if(yearInt <= dateTemplateInt){
+                    result.add(template);
+                }
+            }
         }
+
+        return result;
     }
-    
+
     /**
-     * 从模板详情中提取更多信息
-     * @param view 模板视图对象
-     * @param templateDetail 模板详情JSON
+     * 安全地从 Matcher 中提取分组内容并转换为整数
+     *
+     * @param matcher 正则匹配器
+     * @param groupIndex 分组索引
+     * @return 解析后的整数值，失败返回 -1
      */
-    private void extractTemplateDetails(TemplateHistoryView view, JSONObject templateDetail) {
+    private int parseGroup(Matcher matcher, int groupIndex) {
         try {
-            // 尝试提取滚动策略、保存策略等信息
-            // 这里的实现取决于templateDetail的具体结构
-            // 以下是示例代码，需要根据实际JSON结构调整
-            
-            if (templateDetail.containsKey("index_templates")) {
-                JSONObject indexTemplate = templateDetail.getJSONArray("index_templates").getJSONObject(0)
-                    .getJSONObject("index_template");
-                
-                if (indexTemplate.containsKey("template") && 
-                    indexTemplate.getJSONObject("template").containsKey("settings") &&
-                    indexTemplate.getJSONObject("template").getJSONObject("settings").containsKey("index")) {
-                    
-                    JSONObject settings = indexTemplate.getJSONObject("template")
-                        .getJSONObject("settings").getJSONObject("index");
-                    
-                    // 提取生命周期策略
-                    if (settings.containsKey("lifecycle")) {
-                        JSONObject lifecycle = settings.getJSONObject("lifecycle");
-                        if (lifecycle.containsKey("name")) {
-                            view.setRollingPolicy(lifecycle.getString("name"));
-                        }
-                    }
-                    
-                    // 提取其他可能的信息
-                    if (settings.containsKey("number_of_shards")) {
-                        view.setIndexNum(settings.getString("number_of_shards"));
-                    }
-                }
-            }
+            return Integer.parseInt(matcher.group(groupIndex));
         } catch (Exception e) {
-            log.warn("提取模板{}详细信息失败: {}", view.getName(), e.getMessage());
+            return -1; // 出现异常时返回无效值，便于判断
         }
     }
+    
+
 }

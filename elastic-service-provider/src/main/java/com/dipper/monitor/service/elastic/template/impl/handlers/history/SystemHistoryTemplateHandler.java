@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.template.impl.handlers.history;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
 import com.dipper.monitor.entity.elastic.template.history.EsTemplateInfo;
+import com.dipper.monitor.entity.elastic.template.history.TemplateDetailView;
 import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;
 import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -80,89 +81,5 @@ public class SystemHistoryTemplateHandler extends AbstractHistoryTemplateHandler
         }
     }
     
-    /**
-     * 获取所有模板并转换为TemplateHistoryView
-     * @return 模板列表
-     */
-    private List<TemplateHistoryView> getAllTemplates() {
-        try {
-            // 获取模板基本信息
-            List<EsTemplateInfo> templateInfoList = elasticRealTemplateService.getTemplateList();
-            
-            // 转换为TemplateHistoryView
-            List<TemplateHistoryView> result = new ArrayList<>();
-            for (EsTemplateInfo info : templateInfoList) {
-                TemplateHistoryView view = new TemplateHistoryView();
-                view.setName(info.getName());
-                view.setOrder(info.getOrder());
-                
-                // 处理索引模式
-                if (info.getIndexPatterns() != null && !info.getIndexPatterns().isEmpty()) {
-                    view.setIndexPatterns(String.join(", ", info.getIndexPatterns()));
-                }
-                
-                // 获取模板详情
-                try {
-                    JSONObject templateDetail = elasticRealTemplateService.getOneTemplateDetail(info.getName());
-                    if (templateDetail != null) {
-                        // 设置详情内容
-                        view.setContent(templateDetail.toJSONString());
-                        
-                        // 尝试提取更多信息
-                        extractTemplateDetails(view, templateDetail);
-                    }
-                } catch (Exception e) {
-                    log.warn("获取模板{}详情失败: {}", info.getName(), e.getMessage());
-                }
-                
-                result.add(view);
-            }
-            
-            return result;
-        } catch (IOException e) {
-            log.error("获取模板列表失败", e);
-            return new ArrayList<>();
-        }
-    }
-    
-    /**
-     * 从模板详情中提取更多信息
-     * @param view 模板视图对象
-     * @param templateDetail 模板详情JSON
-     */
-    private void extractTemplateDetails(TemplateHistoryView view, JSONObject templateDetail) {
-        try {
-            // 尝试提取滚动策略、保存策略等信息
-            // 这里的实现取决于templateDetail的具体结构
-            // 以下是示例代码，需要根据实际JSON结构调整
-            
-            if (templateDetail.containsKey("index_templates")) {
-                JSONObject indexTemplate = templateDetail.getJSONArray("index_templates").getJSONObject(0)
-                    .getJSONObject("index_template");
-                
-                if (indexTemplate.containsKey("template") && 
-                    indexTemplate.getJSONObject("template").containsKey("settings") &&
-                    indexTemplate.getJSONObject("template").getJSONObject("settings").containsKey("index")) {
-                    
-                    JSONObject settings = indexTemplate.getJSONObject("template")
-                        .getJSONObject("settings").getJSONObject("index");
-                    
-                    // 提取生命周期策略
-                    if (settings.containsKey("lifecycle")) {
-                        JSONObject lifecycle = settings.getJSONObject("lifecycle");
-                        if (lifecycle.containsKey("name")) {
-                            view.setRollingPolicy(lifecycle.getString("name"));
-                        }
-                    }
-                    
-                    // 提取其他可能的信息
-                    if (settings.containsKey("number_of_shards")) {
-                        view.setIndexNum(settings.getString("number_of_shards"));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("提取模板{}详细信息失败: {}", view.getName(), e.getMessage());
-        }
-    }
+
 }

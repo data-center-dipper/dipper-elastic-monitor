@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
+import com.dipper.monitor.entity.elastic.template.history.TemplateDetailReq;
 import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.TemplateHistoryService;
@@ -50,7 +51,8 @@ public class TemplateHistoryServiceImpl implements TemplateHistoryService {
     }
 
     @Override
-    public JSONObject getOneTemplateDetail(String templateName) throws IOException {
+    public JSONObject getOneTemplateDetail(TemplateDetailReq templateDetailReq) throws IOException {
+        String templateName = templateDetailReq.getTemplateName();
         JSONObject oneTemplateDetail = elasticRealTemplateService.getOneTemplateDetail(templateName);
         return oneTemplateDetail;
     }

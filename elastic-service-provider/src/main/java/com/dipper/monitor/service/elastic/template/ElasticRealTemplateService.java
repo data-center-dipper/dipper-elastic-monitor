@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.template.history.EsTemplateInfo;
 import com.dipper.monitor.entity.elastic.template.history.TemplateDetailView;
+import com.dipper.monitor.entity.elastic.template.history.TemplateHistoryView;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,4 +47,12 @@ public interface ElasticRealTemplateService {
      * @throws IOException
      */
     JSONObject getOneTemplateDetail(String templateName) throws IOException;
+
+    /**
+     * 获取模版缓存信息
+     * @return
+     */
+    List<TemplateHistoryView> getTemplateHistoryViewCache();
+
+    List<TemplateHistoryView> getTemplateHistoryView();
 }
