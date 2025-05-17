@@ -19,10 +19,6 @@ public class StartApplicationContextInitializer  implements ApplicationContextIn
             log.error("插件配置目录未指定！");
             return;
         }
-        if(configDirPath.contains("elastic-service-provider")){
-            configDirPath = configDirPath.replace("elastic-service-provider", "");
-            configDirPath = configDirPath.replace("\\elastic-service-provider", "");
-        }
         log.info("插件配置目录: {}", configDirPath);
 
         // 加载目录下所有的配置文件

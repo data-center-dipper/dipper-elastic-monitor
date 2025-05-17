@@ -1,9 +1,9 @@
 package com.dipper.monitor.service.elastic.template;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
-import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
+import com.dipper.monitor.entity.elastic.template.history.EsTemplateInfo;
+import com.dipper.monitor.entity.elastic.template.history.TemplateDetailView;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,9 +16,7 @@ public interface ElasticRealTemplateService {
 
    List<EsTemplateConfigMes> statTemplate(String name) throws IOException;
 
-
-    EsTemplateEntity getTemplate(Integer id);
-
+   
     List<String> getIndexPatternList(String indexPatterns);
 
     /**
@@ -27,4 +25,25 @@ public interface ElasticRealTemplateService {
      * @return
      */
     JSONObject rollTemplate(Integer id) throws Exception;
+
+    /**
+     * 获取模版的简单信息，只有个别信息
+     * @return
+     * @throws IOException
+     */
+    List<EsTemplateInfo> getTemplateList() throws IOException;
+
+    /**
+     * 获取模版，包含详情信息，一些重要信息
+     * @return
+     * @throws IOException
+     */
+    List<TemplateDetailView> getTemplateDetailList() throws IOException;
+
+    /**
+     * 获取单个模版的详情，最原始的详情信息
+     * @return
+     * @throws IOException
+     */
+    JSONObject getOneTemplateDetail(String templateName) throws IOException;
 }

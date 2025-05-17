@@ -22,10 +22,7 @@ public class PluginsConfigUtils {
     /**
      * 使用类加载器加载指定目录下的所有属性文件并缓存结果。
      */
-    public static void loadAllProperties(String configDirPath) {
-        String home = System.getProperty("user.dir");
-        log.info("当前工作目录: {}", home);
-        String pluginConfig = home + "/" + configDirPath;
+    public static void loadAllProperties(String pluginConfig) {
         log.info("插件配置目录: {}", pluginConfig);
         File dir = new File(pluginConfig);
         if (dir.isDirectory()) {
@@ -42,7 +39,7 @@ public class PluginsConfigUtils {
                 }
             }
         } else {
-            log.error("指定的配置文件目录不是有效的目录: {}", configDirPath);
+            log.error("指定的配置文件目录不是有效的目录: {}", pluginConfig);
         }
     }
 
