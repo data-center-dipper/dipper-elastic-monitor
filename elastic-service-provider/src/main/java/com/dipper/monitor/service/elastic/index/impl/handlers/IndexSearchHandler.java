@@ -39,7 +39,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         Boolean aliansException = indexFilterReq.getAliansException();
 
         if (aliansException != null && aliansException.booleanValue()) {
-            return getAliansException();
+            return getAliasException();
         }
 
         String indexType = indexFilterReq.getIndexType();
@@ -57,33 +57,52 @@ public class IndexSearchHandler extends AbstractIndexHandler {
 
     }
 
-    private List<IndexEntity> getAliansException() throws IOException {
-        List<String> list = this.elasticAliasService.listExceptionAlias();
 
-        if (list.size() < 1) {
+
+    private List<IndexEntity> getAliasException() throws IOException {
+        // 获取异常别名列表
+        Map<String, List<IndexAlias>> aliasExceptions = this.elasticAliasService.listExceptionAlias();
+
+        if (aliasExceptions.isEmpty()) {
             return Collections.emptyList();
         }
 
-        Map<String, List<IndexAlias>> group = this.elasticAliasService.getAliasIndexMap();
-        List<IndexAlias> indexAnlansList = new ArrayList<>();
-        for (String index : list) {
-            indexAnlansList.addAll(group.get(index));
+        // 获取别名到索引的映射
+        Map<String, List<IndexAlias>> aliasIndexMap = this.elasticAliasService.getAliasIndexMap();
+        List<IndexAlias> indexAliasesList = new ArrayList<>();
+
+        // 根据异常别名列表从别名-索引映射中获取对应的 IndexAlias 列表
+        for (String alias : aliasExceptions.keySet()) {
+            List<IndexAlias> aliases = aliasIndexMap.get(alias);
+            if (aliases != null) {
+                indexAliasesList.addAll(aliases);
+            }
         }
 
+        // 获取所有索引实体的映射
         Map<String, IndexEntity> indexNamesMap = elasticRealIndexService.listIndexMap(false);
-        List<IndexEntity> indexNames = new ArrayList<>();
-        for (IndexAlias index : indexAnlansList) {
-            indexNames.add(indexNamesMap.get(index.getIndex()));
+        List<IndexEntity> indexEntities = new ArrayList<>();
+
+        // 将 IndexAlias 转换为 IndexEntity
+        for (IndexAlias alias : indexAliasesList) {
+            IndexEntity entity = indexNamesMap.get(alias.getIndex());
+            if (entity != null) {
+                indexEntities.add(entity);
+            }
         }
+
         //    indexNames = BusinessRelationUtils.indexClassificationByPattern(indexNames, patterns);
         //
         //    Map<String, IndexSetting> indexSettingMap = this.indexGlobalSettingCache.getGlobalIndexSetting();
         //    indexNames = setIndexFreeze(indexNames, indexSettingMap);
         //    indexNames = this.esAliansService.getindexAlians(indexNames);
-        indexNames = setIndexCanWrite(indexNames);
-        indexNames = setIndexAlians(indexNames);
-        indexNames = setIndexSetting(indexNames);
-        return indexNames;
+
+        // 设置索引是否可写等属性
+        indexEntities = setIndexCanWrite(indexEntities);
+        indexEntities = setIndexAlians(indexEntities);
+        indexEntities = setIndexSetting(indexEntities);
+
+        return indexEntities;
     }
 
     public List<IndexEntity> setIndexSetting(List<IndexEntity> indexNames) {

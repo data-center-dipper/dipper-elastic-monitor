@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.index.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.alians.IndexAlias;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
 import com.dipper.monitor.entity.elastic.index.IndexSetting;
@@ -225,22 +226,29 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     private List<IndexEntity> filterByAliansList(List<IndexEntity> indexNames) {
-        List<String> alinsEx = new ArrayList<>();
+        Map<String, List<IndexAlias>> alinsEx = new HashMap<>();
         try {
             alinsEx = this.elasticAliasService.listExceptionAlias();
         } catch (IOException e) {
             log.error("获取异常的别名出错：{}", e.getMessage(), e);
         }
-        List<IndexEntity> list = new ArrayList<>(indexNames.size());
+
+        List<IndexEntity> list = new ArrayList<>();
+
         for (IndexEntity x : indexNames) {
-            String alians = x.getAlians();
-            if (StringUtils.isBlank(alians)) {
+            String alias = x.getAlians();
+
+            // 如果别名为空，跳过
+            if (StringUtils.isBlank(alias)) {
                 continue;
             }
-            if (alinsEx.contains(alians)) {
+
+            // 检查是否是异常别名（即是否存在于 alinsEx 的 keySet 中）
+            if (alinsEx.containsKey(alias)) {
                 list.add(x);
             }
         }
+
         return list;
     }
 
