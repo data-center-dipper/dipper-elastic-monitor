@@ -43,4 +43,6 @@ public interface ElasticRealIndexService {
      * 分页获取索引列表
      */
     Tuple2<List<IndexListView>, Long> indexPageList(IndexPageReq indexPageReq) throws IOException;
+
+    JSONObject indexTemplate(String indexName);
 }

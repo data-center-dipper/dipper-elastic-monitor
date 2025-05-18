@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -371,6 +372,57 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
         } catch (IOException e) {
             log.error("获取模板列表失败", e);
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 根据索引名称获取其使用的模板信息（支持新旧模板）
+     */
+    public JSONObject getTemplateByIndexName(String indexName) {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("索引名称为空，无法获取模板");
+            return null;
+        }
+
+        try {
+            // 第一步：获取索引的设置信息，从中提取模板名称
+            String settingsApi = "/" + indexName + "/_settings";
+            String settingsResponse = elasticClientService.executeGetApi(settingsApi);
+            JSONObject settingsJson = JSONObject.parseObject(settingsResponse);
+
+            // 检查是否包含模板信息
+            JSONObject indexSettings = settingsJson.getJSONObject(indexName)
+                    .getJSONObject("settings")
+                    .getJSONObject("index");
+
+            String templateName = indexSettings.getString("template");
+
+            if (StringUtils.isBlank(templateName)) {
+                log.warn("索引 {} 未关联任何模板", indexName);
+                return null;
+            }
+
+            // 第二步：尝试从新旧两个接口获取模板内容
+            String newIndexTemplateApi = "/_index_template/" + templateName;
+            String legacyTemplateApi = "/_template/" + templateName;
+
+            String templateResponse = elasticClientService.executeGetApi(newIndexTemplateApi);
+
+            // 如果新接口失败，再尝试旧接口
+            if (StringUtils.isBlank(templateResponse) || templateResponse.contains("type=resource_not_found_exception")) {
+                templateResponse = elasticClientService.executeGetApi(legacyTemplateApi);
+            }
+
+            if (StringUtils.isNotBlank(templateResponse)) {
+                return JSONObject.parseObject(templateResponse);
+            } else {
+                log.error("获取模板 {} 失败，无返回内容", templateName);
+                return null;
+            }
+
+        } catch (Exception e) {
+            log.error("获取模板失败，索引名: {}", indexName, e);
+            return null;
         }
     }
 

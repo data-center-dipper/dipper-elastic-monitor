@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.index.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.entity.elastic.index.*;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
@@ -17,6 +18,7 @@ import com.dipper.monitor.service.elastic.index.impl.thread.IndexSettingCallable
 import com.dipper.monitor.service.elastic.life.ElasticRealLifecyclePoliciesService;
 import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
+import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
 import com.dipper.monitor.utils.ListUtils;
@@ -172,6 +174,12 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
        Tuple2<List<IndexListView>, Long> indexEntities = indexListHandler.indexPageList(indexPageReq);
         return indexEntities;
 
+    }
+
+    @Override
+    public JSONObject indexTemplate(String indexName) {
+        ElasticRealTemplateService elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
+        return elasticRealTemplateService.getTemplateByIndexName(indexName);
     }
 
     private void setExtraLabel(List<IndexEntity> indexEntities) {
