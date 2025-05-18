@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.alians;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.alians.AliasListView;
 import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
+import com.dipper.monitor.entity.elastic.alians.AliasRepairInfo;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.utils.Tuple2;
 
@@ -21,7 +22,7 @@ public interface ElasticAliasService {
      * @param aliasData 别名相关的数据字符串（如 JSON）
      * @return 如果存在多个可写索引，返回 true；否则返回 false
      */
-    boolean isWriteEx(String aliasData);
+    boolean isWriteEx(String aliasName,String aliasData);
 
     /**
      * 获取某个别名所指向的最大索引名称（适用于滚动索引场景，例如 logs-001, logs-002）。
@@ -38,7 +39,7 @@ public interface ElasticAliasService {
      * @return 操作结果（通常为 API 返回的 JSON 字符串）
      * @throws Exception 操作失败时抛出异常
      */
-    String changeIndexWrite(String indexMax, String alias, boolean b) throws Exception;
+    String changeIndexWrite(String indexMax, String alias, boolean isWriteIndex) throws Exception;
 
     /**
      * 获取所有存在异常的别名列表（比如一个别名指向两个可写索引）。
@@ -68,7 +69,7 @@ public interface ElasticAliasService {
      * @param aliasResult 别名相关的信息字符串
      * @return 可写索引数量
      */
-    int countAliasWrite(String aliasResult);
+    int countAliasWrite(String aliasNameParams,String aliasResult);
 
     /**
      * 根据索引模式匹配查找别名列表。
@@ -110,7 +111,15 @@ public interface ElasticAliasService {
      */
     Tuple2<List<AliasListView>, Long> getAliasByPage(AliasPageReq aliasPageReq) throws IOException;
 
-    List<IndexAliasRelation> aliasCheck() throws IOException;
+    Map<String, List<IndexAliasRelation>> aliasCheck() throws IOException;
 
-    List<String> aliasRepair();
+    List<String> aliasAutoRepair();
+
+
+    /**
+     * 单独修复某个别名
+     * @param aliasRepairInfo
+     * @throws Exception
+     */
+    void aliasAutoRepair(AliasRepairInfo aliasRepairInfo) throws Exception;
 }

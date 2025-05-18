@@ -3,8 +3,10 @@ package com.dipper.monitor.service.elastic.alians.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.alians.AliasListView;
 import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
+import com.dipper.monitor.entity.elastic.alians.AliasRepairInfo;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
@@ -29,8 +31,9 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     private ElasticClientService elasticClientService ;
 
     @Override
-    public boolean isWriteEx(String aliasData) {
-        if (1 < countAliasWrite(aliasData)) {
+    public boolean isWriteEx(String aliasName,String aliasData) {
+        int count = countAliasWrite(aliasName,aliasData);
+        if (1 < count) {
              return true;
           }
        return false;
@@ -55,8 +58,9 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
         return "";
     }
 
-    public int countAliasWrite(String aliasData) {
-        Map<String, Set<String>> aliasIndexMap = new HashMap<>();
+    public int countAliasWrite(String aliasNameParams,String aliasData) {
+        // key: alias name, value: 可写索引集合
+        Map<String, Set<String>> writeAliasIndexMap = new HashMap<>();
 
         try {
             JSONObject json = JSON.parseObject(aliasData);
@@ -65,33 +69,36 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
                 String indexName = indexEntry.getKey();
                 JSONObject aliasesJson = ((JSONObject) indexEntry.getValue()).getJSONObject("aliases");
 
-                if (aliasesJson == null) continue; // Skip if no aliases found
+                if (aliasesJson == null) continue;
 
                 for (Map.Entry<String, Object> aliasEntry : aliasesJson.entrySet()) {
                     String aliasName = aliasEntry.getKey();
                     JSONObject aliasDetails = (JSONObject) aliasEntry.getValue();
+
                     Boolean isWriteIndex = aliasDetails.getBoolean("is_write_index");
-
-                    // Add the index to the set associated with this alias
-                    aliasIndexMap.computeIfAbsent(aliasName, k -> new HashSet<>()).add(indexName);
-
-                    // If 'is_write_index' is false or null, we do not remove it from the set.
-                    // The logic only counts those sets that have more than one index.
+                    if(ApplicationUtils.isWindows()){
+                        writeAliasIndexMap
+                                .computeIfAbsent(aliasName, k -> new HashSet<>())
+                                .add(indexName);
+                    }
+                    if (Boolean.TRUE.equals(isWriteIndex)) { // 明确为 true 才计入统计
+                        writeAliasIndexMap
+                                .computeIfAbsent(aliasName, k -> new HashSet<>())
+                                .add(indexName);
+                    }
                 }
             }
+
         } catch (Exception e) {
             log.info("解析别名异常：aliasData：{} {}", aliasData, e.getMessage(), e);
             return 0;
         }
 
-        // Check for any alias having more than one write index
-        for (Set<String> indexes : aliasIndexMap.values()) {
-            if (indexes.size() > 1) {
-                return indexes.size(); // Return the size of the first such set found
-            }
+        Set<String> strings = writeAliasIndexMap.get(aliasNameParams);
+        if(strings != null){
+            return strings.size();
         }
-
-        return 0; // No alias has more than one write index
+        return 0;
     }
 
     /**
@@ -141,8 +148,8 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     }
 
 
-    public String changeIndexWrite(String indexName, String alias, boolean flag) throws Exception {
-        String body = "{\n  \"actions\": [\n    {\n      \"add\": {\n        \"index\": \"" + indexName + "\",\n        \"alias\": \"" + alias + "\",\n        \"is_write_index\":" + flag + "\n      }\n    }\n  ]\n}";
+    public String changeIndexWrite(String indexName, String alias, boolean isWriteIndex) throws Exception {
+        String body = "{\n  \"actions\": [\n    {\n      \"add\": {\n        \"index\": \"" + indexName + "\",\n        \"alias\": \"" + alias + "\",\n        \"is_write_index\":" + isWriteIndex + "\n      }\n    }\n  ]\n}";
 
         try {
             NStringEntity entity = new NStringEntity(body);
@@ -181,7 +188,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
             String aliasData = this.elasticClientService.executeGetApi(alias + "/_alias");
 
             // 判断是否存在多个可写索引
-            boolean hasMultipleWriteIndices = isWriteEx(aliasData);
+            boolean hasMultipleWriteIndices = isWriteEx(alias,aliasData);
 
             // 如果存在多个可写索引，加入异常结果中
             if (hasMultipleWriteIndices) {
@@ -424,23 +431,20 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     }
 
     @Override
-    public List<IndexAliasRelation> aliasCheck() throws IOException {
+    public Map<String, List<IndexAliasRelation>> aliasCheck() throws IOException {
         // 获取所有存在多个可写索引的异常别名及其关联的 IndexAlias 列表
         Map<String, List<IndexAliasRelation>> exceptionAliasMap = listExceptionAlias();
 
         if (exceptionAliasMap.isEmpty()) {
             log.info("没有需要修复的别名冲突");
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
-        // 将 Map 中所有的 List<IndexAlias> 合并为一个 List<IndexAlias>
-        return exceptionAliasMap.values().stream()
-                .flatMap(List::stream)  // 将每个 List<IndexAlias> 转换为流，并合并为单一流
-                .collect(Collectors.toList());  // 收集为一个新的 List<IndexAlias>
+        return exceptionAliasMap;
     }
 
     @Override
-    public List<String> aliasRepair() {
+    public List<String> aliasAutoRepair() {
         try {
             // 获取所有存在多个可写索引的异常别名及其关联的 IndexAlias 列表
             Map<String, List<IndexAliasRelation>> exceptionAliasMap = listExceptionAlias();
@@ -479,5 +483,19 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
             log.error("别名自动修复过程中出现错误", e);
             throw new RuntimeException("别名自动修复失败", e);
         }
+    }
+
+    @Override
+    public void aliasAutoRepair(AliasRepairInfo aliasRepairInfo) throws Exception {
+        String keepIndex = aliasRepairInfo.getKeepIndex();
+        List<String> indexesToDisable = aliasRepairInfo.getIndexesToDisable();
+        String alias = aliasRepairInfo.getAlias();
+
+        // 首先移除所有相关索引的别名
+        for (String index : indexesToDisable) {
+            changeIndexWrite(index, alias, false);
+        }
+
+        changeIndexWrite(keepIndex, alias, true);
     }
 }

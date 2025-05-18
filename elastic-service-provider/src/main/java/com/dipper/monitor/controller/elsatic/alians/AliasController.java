@@ -3,6 +3,7 @@ package com.dipper.monitor.controller.elsatic.alians;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.alians.AliasListView;
 import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
+import com.dipper.monitor.entity.elastic.alians.AliasRepairInfo;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.utils.ResultUtils;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -42,7 +44,7 @@ public class AliasController {
     @Operation(summary = "别名冲突检测", description = "别名冲突检测")
     public JSONObject aliasCheck() {
         try {
-            List<IndexAliasRelation> pageResult = elasticAliasService.aliasCheck();
+            Map<String, List<IndexAliasRelation>> pageResult = elasticAliasService.aliasCheck();
             return  ResultUtils.onSuccess(pageResult);
         } catch (Exception e) {
             log.error("分页查询失败", e);
@@ -50,15 +52,27 @@ public class AliasController {
         }
     }
 
-    @GetMapping("/aliasRepair")
-    @Operation(summary = "别名冲突修复", description = "别名冲突修复")
-    public JSONObject aliasRepair() {
+    @PostMapping("/aliasRepair")
+    @Operation(summary = "别名冲突修复", description = "根据提供的别名信息修复冲突")
+    public JSONObject aliasRepair(@RequestBody AliasRepairInfo aliasRepairInfo) {
         try {
-            List<String> pageResult = elasticAliasService.aliasRepair();
+            elasticAliasService.aliasAutoRepair(aliasRepairInfo);
+            return  ResultUtils.onSuccess();
+        } catch (Exception e) {
+            log.error("别名修复失败", e);
+            return  ResultUtils.onFail();
+        }
+    }
+
+    @GetMapping("/aliasAutoRepair")
+    @Operation(summary = "别名冲突自动修复", description = "别名冲突自动修复")
+    public JSONObject aliasAutoRepair() {
+        try {
+            List<String> pageResult = elasticAliasService.aliasAutoRepair();
             return  ResultUtils.onSuccess(pageResult);
         } catch (Exception e) {
-            log.error("分页查询失败", e);
-            return ResultUtils.onFail(500, "分页查询失败: " + e.getMessage());
+            log.error("别名冲突自动修复失败", e);
+            return ResultUtils.onFail(500, "别名冲突自动修复失败: " + e.getMessage());
         }
     }
 }

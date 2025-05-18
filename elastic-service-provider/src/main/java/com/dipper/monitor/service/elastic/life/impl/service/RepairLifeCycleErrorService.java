@@ -94,7 +94,7 @@ public class RepairLifeCycleErrorService  extends AbstractLifeCycleError {
             builder.append("获取别名信息出错: ").append(e.getMessage()).append("\r\n");
             return;
         }
-        if (!elasticAliasService.isWriteEx(aliansData)) {
+        if (!elasticAliasService.isWriteEx(alians,aliansData)) {
             return;
         }
         String indexMax = elasticAliasService.getAliasMaxIndexRolling(aliansData);

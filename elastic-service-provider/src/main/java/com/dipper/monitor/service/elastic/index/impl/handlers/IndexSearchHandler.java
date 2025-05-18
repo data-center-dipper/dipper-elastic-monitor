@@ -150,7 +150,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
                 x.setIndexCanWrite(Boolean.valueOf(true));
             }
             String aliasResult = x.getAlians();
-            int writeCount = this.elasticAliasService.countAliasWrite(aliasResult);
+            int writeCount = this.elasticAliasService.countAliasWrite(aliasResult,"");
             x.setAlinasCanWrite(Integer.valueOf(writeCount));
         }
         return indexNames;
