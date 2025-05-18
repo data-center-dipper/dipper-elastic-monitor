@@ -175,9 +175,14 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         if (templateById == null) {
             return null;
         }
-        
+
+        EsUnconvertedTemplate esUnconvertedTemplate = transToEsUnconvertedTemplate(templateById);
+        return esUnconvertedTemplate;
+    }
+
+    private EsUnconvertedTemplate transToEsUnconvertedTemplate(EsTemplateEntity templateById) {
         EsUnconvertedTemplate unconvertedTemplate = new EsUnconvertedTemplate();
-        
+
         // 复制基本属性
         unconvertedTemplate.setId(templateById.getId());
         unconvertedTemplate.setZhName(templateById.getZhName());
@@ -193,7 +198,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
         // 设置模板内容
         unconvertedTemplate.setTemplateContent(templateById.getTemplateContent());
-        
+
         // 处理设置信息
         String settings = templateById.getSettings();
         if (StringUtils.isNotBlank(settings)) {
@@ -207,8 +212,24 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         } else {
             unconvertedTemplate.setSettings(new HashMap<>());
         }
-        
+
         return unconvertedTemplate;
+    }
+
+    @Override
+    public EsUnconvertedTemplate getOneUnconvertedTemplateByEnName(String enName) {
+        if(StringUtils.isBlank(enName)){
+            throw new IllegalArgumentException("enName is blank");
+        }
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        EsTemplateEntity template = esTemplateMapper.getTemplateByEnName(clusterCode,enName);
+        if (template == null) {
+            throw new IllegalArgumentException("template not found");
+        }
+
+        EsUnconvertedTemplate esUnconvertedTemplate = transToEsUnconvertedTemplate(template);
+        return esUnconvertedTemplate;
     }
 
     @Override

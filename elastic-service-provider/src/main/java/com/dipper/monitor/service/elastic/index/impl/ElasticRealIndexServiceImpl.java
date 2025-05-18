@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
-import com.dipper.monitor.entity.elastic.index.IndexEntity;
-import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
-import com.dipper.monitor.entity.elastic.index.IndexSetting;
+import com.dipper.monitor.entity.elastic.index.*;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.enums.elastic.IndexOperatorType;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
@@ -23,6 +21,7 @@ import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
 import com.dipper.monitor.utils.ListUtils;
 import com.dipper.monitor.utils.ResultUtils;
+import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.BytesUtil;
 import com.dipper.monitor.utils.elastic.EsDateUtils;
 import com.dipper.monitor.utils.elastic.IndexUtils;
@@ -105,15 +104,15 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
 
-    public Map<String, IndexEntity> listIndexMap(boolean setting) throws IOException {
+    public Map<String, IndexEntity> listIndexMap(boolean getSetting) throws IOException {
         IndexMapHandler indexMapHandler = new IndexMapHandler(elasticClientService);
-        Map<String, IndexEntity> map = indexMapHandler.listIndexMap(setting);
+        Map<String, IndexEntity> map = indexMapHandler.listIndexMap(getSetting);
         return map;
     }
 
-    public List<IndexEntity> listIndexList(boolean setting, boolean alians, String status) throws IOException {
+    public List<IndexEntity> listIndexList(boolean setting, boolean alias, String status) throws IOException {
         IndexListHandler indexListHandler = new IndexListHandler(elasticClientService);
-        List<IndexEntity> indexEntities = indexListHandler.listIndexList(setting, alians, status);
+        List<IndexEntity> indexEntities = indexListHandler.listIndexList(setting, alias, status);
         return indexEntities;
     }
 
@@ -168,9 +167,9 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
 
-    public List<IndexEntity> searchIndex(IndexFilterReq indexFilterReq) throws IOException {
+   public Tuple2<List<IndexListView>, Long> indexPageList(IndexPageReq indexPageReq) throws IOException {
         IndexSearchHandler indexListHandler = new IndexSearchHandler(elasticClientService);
-        List<IndexEntity> indexEntities = indexListHandler.searchIndex(indexFilterReq);
+       Tuple2<List<IndexListView>, Long> indexEntities = indexListHandler.indexPageList(indexPageReq);
         return indexEntities;
 
     }

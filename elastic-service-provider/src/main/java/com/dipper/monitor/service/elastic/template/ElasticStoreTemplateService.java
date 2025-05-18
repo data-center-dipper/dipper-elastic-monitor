@@ -67,6 +67,8 @@ public interface ElasticStoreTemplateService {
      */
     EsUnconvertedTemplate getOneUnconvertedTemplate(Integer id);
 
+    EsUnconvertedTemplate getOneUnconvertedTemplateByEnName(String enName);
+
     /**
      * 获取模版统计信息
      * @param id
@@ -74,5 +76,12 @@ public interface ElasticStoreTemplateService {
      */
     EsTemplateStatEntity templateStat(Integer id);
 
+    /**
+     * 根据模版名称查询模版
+     * @param templateLike
+     * @return
+     */
     List<String> templateNames(String templateLike);
+
+
 }
