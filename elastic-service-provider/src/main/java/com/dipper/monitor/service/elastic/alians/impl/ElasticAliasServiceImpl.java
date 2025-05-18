@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.dipper.monitor.entity.elastic.alians.AliasListView;
 import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
-import com.dipper.monitor.entity.elastic.alians.IndexAlias;
+import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -161,19 +161,19 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     }
 
     @Override
-    public Map<String, List<IndexAlias>> listExceptionAlias() throws IOException {
+    public Map<String, List<IndexAliasRelation>> listExceptionAlias() throws IOException {
         // 获取所有别名与索引的映射关系
-        Map<String, List<IndexAlias>> aliasIndexMap = getAliasHiveManyIndex();
+        Map<String, List<IndexAliasRelation>> aliasIndexMap = getAliasHiveManyIndex();
 
         // 用于存储异常别名及其对应的索引列表
-        Map<String, List<IndexAlias>> exceptionAliasMap = new HashMap<>();
+        Map<String, List<IndexAliasRelation>> exceptionAliasMap = new HashMap<>();
 
-        for (Map.Entry<String, List<IndexAlias>> entry : aliasIndexMap.entrySet()) {
+        for (Map.Entry<String, List<IndexAliasRelation>> entry : aliasIndexMap.entrySet()) {
             String alias = entry.getKey();
-            List<IndexAlias> indexAliasList = entry.getValue();
+            List<IndexAliasRelation> indexAliasRelationList = entry.getValue();
 
             // 如果该别名只关联了一个索引，则跳过
-            if (indexAliasList.size() <= 1) {
+            if (indexAliasRelationList.size() <= 1) {
                 continue;
             }
 
@@ -185,20 +185,20 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
 
             // 如果存在多个可写索引，加入异常结果中
             if (hasMultipleWriteIndices) {
-                exceptionAliasMap.put(alias, indexAliasList);
+                exceptionAliasMap.put(alias, indexAliasRelationList);
             }
         }
 
         return exceptionAliasMap;
     }
 
-    protected Map<String, List<IndexAlias>> getAliasHiveManyIndex() throws IOException {
-        Map<String, List<IndexAlias>> group = getAliasIndexMap();
+    protected Map<String, List<IndexAliasRelation>> getAliasHiveManyIndex() throws IOException {
+        Map<String, List<IndexAliasRelation>> group = getAliasIndexMap();
 
-        Map<String, List<IndexAlias>> mebeyEx = new HashMap<>();
+        Map<String, List<IndexAliasRelation>> mebeyEx = new HashMap<>();
 
-        for (Map.Entry<String, List<IndexAlias>> item : group.entrySet()) {
-            List<IndexAlias> value = item.getValue();
+        for (Map.Entry<String, List<IndexAliasRelation>> item : group.entrySet()) {
+            List<IndexAliasRelation> value = item.getValue();
             if (1 < value.size()) {
                 mebeyEx.put(item.getKey(), item.getValue());
             }
@@ -206,7 +206,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
         return mebeyEx;
     }
 
-    public List<IndexAlias> getAliasIndexList() throws IOException {
+    public List<IndexAliasRelation> getAliasIndexList() throws IOException {
         String result = this.elasticClientService.executeGetApi(ElasticRestApi.ALIASES_LIST.getApiPath());
 
         if (result == null || result.trim().isEmpty()) {
@@ -217,7 +217,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
         List<Map<String, String>> aliasList = JSON.parseObject(result,
                 new TypeReference<List<Map<String, String>>>() {}.getType());
 
-        List<IndexAlias> indexAliasList = new ArrayList<>();
+        List<IndexAliasRelation> indexAliasRelationList = new ArrayList<>();
 
         for (Map<String, String> item : aliasList) {
             String alias = item.get("alias");
@@ -230,21 +230,28 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
             // 转换字符串到布尔值
             Boolean isWriteIndex = Boolean.parseBoolean(isWriteIndexStr);
 
-            IndexAlias indexAlias = new IndexAlias();
-            indexAlias.setAlias(alias);
-            indexAlias.setIndex(index);
-            indexAlias.setFilter(filter);
-            indexAlias.setRoutingIndex(routingIndex);
-            indexAlias.setRoutingSearch(routingSearch);
-            indexAlias.setIsWriteIndex(isWriteIndex);
+            IndexAliasRelation indexAliasRelation = new IndexAliasRelation();
+            indexAliasRelation.setAlias(alias);
+            indexAliasRelation.setIndex(index);
+            indexAliasRelation.setFilter(filter);
+            indexAliasRelation.setRoutingIndex(routingIndex);
+            indexAliasRelation.setRoutingSearch(routingSearch);
+            indexAliasRelation.setIsWriteIndex(isWriteIndex);
 
-            indexAliasList.add(indexAlias);
+            indexAliasRelationList.add(indexAliasRelation);
         }
 
-        return indexAliasList;
+        // 排序逻辑：先按 isWriteIndex 降序（true 在前），再按 index 升序
+        indexAliasRelationList.sort(
+                Comparator
+                        .comparing((IndexAliasRelation r) -> !r.getIsWriteIndex()) // false 排后面，所以用取反升序
+                        .thenComparing(IndexAliasRelation::getIndex)
+        );
+
+        return indexAliasRelationList;
     }
 
-    public Map<String, List<IndexAlias>> getAliasIndexMap() throws IOException {
+    public Map<String, List<IndexAliasRelation>> getAliasIndexMap() throws IOException {
         String result = this.elasticClientService.executeGetApi(ElasticRestApi.ALIASES_LIST.getApiPath());
 
         if (result == null || result.trim().isEmpty()) {
@@ -255,7 +262,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
         List<Map<String, String>> aliasList = JSON.parseObject(result,
                 new TypeReference<List<Map<String, String>>>() {}.getType());
 
-        Map<String, List<IndexAlias>> map = new HashMap<>();
+        Map<String, List<IndexAliasRelation>> map = new HashMap<>();
 
         for (Map<String, String> item : aliasList) {
             String alias = item.get("alias");
@@ -265,11 +272,11 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
             String routingSearch = item.getOrDefault("routing.search", "-");
             String isWriteIndex = item.getOrDefault("is_write_index", "-");
 
-            IndexAlias indexAlias = new IndexAlias(alias, index, filter,
+            IndexAliasRelation indexAliasRelation = new IndexAliasRelation(alias, index, filter,
                     routingIndex, routingSearch, isWriteIndex);
 
             // 使用 computeIfAbsent 方法简化代码
-            map.computeIfAbsent(alias, k -> new ArrayList<>()).add(indexAlias);
+            map.computeIfAbsent(alias, k -> new ArrayList<>()).add(indexAliasRelation);
         }
 
         return map;
@@ -346,7 +353,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
 
     @Override
     public List<String> aliasNames(String nameLike) throws IOException {
-        Map<String, List<IndexAlias>> aliasIndexMap = getAliasIndexMap();
+        Map<String, List<IndexAliasRelation>> aliasIndexMap = getAliasIndexMap();
         if (aliasIndexMap == null || aliasIndexMap.isEmpty()) {
             return Collections.emptyList();
         }
@@ -365,7 +372,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     @Override
     public Tuple2<List<AliasListView>, Long> getAliasByPage(AliasPageReq aliasPageReq) throws IOException {
         // 1. 获取所有别名-索引映射数据（扁平结构）
-        List<IndexAlias> allAliasIndexList = getAliasIndexList();
+        List<IndexAliasRelation> allAliasIndexList = getAliasIndexList();
 
         if (allAliasIndexList == null || allAliasIndexList.isEmpty()) {
             return new Tuple2<>(Collections.emptyList(), 0L);
@@ -417,9 +424,9 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     }
 
     @Override
-    public List<IndexAlias> aliasCheck() throws IOException {
+    public List<IndexAliasRelation> aliasCheck() throws IOException {
         // 获取所有存在多个可写索引的异常别名及其关联的 IndexAlias 列表
-        Map<String, List<IndexAlias>> exceptionAliasMap = listExceptionAlias();
+        Map<String, List<IndexAliasRelation>> exceptionAliasMap = listExceptionAlias();
 
         if (exceptionAliasMap.isEmpty()) {
             log.info("没有需要修复的别名冲突");
@@ -436,7 +443,7 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     public List<String> aliasRepair() {
         try {
             // 获取所有存在多个可写索引的异常别名及其关联的 IndexAlias 列表
-            Map<String, List<IndexAlias>> exceptionAliasMap = listExceptionAlias();
+            Map<String, List<IndexAliasRelation>> exceptionAliasMap = listExceptionAlias();
 
             if (exceptionAliasMap.isEmpty()) {
                 log.info("没有需要修复的别名冲突");
@@ -445,22 +452,22 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
 
             List<String> repairedAliases = new ArrayList<>();
 
-            for (Map.Entry<String, List<IndexAlias>> entry : exceptionAliasMap.entrySet()) {
+            for (Map.Entry<String, List<IndexAliasRelation>> entry : exceptionAliasMap.entrySet()) {
                 String alias = entry.getKey();
-                List<IndexAlias> indexAliases = entry.getValue();
+                List<IndexAliasRelation> indexAliasRelations = entry.getValue();
 
                 // 根据时间顺序对索引进行排序（假设索引名称包含时间信息）
-                indexAliases.sort(Comparator.comparing(IndexAlias::getIndex).reversed());
+                indexAliasRelations.sort(Comparator.comparing(IndexAliasRelation::getIndex).reversed());
 
                 // 找出最新的索引并设置为可写
-                String maxIndex = indexAliases.get(0).getIndex();  // 最新的索引
+                String maxIndex = indexAliasRelations.get(0).getIndex();  // 最新的索引
 
                 // 将最新的索引设置为可写
                 changeIndexWrite(maxIndex, alias, true);
 
                 // 对其他索引设置为不可写
-                for (int i = 1; i < indexAliases.size(); i++) {
-                    String indexName = indexAliases.get(i).getIndex();
+                for (int i = 1; i < indexAliasRelations.size(); i++) {
+                    String indexName = indexAliasRelations.get(i).getIndex();
                     changeIndexWrite(indexName, alias, false);
                 }
 

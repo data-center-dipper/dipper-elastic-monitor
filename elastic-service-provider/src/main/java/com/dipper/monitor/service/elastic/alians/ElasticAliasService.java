@@ -3,7 +3,7 @@ package com.dipper.monitor.service.elastic.alians;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.alians.AliasListView;
 import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
-import com.dipper.monitor.entity.elastic.alians.IndexAlias;
+import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -45,16 +45,16 @@ public interface ElasticAliasService {
      * @return 异常别名名称列表
      * @throws IOException 网络或 IO 错误
      */
-    Map<String, List<IndexAlias>> listExceptionAlias()  throws IOException;
+    Map<String, List<IndexAliasRelation>> listExceptionAlias()  throws IOException;
 
-    List<IndexAlias> getAliasIndexList() throws IOException;
+    List<IndexAliasRelation> getAliasIndexList() throws IOException;
 
     /**
      * 获取所有别名与索引的映射关系。
      * @return key 是别名名称，value 是该别名关联的一组索引及其写标志信息
      * @throws IOException 网络或 IO 错误
      */
-    Map<String, List<IndexAlias>> getAliasIndexMap() throws IOException;
+    Map<String, List<IndexAliasRelation>> getAliasIndexMap() throws IOException;
 
     /**
      * 获取所有别名的原始 JSON 数据。
@@ -110,7 +110,7 @@ public interface ElasticAliasService {
      */
     Tuple2<List<AliasListView>, Long> getAliasByPage(AliasPageReq aliasPageReq) throws IOException;
 
-    List<IndexAlias> aliasCheck() throws IOException;
+    List<IndexAliasRelation> aliasCheck() throws IOException;
 
     List<String> aliasRepair();
 }

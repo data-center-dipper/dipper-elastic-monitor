@@ -3,7 +3,7 @@ package com.dipper.monitor.service.elastic.index.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.alians.IndexAlias;
+import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
 import com.dipper.monitor.entity.elastic.index.IndexSetting;
@@ -226,7 +226,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     private List<IndexEntity> filterByAliansList(List<IndexEntity> indexNames) {
-        Map<String, List<IndexAlias>> alinsEx = new HashMap<>();
+        Map<String, List<IndexAliasRelation>> alinsEx = new HashMap<>();
         try {
             alinsEx = this.elasticAliasService.listExceptionAlias();
         } catch (IOException e) {

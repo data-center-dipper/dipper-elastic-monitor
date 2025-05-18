@@ -72,7 +72,9 @@ public class ElasticClientServiceImpl implements ElasticClientService {
     private ElasticClientProxyService createClient(CurrentClusterEntity currentCluster) {
 
         Properties properties = PluginsConfigUtils.getPluginConfig(PluginConstants.ELASTICSEARCH.getPluginName());
-
+        if (properties == null) {
+            log.error("未找到插件配置");
+        }
         String address = currentCluster.getAddress();
         properties.put(ElasticsearchBaseProxyConfig.ELASTICSEARCH_URL, address);
         log.info("创建admin配置:{}",properties);

@@ -3,9 +3,7 @@ package com.dipper.monitor.controller.elsatic.alians;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.alians.AliasListView;
 import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
-import com.dipper.monitor.entity.elastic.alians.IndexAlias;
-import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
-import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
+import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -19,7 +17,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/dipper/monitor/api/v1/elastic/alians_manager")
+@RequestMapping("/dipper/monitor/api/v1/elastic/alias_manager")
 @Tag(name = "别名管理", description = "别名管理")
 public class AliasController {
 
@@ -44,7 +42,7 @@ public class AliasController {
     @Operation(summary = "别名冲突检测", description = "别名冲突检测")
     public JSONObject aliasCheck() {
         try {
-            List<IndexAlias> pageResult = elasticAliasService.aliasCheck();
+            List<IndexAliasRelation> pageResult = elasticAliasService.aliasCheck();
             return  ResultUtils.onSuccess(pageResult);
         } catch (Exception e) {
             log.error("分页查询失败", e);

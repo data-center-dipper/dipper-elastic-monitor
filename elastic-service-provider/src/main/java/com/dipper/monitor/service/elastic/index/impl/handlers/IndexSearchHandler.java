@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.dipper.monitor.beans.SpringUtil;
-import com.dipper.monitor.entity.elastic.alians.IndexAlias;
+import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexFilterReq;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
@@ -61,21 +61,21 @@ public class IndexSearchHandler extends AbstractIndexHandler {
 
     private List<IndexEntity> getAliasException() throws IOException {
         // 获取异常别名列表
-        Map<String, List<IndexAlias>> aliasExceptions = this.elasticAliasService.listExceptionAlias();
+        Map<String, List<IndexAliasRelation>> aliasExceptions = this.elasticAliasService.listExceptionAlias();
 
         if (aliasExceptions.isEmpty()) {
             return Collections.emptyList();
         }
 
         // 获取别名到索引的映射
-        Map<String, List<IndexAlias>> aliasIndexMap = this.elasticAliasService.getAliasIndexMap();
-        List<IndexAlias> indexAliasesList = new ArrayList<>();
+        Map<String, List<IndexAliasRelation>> aliasIndexMap = this.elasticAliasService.getAliasIndexMap();
+        List<IndexAliasRelation> indexAliasesListRelation = new ArrayList<>();
 
         // 根据异常别名列表从别名-索引映射中获取对应的 IndexAlias 列表
         for (String alias : aliasExceptions.keySet()) {
-            List<IndexAlias> aliases = aliasIndexMap.get(alias);
+            List<IndexAliasRelation> aliases = aliasIndexMap.get(alias);
             if (aliases != null) {
-                indexAliasesList.addAll(aliases);
+                indexAliasesListRelation.addAll(aliases);
             }
         }
 
@@ -84,7 +84,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         List<IndexEntity> indexEntities = new ArrayList<>();
 
         // 将 IndexAlias 转换为 IndexEntity
-        for (IndexAlias alias : indexAliasesList) {
+        for (IndexAliasRelation alias : indexAliasesListRelation) {
             IndexEntity entity = indexNamesMap.get(alias.getIndex());
             if (entity != null) {
                 indexEntities.add(entity);
