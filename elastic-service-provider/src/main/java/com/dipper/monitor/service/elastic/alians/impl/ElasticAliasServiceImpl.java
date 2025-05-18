@@ -3,10 +3,14 @@ package com.dipper.monitor.service.elastic.alians.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.dipper.monitor.entity.elastic.alians.AliasListView;
+import com.dipper.monitor.entity.elastic.alians.AliasPageReq;
 import com.dipper.monitor.entity.elastic.alians.IndexAlias;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.utils.ListUtils;
+import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
@@ -26,10 +30,10 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
 
     @Override
     public boolean isWriteEx(String aliasData) {
-    if (1 < countAliasWrite(aliasData)) {
-         return true;
-      }
-   return false;
+        if (1 < countAliasWrite(aliasData)) {
+             return true;
+          }
+       return false;
       }
 
     @Override
@@ -157,24 +161,38 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
     }
 
     @Override
-    public List<String> listExceptionAlias() throws IOException {
-        Map<String, List<IndexAlias>> mebeyEx = getAlainsHiveManyIndex();
-        List<String> exAlians = new ArrayList<>();
-        for (Map.Entry<String, List<IndexAlias>> item : mebeyEx.entrySet()) {
-            String alias = item.getKey();
-            String aliasData = this.elasticClientService.executeGetApi(alias + "/_alias");
-            boolean isWriteIndexGreaterThanOne = isWriteEx(aliasData);
+    public Map<String, List<IndexAlias>> listExceptionAlias() throws IOException {
+        // 获取所有别名与索引的映射关系
+        Map<String, List<IndexAlias>> aliasIndexMap = getAliasHiveManyIndex();
 
-            if (!isWriteIndexGreaterThanOne) {
+        // 用于存储异常别名及其对应的索引列表
+        Map<String, List<IndexAlias>> exceptionAliasMap = new HashMap<>();
+
+        for (Map.Entry<String, List<IndexAlias>> entry : aliasIndexMap.entrySet()) {
+            String alias = entry.getKey();
+            List<IndexAlias> indexAliasList = entry.getValue();
+
+            // 如果该别名只关联了一个索引，则跳过
+            if (indexAliasList.size() <= 1) {
                 continue;
             }
 
-            exAlians.add(alias);
+            // 获取该别名的详细信息（JSON 格式）
+            String aliasData = this.elasticClientService.executeGetApi(alias + "/_alias");
+
+            // 判断是否存在多个可写索引
+            boolean hasMultipleWriteIndices = isWriteEx(aliasData);
+
+            // 如果存在多个可写索引，加入异常结果中
+            if (hasMultipleWriteIndices) {
+                exceptionAliasMap.put(alias, indexAliasList);
+            }
         }
-        return exAlians;
+
+        return exceptionAliasMap;
     }
 
-    protected Map<String, List<IndexAlias>> getAlainsHiveManyIndex() throws IOException {
+    protected Map<String, List<IndexAlias>> getAliasHiveManyIndex() throws IOException {
         Map<String, List<IndexAlias>> group = getAliasIndexMap();
 
         Map<String, List<IndexAlias>> mebeyEx = new HashMap<>();
@@ -186,6 +204,44 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
             }
         }
         return mebeyEx;
+    }
+
+    public List<IndexAlias> getAliasIndexList() throws IOException {
+        String result = this.elasticClientService.executeGetApi(ElasticRestApi.ALIASES_LIST.getApiPath());
+
+        if (result == null || result.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 解析 JSON 数组
+        List<Map<String, String>> aliasList = JSON.parseObject(result,
+                new TypeReference<List<Map<String, String>>>() {}.getType());
+
+        List<IndexAlias> indexAliasList = new ArrayList<>();
+
+        for (Map<String, String> item : aliasList) {
+            String alias = item.get("alias");
+            String index = item.get("index");
+            String filter = item.getOrDefault("filter", "-");
+            String routingIndex = item.getOrDefault("routing.index", "-");
+            String routingSearch = item.getOrDefault("routing.search", "-");
+            String isWriteIndexStr = item.getOrDefault("is_write_index", "false");
+
+            // 转换字符串到布尔值
+            Boolean isWriteIndex = Boolean.parseBoolean(isWriteIndexStr);
+
+            IndexAlias indexAlias = new IndexAlias();
+            indexAlias.setAlias(alias);
+            indexAlias.setIndex(index);
+            indexAlias.setFilter(filter);
+            indexAlias.setRoutingIndex(routingIndex);
+            indexAlias.setRoutingSearch(routingSearch);
+            indexAlias.setIsWriteIndex(isWriteIndex);
+
+            indexAliasList.add(indexAlias);
+        }
+
+        return indexAliasList;
     }
 
     public Map<String, List<IndexAlias>> getAliasIndexMap() throws IOException {
@@ -304,5 +360,117 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
         return aliasIndexMap.keySet().stream()
                 .filter(aliasName -> aliasName.toLowerCase().contains(nameLike.toLowerCase()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Tuple2<List<AliasListView>, Long> getAliasByPage(AliasPageReq aliasPageReq) throws IOException {
+        // 1. 获取所有别名-索引映射数据（扁平结构）
+        List<IndexAlias> allAliasIndexList = getAliasIndexList();
+
+        if (allAliasIndexList == null || allAliasIndexList.isEmpty()) {
+            return new Tuple2<>(Collections.emptyList(), 0L);
+        }
+
+        // 2. 搜索过滤（按别名名称模糊匹配）
+        String keyword = aliasPageReq.getKeyword();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            allAliasIndexList = allAliasIndexList.stream()
+                    .filter(item -> item.getAlias().contains(keyword))
+                    .collect(Collectors.toList());
+        }
+
+        // 3. 转换为前端展示对象列表
+        List<AliasListView> aliasListViewList = allAliasIndexList.stream()
+                .map(item -> {
+                    AliasListView view = new AliasListView();
+                    view.setAliasName(item.getAlias());
+                    view.setIndexName(item.getIndex());
+                    view.setIsWriteAble(item.getIsWriteIndex());
+                    return view;
+                })
+                .collect(Collectors.toList());
+
+        // 4. 分页处理（使用 splitListBySize 方法按页大小切割）
+        int total = aliasListViewList.size();
+        int pageNum = aliasPageReq.getPageNum();
+        int pageSize = aliasPageReq.getPageSize();
+
+        // 计算总页数，防止页码越界
+        int totalPages = (int) Math.ceil((double) total / pageSize);
+        if (pageNum > totalPages) {
+            pageNum = totalPages;
+        }
+        if (pageNum < 1) {
+            pageNum = 1;
+        }
+
+        // 切分列表
+        List<List<AliasListView>> pagedList = ListUtils.splitListBySize(aliasListViewList, pageSize);
+
+        // 获取当前页数据
+        List<AliasListView> currentPageData = Collections.emptyList();
+        if (!pagedList.isEmpty() && pageNum <= pagedList.size()) {
+            currentPageData = pagedList.get(pageNum - 1);
+        }
+
+        return new Tuple2<>(currentPageData, (long) total);
+    }
+
+    @Override
+    public List<IndexAlias> aliasCheck() throws IOException {
+        // 获取所有存在多个可写索引的异常别名及其关联的 IndexAlias 列表
+        Map<String, List<IndexAlias>> exceptionAliasMap = listExceptionAlias();
+
+        if (exceptionAliasMap.isEmpty()) {
+            log.info("没有需要修复的别名冲突");
+            return Collections.emptyList();
+        }
+
+        // 将 Map 中所有的 List<IndexAlias> 合并为一个 List<IndexAlias>
+        return exceptionAliasMap.values().stream()
+                .flatMap(List::stream)  // 将每个 List<IndexAlias> 转换为流，并合并为单一流
+                .collect(Collectors.toList());  // 收集为一个新的 List<IndexAlias>
+    }
+
+    @Override
+    public List<String> aliasRepair() {
+        try {
+            // 获取所有存在多个可写索引的异常别名及其关联的 IndexAlias 列表
+            Map<String, List<IndexAlias>> exceptionAliasMap = listExceptionAlias();
+
+            if (exceptionAliasMap.isEmpty()) {
+                log.info("没有需要修复的别名冲突");
+                return Collections.emptyList();
+            }
+
+            List<String> repairedAliases = new ArrayList<>();
+
+            for (Map.Entry<String, List<IndexAlias>> entry : exceptionAliasMap.entrySet()) {
+                String alias = entry.getKey();
+                List<IndexAlias> indexAliases = entry.getValue();
+
+                // 根据时间顺序对索引进行排序（假设索引名称包含时间信息）
+                indexAliases.sort(Comparator.comparing(IndexAlias::getIndex).reversed());
+
+                // 找出最新的索引并设置为可写
+                String maxIndex = indexAliases.get(0).getIndex();  // 最新的索引
+
+                // 将最新的索引设置为可写
+                changeIndexWrite(maxIndex, alias, true);
+
+                // 对其他索引设置为不可写
+                for (int i = 1; i < indexAliases.size(); i++) {
+                    String indexName = indexAliases.get(i).getIndex();
+                    changeIndexWrite(indexName, alias, false);
+                }
+
+                repairedAliases.add(alias);
+            }
+
+            return repairedAliases;
+        } catch (Exception e) {
+            log.error("别名自动修复过程中出现错误", e);
+            throw new RuntimeException("别名自动修复失败", e);
+        }
     }
 }

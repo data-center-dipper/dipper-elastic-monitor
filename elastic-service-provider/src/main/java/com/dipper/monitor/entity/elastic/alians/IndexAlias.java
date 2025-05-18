@@ -12,6 +12,10 @@ public class IndexAlias {
     private String routingSearch;
     private Boolean isWriteIndex;
 
+    public IndexAlias() {
+
+    }
+
     public IndexAlias(String alias, String index, String filter,
                       String routingIndex, String routingSearch, String isWriteIndex) {
         this.alias = alias;
