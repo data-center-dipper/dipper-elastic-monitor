@@ -1,0 +1,414 @@
+apis:
+  - name: 查看节点信息
+    description: 列出集群中的所有节点信息
+    method: GET
+    path: /_cat/nodes?v
+    
+  - name: 集群健康状态
+    description: 获取集群健康状态信息
+    method: GET
+    path: /_cluster/health?pretty
+    
+  - name: 查看集群状态信息
+    description: 获取集群详细状态信息
+    method: GET
+    path: /_cluster/stats?pretty
+    
+  - name: 查看所有索引
+    description: 列出所有索引及其基本信息
+    method: GET
+    path: /_cat/indices?v
+    
+  - name: 查看索引详情
+    description: 获取指定索引的详细信息
+    method: GET
+    path: /${indexName}
+    
+  - name: 索引搜索
+    description: 对指定索引进行简单搜索
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "query": {
+          "match_all": {}
+        }
+      }
+      
+  - name: Match查询
+    description: 全文匹配查询
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "query": {
+          "match": {
+            "${fieldName}": "${value}"
+          }
+        }
+      }
+      
+  - name: Term精确查询
+    description: 精确值匹配查询
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "query": {
+          "term": {
+            "${fieldName}": "${value}"
+          }
+        }
+      }
+      
+  - name: Range范围查询
+    description: 范围查询
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "query": {
+          "range": {
+            "${fieldName}": {
+              "gte": "${fromValue}",
+              "lt": "${toValue}"
+            }
+          }
+        }
+      }
+      
+  - name: 查看分片分配
+    description: 查看索引分片的分配情况
+    method: GET
+    path: /_cat/shards?v
+    
+  - name: 查看任务状态
+    description: 查看当前正在执行的任务
+    method: GET
+    path: /_tasks?detailed=true&pretty
+    
+  - name: 查看节点统计信息
+    description: 获取节点的统计信息
+    method: GET
+    path: /_nodes/stats?pretty
+
+  # 新增API
+  - name: 创建索引
+    description: 创建一个新的索引
+    method: PUT
+    path: /${indexName}
+    body: |
+      {
+        "settings": {
+          "number_of_shards": 3,
+          "number_of_replicas": 1
+        },
+        "mappings": {
+          "properties": {
+            "${fieldName}": {
+              "type": "${fieldType}"
+            }
+          }
+        }
+      }
+
+  - name: 删除索引
+    description: 删除指定的索引
+    method: DELETE
+    path: /${indexName}
+
+  - name: 获取索引映射
+    description: 获取索引的映射信息
+    method: GET
+    path: /${indexName}/_mapping
+
+  - name: 获取索引设置
+    description: 获取索引的设置信息
+    method: GET
+    path: /${indexName}/_settings
+
+  - name: 更新索引设置
+    description: 更新索引的设置
+    method: PUT
+    path: /${indexName}/_settings
+    body: |
+      {
+        "index": {
+          "number_of_replicas": ${replicaCount}
+        }
+      }
+
+  - name: 索引文档
+    description: 向索引中添加或更新文档
+    method: POST
+    path: /${indexName}/_doc/${documentId}
+    body: |
+      {
+        "${field1}": "${value1}",
+        "${field2}": ${value2},
+        "${field3}": "${value3}"
+      }
+
+  - name: 获取文档
+    description: 获取指定ID的文档
+    method: GET
+    path: /${indexName}/_doc/${documentId}
+
+  - name: 删除文档
+    description: 删除指定ID的文档
+    method: DELETE
+    path: /${indexName}/_doc/${documentId}
+
+  - name: 批量操作
+    description: 批量索引、更新或删除文档
+    method: POST
+    path: /_bulk
+    body: |
+      {"index": {"_index": "${indexName}", "_id": "${id1}"}}
+      {"${field1}": "${value1}", "${field2}": ${value2}}
+      {"update": {"_index": "${indexName}", "_id": "${id2}"}}
+      {"doc": {"${field1}": "${newValue}"}}
+      {"delete": {"_index": "${indexName}", "_id": "${id3}"}}
+
+  - name: 多字段搜索
+    description: 在多个字段中搜索
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "query": {
+          "multi_match": {
+            "query": "${searchText}",
+            "fields": ["${field1}", "${field2}", "${field3}"]
+          }
+        }
+      }
+
+  - name: Bool复合查询
+    description: 使用布尔逻辑组合多个查询条件
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "query": {
+          "bool": {
+            "must": [
+              {"match": {"${field1}": "${value1}"}}
+            ],
+            "filter": [
+              {"term": {"${field2}": "${value2}"}}
+            ],
+            "should": [
+              {"match": {"${field3}": "${value3}"}}
+            ],
+            "must_not": [
+              {"term": {"${field4}": "${value4}"}}
+            ]
+          }
+        }
+      }
+
+  - name: 聚合查询
+    description: 使用聚合功能进行数据分析
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "size": 0,
+        "aggs": {
+          "${aggregationName}": {
+            "terms": {
+              "field": "${fieldName}",
+              "size": ${bucketSize}
+            }
+          }
+        }
+      }
+
+  - name: 嵌套聚合
+    description: 使用嵌套聚合进行多层次数据分析
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "size": 0,
+        "aggs": {
+          "${outerAggName}": {
+            "terms": {
+              "field": "${outerField}",
+              "size": ${outerSize}
+            },
+            "aggs": {
+              "${innerAggName}": {
+                "${aggType}": {
+                  "field": "${innerField}"
+                }
+              }
+            }
+          }
+        }
+      }
+
+  - name: 指标聚合
+    description: 计算字段的统计指标
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "size": 0,
+        "aggs": {
+          "avg_value": {"avg": {"field": "${fieldName}"}},
+          "min_value": {"min": {"field": "${fieldName}"}},
+          "max_value": {"max": {"field": "${fieldName}"}},
+          "sum_value": {"sum": {"field": "${fieldName}"}},
+          "count_value": {"value_count": {"field": "${fieldName}"}}
+        }
+      }
+
+  - name: 日期直方图
+    description: 按时间间隔聚合数据
+    method: GET
+    path: /${indexName}/_search
+    body: |
+      {
+        "size": 0,
+        "aggs": {
+          "${histogramName}": {
+            "date_histogram": {
+              "field": "${dateField}",
+              "calendar_interval": "${interval}",
+              "format": "yyyy-MM-dd"
+            }
+          }
+        }
+      }
+
+  - name: 创建索引模板
+    description: 创建索引模板用于自动配置新索引
+    method: PUT
+    path: /_index_template/${templateName}
+    body: |
+      {
+        "index_patterns": ["${pattern}*"],
+        "template": {
+          "settings": {
+            "number_of_shards": ${shardCount},
+            "number_of_replicas": ${replicaCount}
+          },
+          "mappings": {
+            "properties": {
+              "${fieldName}": {
+                "type": "${fieldType}"
+              }
+            }
+          }
+        }
+      }
+
+  - name: 查看索引模板
+    description: 获取索引模板信息
+    method: GET
+    path: /_index_template/${templateName}
+
+  - name: 删除索引模板
+    description: 删除指定的索引模板
+    method: DELETE
+    path: /_index_template/${templateName}
+
+  - name: 创建别名
+    description: 为索引创建别名
+    method: POST
+    path: /_aliases
+    body: |
+      {
+        "actions": [
+          {
+            "add": {
+              "index": "${indexName}",
+              "alias": "${aliasName}"
+            }
+          }
+        ]
+      }
+
+  - name: 查看别名
+    description: 获取索引别名信息
+    method: GET
+    path: /${indexName}/_alias
+
+  - name: 滚动索引
+    description: 滚动更新索引
+    method: POST
+    path: /${aliasName}/_rollover
+    body: |
+      {
+        "conditions": {
+          "max_age": "${maxAge}",
+          "max_docs": ${maxDocs},
+          "max_size": "${maxSize}"
+        }
+      }
+
+  - name: 重建索引
+    description: 将文档从一个索引复制到另一个索引
+    method: POST
+    path: /_reindex
+    body: |
+      {
+        "source": {
+          "index": "${sourceIndex}"
+        },
+        "dest": {
+          "index": "${destIndex}"
+        }
+      }
+
+  - name: 查询索引恢复状态
+    description: 获取索引恢复的状态信息
+    method: GET
+    path: /${indexName}/_recovery
+
+  - name: 查询集群设置
+    description: 获取集群的设置信息
+    method: GET
+    path: /_cluster/settings?include_defaults=true&pretty
+
+  - name: 更新集群设置
+    description: 更新集群的设置
+    method: PUT
+    path: /_cluster/settings
+    body: |
+      {
+        "persistent": {
+          "${settingName}": "${settingValue}"
+        }
+      }
+
+  - name: 查看热点线程
+    description: 获取集群中的热点线程信息
+    method: GET
+    path: /_nodes/hot_threads
+
+  - name: 查看索引段信息
+    description: 获取索引段的详细信息
+    method: GET
+    path: /${indexName}/_segments
+
+  - name: 清除缓存
+    description: 清除索引缓存
+    method: POST
+    path: /${indexName}/_cache/clear
+
+  - name: 刷新索引
+    description: 刷新索引，使最近的更改可被搜索
+    method: POST
+    path: /${indexName}/_refresh
+
+  - name: 强制合并
+    description: 强制合并索引段
+    method: POST
+    path: /${indexName}/_forcemerge
+    body: |
+      {
+        "max_num_segments": ${segmentCount}
+      }
