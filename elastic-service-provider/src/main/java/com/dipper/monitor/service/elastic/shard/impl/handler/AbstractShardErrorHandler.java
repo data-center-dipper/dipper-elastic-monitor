@@ -1,4 +1,4 @@
-package com.dipper.monitor.service.elastic.shard.impl.service;
+package com.dipper.monitor.service.elastic.shard.impl.handler;
 
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;

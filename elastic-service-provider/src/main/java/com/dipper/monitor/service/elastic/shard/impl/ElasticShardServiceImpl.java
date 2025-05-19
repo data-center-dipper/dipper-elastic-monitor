@@ -4,12 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.common.lib.utils.ApplicationUtils;
-import com.dipper.monitor.entity.elastic.shard.ShardEntity;
+import com.dipper.monitor.entity.elastic.shard.*;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
-import com.dipper.monitor.service.elastic.shard.impl.service.ListShardMapHandler;
-import com.dipper.monitor.service.elastic.shard.impl.service.check.CheckShardErrorHandler;
-import com.dipper.monitor.service.elastic.shard.impl.service.repair.RepairShardErrorHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.ListShardMapHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.check.CheckShardErrorHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.repair.RepairShardErrorHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.views.ShardIndexDistributeViewHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.views.ShardNodeDistributeViewHandler;
+import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.mock.MockAllData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,4 +104,47 @@ public class ElasticShardServiceImpl implements ElasticShardService {
         }
         return list;
     }
+
+
+    @Override
+    public List<ShardEntity> getIndexShards(String indexName) throws IOException {
+        String api = "/_cat/shards/" + indexName + "?format=json";
+        log.info("获取某种类型的shard:{}", api);
+        String result = this.elasticClientService.executeGetApi(api);
+
+        JSONArray indexDiskJson = JSON.parseArray(result);
+        List<ShardEntity> list = new ArrayList<>();
+        for (Iterator<Object> nodeItera = indexDiskJson.iterator(); nodeItera.hasNext(); ) {
+            JSONObject obj = (JSONObject)nodeItera.next();
+            String index = obj.getString("index");
+
+            String state = obj.getString("state");
+
+            ShardEntity shard = new ShardEntity();
+            shard.setIndex(index)
+                    .setDocs(Long.valueOf(obj.getLongValue("docs")))
+                    .setIp(obj.getString("ip"))
+                    .setNode(obj.getString("node"))
+                    .setPrirep(obj.getString("prirep"))
+                    .setShard(obj.getInteger("shard"))
+                    .setState(state)
+                    .setStore(obj.getString("store"));
+
+            list.add(shard);
+        }
+        return list;
+    }
+
+    @Override
+    public Tuple2<Integer, ShardNodeDistributeView> shardNodeDistribute(ShardNodeDistributeReq shardNodeDistributeReq) {
+        ShardNodeDistributeViewHandler listShardMapHandler = new ShardNodeDistributeViewHandler(elasticClientService,this);
+        return listShardMapHandler.shardNodeDistribute(shardNodeDistributeReq);
+    }
+
+    @Override
+    public Tuple2<Integer, ShardIndexDistributeView> shardIndexDistribute(ShardIndexDistributeReq shardIndexDistributeReq) {
+        ShardIndexDistributeViewHandler listShardMapHandler = new ShardIndexDistributeViewHandler(elasticClientService,this);
+        return listShardMapHandler.shardIndexDistribute(shardIndexDistributeReq);
+    }
+
 }

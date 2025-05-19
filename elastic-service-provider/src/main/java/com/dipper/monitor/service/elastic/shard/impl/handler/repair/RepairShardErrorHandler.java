@@ -1,19 +1,17 @@
-package com.dipper.monitor.service.elastic.shard.impl.service.repair;
+package com.dipper.monitor.service.elastic.shard.impl.handler.repair;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
-import com.dipper.monitor.service.elastic.shard.impl.service.AbstractShardErrorHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.AbstractShardErrorHandler;
 import com.dipper.monitor.utils.ResultUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 
 @Slf4j

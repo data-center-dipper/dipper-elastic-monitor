@@ -33,10 +33,10 @@ logging:
 # ??????
 plugins:
   config:
-    dir: \\elastic-service-provider\\src\\main\\resources\\plugins
+    dir: \\elastic-handler-provider\\src\\main\\resources\\plugins
   jar:
     dir: plugins
 
 prefabricate:
   template:
-    path: \\elastic-service-provider\\src\\main\\resources\\template\\prefabricate
+    path: \\elastic-handler-provider\\src\\main\\resources\\template\\prefabricate
