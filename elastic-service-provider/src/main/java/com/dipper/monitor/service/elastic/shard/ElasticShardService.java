@@ -50,4 +50,19 @@ public interface ElasticShardService {
      * @param indexName
      */
     List<ShardEntity> getIndexShards(String indexName) throws IOException;
+    
+    /**
+     * 获取集群中所有节点列表
+     * @return 节点名称列表
+     * @throws IOException
+     */
+    List<String> getClusterNodes() throws IOException;
+    
+    /**
+     * 迁移分片
+     * @param migrationReq 迁移请求参数
+     * @return 是否成功提交迁移请求
+     * @throws IOException
+     */
+    boolean migrateShard(ShardMigrationReq migrationReq) throws IOException;
 }

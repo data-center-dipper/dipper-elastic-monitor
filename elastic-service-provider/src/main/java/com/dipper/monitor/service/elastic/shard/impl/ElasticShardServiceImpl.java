@@ -15,6 +15,7 @@ import com.dipper.monitor.service.elastic.shard.impl.handler.views.ShardNodeDist
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.mock.MockAllData;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.nio.entity.NStringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -33,7 +35,7 @@ public class ElasticShardServiceImpl implements ElasticShardService {
 
     @Override
     public List<JSONObject> getShardError() throws IOException {
-        if(ApplicationUtils.isWindows()){
+        if (ApplicationUtils.isWindows()) {
             return MockAllData.getShardError();
         }
         // 检查分片状态
@@ -83,7 +85,7 @@ public class ElasticShardServiceImpl implements ElasticShardService {
         JSONArray indexDiskJson = JSON.parseArray(result);
         List<ShardEntity> list = new ArrayList<>();
         for (Iterator<Object> nodeItera = indexDiskJson.iterator(); nodeItera.hasNext(); ) {
-            JSONObject obj = (JSONObject)nodeItera.next();
+            JSONObject obj = (JSONObject) nodeItera.next();
             String index = obj.getString("index");
             if (!index.startsWith(indexPatternPrefix)) {
                 continue;
@@ -115,7 +117,7 @@ public class ElasticShardServiceImpl implements ElasticShardService {
         JSONArray indexDiskJson = JSON.parseArray(result);
         List<ShardEntity> list = new ArrayList<>();
         for (Iterator<Object> nodeItera = indexDiskJson.iterator(); nodeItera.hasNext(); ) {
-            JSONObject obj = (JSONObject)nodeItera.next();
+            JSONObject obj = (JSONObject) nodeItera.next();
             String index = obj.getString("index");
 
             String state = obj.getString("state");
@@ -137,14 +139,105 @@ public class ElasticShardServiceImpl implements ElasticShardService {
 
     @Override
     public Tuple2<Integer, ShardNodeDistributeView> shardNodeDistribute(ShardNodeDistributeReq shardNodeDistributeReq) {
-        ShardNodeDistributeViewHandler listShardMapHandler = new ShardNodeDistributeViewHandler(elasticClientService,this);
+        ShardNodeDistributeViewHandler listShardMapHandler = new ShardNodeDistributeViewHandler(elasticClientService, this);
         return listShardMapHandler.shardNodeDistribute(shardNodeDistributeReq);
     }
 
     @Override
     public Tuple2<Integer, ShardIndexDistributeView> shardIndexDistribute(ShardIndexDistributeReq shardIndexDistributeReq) {
-        ShardIndexDistributeViewHandler listShardMapHandler = new ShardIndexDistributeViewHandler(elasticClientService,this);
+        ShardIndexDistributeViewHandler listShardMapHandler = new ShardIndexDistributeViewHandler(elasticClientService, this);
         return listShardMapHandler.shardIndexDistribute(shardIndexDistributeReq);
     }
 
+    @Override
+    public List<String> getClusterNodes() throws IOException {
+        if (ApplicationUtils.isWindows()) {
+            // 模拟数据，实际环境中应该从ES集群获取
+            List<String> mockNodes = new ArrayList<>();
+            mockNodes.add("node-1");
+            mockNodes.add("node-2");
+            mockNodes.add("node-3");
+            return mockNodes;
+        }
+
+        // 获取集群节点信息
+        String nodesInfo = elasticClientService.executeGetApi("/_cat/nodes?format=json");
+        log.info("节点信息：\n{}", nodesInfo);
+
+        JSONArray nodesArray = JSONArray.parseArray(nodesInfo);
+        List<String> nodeNames = new ArrayList<>();
+
+        for (int i = 0; i < nodesArray.size(); i++) {
+            JSONObject nodeJson = nodesArray.getJSONObject(i);
+            String nodeName = nodeJson.getString("name");
+            if (nodeName != null && !nodeName.isEmpty()) {
+                nodeNames.add(nodeName);
+            }
+        }
+
+        return nodeNames;
+    }
+
+    @Override
+    public boolean migrateShard(ShardMigrationReq migrationReq) throws IOException {
+        if (migrationReq.getIndex() == null || migrationReq.getShard() == null ||
+                migrationReq.getFromNode() == null || migrationReq.getToNode() == null) {
+            throw new IllegalArgumentException("迁移参数不完整");
+        }
+
+        if (migrationReq.getFromNode().equals(migrationReq.getToNode())) {
+            throw new IllegalArgumentException("源节点和目标节点不能相同");
+        }
+
+        if (ApplicationUtils.isWindows()) {
+            // 在Windows开发环境中模拟成功
+            log.info("模拟分片迁移：{}", JSON.toJSONString(migrationReq));
+            return true;
+        }
+
+        String requestBody = String.format(
+                "{\n" +
+                        "  \"commands\": [\n" +
+                        "    {\n" +
+                        "      \"move\": {\n" +
+                        "        \"index\": \"%s\",\n" +
+                        "        \"shard\": %d,\n" +
+                        "        \"from_node\": \"%s\",\n" +
+                        "        \"to_node\": \"%s\"\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  ]\n" +
+                        "}",
+                migrationReq.getIndex(),
+                migrationReq.getShard(),
+                migrationReq.getFromNode(),
+                migrationReq.getToNode()
+        );
+        try {
+
+            // 创建请求实体
+            NStringEntity entity = new NStringEntity(requestBody, org.apache.http.entity.ContentType.APPLICATION_JSON);
+
+            // 执行分片迁移请求
+            String response = elasticClientService.executePostApi("/_cluster/reroute", entity);
+            log.info("分片迁移响应：{}", response);
+
+            // 检查响应是否包含错误信息
+            JSONObject responseJson = JSON.parseObject(response);
+            if (responseJson.containsKey("acknowledged") && responseJson.getBoolean("acknowledged")) {
+                log.info("分片迁移请求已确认：从 {} 节点迁移索引 {} 的分片 {} 到 {} 节点",
+                        migrationReq.getFromNode(),
+                        migrationReq.getIndex(),
+                        migrationReq.getShard(),
+                        migrationReq.getToNode());
+                return true;
+            } else {
+                log.error("分片迁移请求未被确认：{}", response);
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("分片迁移失败", e);
+            throw new IOException("分片迁移失败: " + e.getMessage(), e);
+        }
+    }
 }
