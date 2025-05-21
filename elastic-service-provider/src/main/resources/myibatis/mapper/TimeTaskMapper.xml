@@ -6,13 +6,13 @@
 
     <!-- 根据注解类型删除元数据 -->
     <delete id="deleteByAnnotationType" parameterType="string">
-        DELETE FROM t_annotation_metadata
+        DELETE FROM t_task_metadata
         WHERE annotation_type = #{annotationType}
     </delete>
     
     <!-- 批量插入注解元数据 -->
     <insert id="batchInsert" parameterType="java.util.List">
-        INSERT INTO t_annotation_metadata (
+        INSERT INTO t_task_metadata (
             annotation_type, class_name, method_name, cron, fixed_rate, fixed_delay,
             author, group_name, job_desc, edit_able, additional_attributes
         ) VALUES 
@@ -33,7 +33,7 @@
             cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
             job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
             create_time AS createTime, update_time AS updateTime
-        FROM t_annotation_metadata
+        FROM t_task_metadata
         WHERE annotation_type = #{annotationType}
     </select>
     
@@ -44,7 +44,7 @@
             cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
             job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
             create_time AS createTime, update_time AS updateTime
-        FROM t_annotation_metadata
+        FROM t_task_metadata
     </select>
     
     <!-- 根据ID查询任务 -->
@@ -54,14 +54,14 @@
             cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
             job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
             create_time AS createTime, update_time AS updateTime
-        FROM t_annotation_metadata
+        FROM t_task_metadata
         WHERE id = #{id}
     </select>
     
     <!-- 统计任务总数 -->
     <select id="countTasks" resultType="long">
         SELECT COUNT(*)
-        FROM t_annotation_metadata
+        FROM t_task_metadata
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (class_name LIKE CONCAT('%', #{keyword}, '%')
@@ -79,7 +79,7 @@
             cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
             job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
             create_time AS createTime, update_time AS updateTime
-        FROM t_annotation_metadata
+        FROM t_task_metadata
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (class_name LIKE CONCAT('%', #{keyword}, '%')
