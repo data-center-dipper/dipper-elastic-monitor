@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexListView;
 import com.dipper.monitor.entity.elastic.index.IndexPageReq;
+import com.dipper.monitor.entity.elastic.index.IndexSetting;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -85,4 +86,8 @@ public interface ElasticRealIndexService {
      * @param indexPatterns xx-yyyyMMdd-* 这种格式
      */
     List<IndexEntity> listIndexNameByIndexPatterns(String indexPatterns, boolean b, boolean b1, String indexState) throws IOException;
+
+    public List<IndexEntity> listIndexByPrefix(boolean setting, String indexPrefix, String indexXing) throws IOException;
+
+    public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException;
 }
