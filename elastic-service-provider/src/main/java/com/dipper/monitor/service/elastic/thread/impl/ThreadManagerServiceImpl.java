@@ -3,9 +3,8 @@ package com.dipper.monitor.service.elastic.thread.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.thread.ThreadHotView;
-import com.dipper.monitor.entity.elastic.thread.ThreadPageReq;
-import com.dipper.monitor.service.elastic.ElasticClientService;
+import com.dipper.monitor.entity.elastic.thread.*;
+import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
@@ -278,17 +277,17 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
             }
             
             // 统计高CPU使用率线程
-            if (thread.getCpuUsage() != null && thread.getCpuUsage().contains("%")) {
-                String cpuStr = thread.getCpuUsage().replace("%", "");
-                try {
-                    double cpuUsage = Double.parseDouble(cpuStr);
-                    if (cpuUsage > 80) {
-                        highCpuThreadCount++;
-                    }
-                } catch (NumberFormatException e) {
-                    log.warn("解析CPU使用率失败: {}", thread.getCpuUsage());
-                }
-            }
+//            if (thread.getCpu() != null && thread.getCpu().contains("%")) {
+//                String cpuStr = thread.getCpu().replace("%", "");
+//                try {
+//                    double cpuUsage = Double.parseDouble(cpuStr);
+//                    if (cpuUsage > 80) {
+//                        highCpuThreadCount++;
+//                    }
+//                } catch (NumberFormatException e) {
+//                    log.warn("解析CPU使用率失败: {}", thread.getCpuUsage());
+//                }
+//            }
             
             // 统计阻塞线程
             if (thread.getStackTrace() != null && 

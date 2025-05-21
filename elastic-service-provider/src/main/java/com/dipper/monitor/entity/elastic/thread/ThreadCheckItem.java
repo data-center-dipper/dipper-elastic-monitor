@@ -1,4 +1,4 @@
-ppackage com.dipper.monitor.entity.elastic.thread;
+package com.dipper.monitor.entity.elastic.thread;
 
 import lombok.Data;
 

@@ -1,6 +1,7 @@
 package com.dipper.monitor.controller.elastic.thread;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.thread.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.ThreadPageReq;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
@@ -17,10 +18,14 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/dipper/monitor/api/v1/elastic/thread_manager")
-@Tag(name = "ES热点线程管理界面")
+@Tag(name = "线程管理", description = "线程管理")
 public class ThreadManagerController {
+
     @Autowired
     private ThreadManagerService threadManagerService;
+
+
+
 
     @PostMapping("/threadPage")
     @Operation(summary = "分页查询热点线程", description = "分页查询热点线程")
@@ -60,6 +65,18 @@ public class ThreadManagerController {
         } catch (Exception e) {
             log.error("刷新线程列表失败", e);
             return ResultUtils.onFail(500, "刷新线程列表失败: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("/checkThreadEnvironment")
+    @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")
+    public JSONObject checkThreadEnvironment() {
+        try {
+            ThreadCheckResult result = threadManagerService.checkThreadEnvironment();
+            return ResultUtils.onSuccess(result);
+        } catch (Exception e) {
+            log.error("线程环境检测失败", e);
+            return ResultUtils.onFail(500, "线程环境检测失败: " + e.getMessage());
         }
     }
 }

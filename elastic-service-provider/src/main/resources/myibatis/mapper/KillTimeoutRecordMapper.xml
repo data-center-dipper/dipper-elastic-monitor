@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.KillTimeoutRecordMapper">
+
+    <!-- 插入记录 -->
+    <insert id="insert">
+        INSERT INTO t_kill_timeout_record (
+        query_id,
+        index_name,
+        query_type,
+        kill_time,
+        execution_time,
+        status,
+        reason,
+        node_id,
+        task_id,
+        query_content
+        ) VALUES (
+        #{record.queryId},
+        #{record.indexName},
+        #{record.queryType},
+        #{record.killTime},
+        #{record.executionTime},
+        #{record.status},
+        #{record.reason},
+        #{record.nodeId},
+        #{record.taskId},
+        #{record.queryContent}
+        )
+    </insert>
+
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord">
+        SELECT *
+        FROM t_kill_timeout_record
+        <where>
+            <if test="req.searchText != null and req.searchText != ''">
+                AND (
+                index_name LIKE CONCAT('%', #{req.searchText}, '%')
+                OR query_content LIKE CONCAT('%', #{req.searchText}, '%')
+                OR node_id LIKE CONCAT('%', #{req.searchText}, '%')
+                OR task_id LIKE CONCAT('%', #{req.searchText}, '%')
+                OR reason LIKE CONCAT('%', #{req.searchText}, '%')
+                )
+            </if>
+            <if test="req.queryType != null and req.queryType != ''">
+                AND query_type = #{req.queryType}
+            </if>
+            <if test="req.indexName != null and req.indexName != ''">
+                AND index_name LIKE CONCAT('%', #{req.indexName}, '%')
+            </if>
+            <if test="req.minExecutionTime != null">
+                AND execution_time &gt;= #{req.minExecutionTime}
+            </if>
+            <if test="req.maxExecutionTime != null">
+                AND execution_time &lt;= #{req.maxExecutionTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 计数查询 -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM t_kill_timeout_record
+        <where>
+            <if test="req.searchText != null and req.searchText != ''">
+                AND (
+                index_name LIKE CONCAT('%', #{req.searchText}, '%')
+                OR query_content LIKE CONCAT('%', #{req.searchText}, '%')
+                OR node_id LIKE CONCAT('%', #{req.searchText}, '%')
+                OR task_id LIKE CONCAT('%', #{req.searchText}, '%')
+                OR reason LIKE CONCAT('%', #{req.searchText}, '%')
+                )
+            </if>
+            <if test="req.queryType != null and req.queryType != ''">
+                AND query_type = #{req.queryType}
+            </if>
+            <if test="req.indexName != null and req.indexName != ''">
+                AND index_name LIKE CONCAT('%', #{req.indexName}, '%')
+            </if>
+            <if test="req.minExecutionTime != null">
+                AND execution_time &gt;= #{req.minExecutionTime}
+            </if>
+            <if test="req.maxExecutionTime != null">
+                AND execution_time &lt;= #{req.maxExecutionTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据 ID 查询单条记录 -->
+    <select id="getById" parameterType="int"
+            resultType="com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord">
+        SELECT * FROM t_kill_timeout_record WHERE id = #{id}
+    </select>
+
+</mapper>
