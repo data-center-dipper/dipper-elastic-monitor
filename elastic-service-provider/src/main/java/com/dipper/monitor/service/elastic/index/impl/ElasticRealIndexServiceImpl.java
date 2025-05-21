@@ -26,6 +26,7 @@ import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.BytesUtil;
 import com.dipper.monitor.utils.elastic.EsDateUtils;
+import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import com.dipper.monitor.utils.elastic.IndexUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -120,8 +121,9 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
     /**
      * 根据前缀获取索引列表
+     *
      * @param indexPrefix 索引前缀 ailpha-baas-flow-
-     * @param indexXing 索引模糊匹配 ailpha-baas-flow-*
+     * @param indexXing   索引模糊匹配 ailpha-baas-flow-*
      * @return
      * @throws IOException
      */
@@ -169,9 +171,9 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
 
-   public Tuple2<List<IndexListView>, Long> indexPageList(IndexPageReq indexPageReq) throws IOException {
+    public Tuple2<List<IndexListView>, Long> indexPageList(IndexPageReq indexPageReq) throws IOException {
         IndexSearchHandler indexListHandler = new IndexSearchHandler(elasticClientService);
-       Tuple2<List<IndexListView>, Long> indexEntities = indexListHandler.indexPageList(indexPageReq);
+        Tuple2<List<IndexListView>, Long> indexEntities = indexListHandler.indexPageList(indexPageReq);
         return indexEntities;
 
     }
@@ -180,6 +182,62 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     public JSONObject indexTemplate(String indexName) {
         ElasticRealTemplateService elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
         return elasticRealTemplateService.getTemplateByIndexName(indexName);
+    }
+
+    @Override
+    public List<IndexEntity> listIndexByAliasName(String aliasName, boolean setting, boolean alias, String status) throws IOException {
+        IndexListByAliasHandler indexListHandler = new IndexListByAliasHandler(elasticClientService);
+        List<IndexEntity> indexEntities = indexListHandler.listIndexByAliasName(aliasName, setting, alias, status);
+        return indexEntities;
+    }
+
+    @Override
+    public List<IndexEntity> listIndexNameByIndexPatterns(String indexPatterns, boolean b, boolean b1, String indexState) throws IOException {
+        String indexPrefixNoDate = IndexPatternsUtils.getIndexPrefixNoDate(indexPatterns);
+        String indexXing = indexPrefixNoDate + "*";
+        String api = "/_cat/indices/" + indexXing + "?format=json";
+        log.info("获取某种类型的索引：{}", api);
+        String res1 = this.elasticClientService.executeGetApi(api);
+        JSONArray jsonArray = JSON.parseArray(res1);
+
+        List<JSONObject> filteredList = jsonArray.toJavaList(JSONObject.class).stream()
+                .filter(jsonObject -> ((JSONObject) jsonObject).getString("index").startsWith(indexPrefixNoDate))
+                .collect(Collectors.toList());
+
+        log.info("前缀为 {} 的索引个数：{}", indexPrefixNoDate, filteredList.size());
+
+        List<IndexEntity> result = new ArrayList<>();
+        for (JSONObject childList : filteredList) {
+            IndexEntity indexEntity = convertToIndexEntity(childList);
+            result.add(indexEntity);
+        }
+        return result;
+    }
+
+    private IndexEntity convertToIndexEntity(JSONObject obj) {
+        String health = obj.getString("health");
+        String status = obj.getString("status");
+        String index = obj.getString("index");
+        String uuid = obj.getString("uuid");
+        Integer pri = obj.getInteger("pri");
+        Integer rep = obj.getInteger("rep");
+        Long docsCount = Long.valueOf(obj.getLongValue("docs.count"));
+        long docsDeleted = obj.getLongValue("docs.deleted");
+        String storeSize = obj.getString("store.size");
+        String priStoreSize = obj.getString("pri.store.size");
+
+        IndexEntity indexEntity = new IndexEntity();
+        indexEntity.setHealth(health)
+                .setStatus(status)
+                .setIndex(index)
+                .setUuid(uuid)
+                .setPri(pri)
+                .setRep(rep)
+                .setDocsCount(docsCount)
+                .setDocsDeleted(Long.valueOf(docsDeleted))
+                .setStoreSize(storeSize)
+                .setPriStoreSize(priStoreSize);
+        return indexEntity;
     }
 
     private void setExtraLabel(List<IndexEntity> indexEntities) {
@@ -218,7 +276,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
             indexEntity.setPri(Integer.valueOf(indexEntity.getPri().intValue() * (1 + indexEntity.getRep().intValue())));
         }
     }
-
 
 
     private List<IndexEntity> filterByCanWrite(List<IndexEntity> indexNames) {
@@ -281,7 +338,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 //    }
 
 
-
     public List<IndexEntity> filterByAlians(List<IndexEntity> indexNames, String aliansFilter) {
         List<IndexEntity> list = new ArrayList<>(indexNames.size());
         indexNames.stream().forEach(x -> {
@@ -297,7 +353,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         });
         return list;
     }
-
 
 
     @Deprecated
@@ -356,10 +411,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
 
-
-
-
-
     public List<IndexEntity> listIndexByPrefix(boolean setting, String indexPrefix, String indexXing) throws IOException {
         String api = "/_cat/indices/" + indexXing + "?format=json";
         log.info("获取某种类型的索引：{}", api);
@@ -405,6 +456,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
     /**
      * 根据索引模式获取索引列表
+     *
      * @param indexPatterns 索引模式，如 lcc-log-YYYYMMDD
      * @return 索引列表
      * @throws IOException 异常
@@ -414,7 +466,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         // 从索引模式中提取前缀
         String indexPrefix = null;
         String indexXing = null;
-        
+
         if (indexPatterns.contains("yyyy")) {
             // 如果包含日期格式，提取日期前的部分作为前缀
             indexPrefix = indexPatterns.substring(0, indexPatterns.indexOf("yyyy"));
@@ -428,37 +480,37 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
             indexPrefix = indexPatterns.substring(0, position);
             indexXing = indexPatterns;
         }
-        
+
         // 调用已有方法获取索引实体列表
         List<IndexEntity> indexEntities = listIndexNameByPrefix(indexPrefix, indexXing);
-        
+
         // 转换为索引名称列表
         List<String> indices = indexEntities.stream()
                 .map(IndexEntity::getIndex)
                 .collect(Collectors.toList());
-        
+
         return indices;
     }
 
     /**
      * 获取某种类型索引的前缀
-     * @param indexPatterns   lcc-log-YYYYMMDD
-     * @param indexPrefix  lcc-log-
-     * @param indexXing  lcc-log-*
+     *
+     * @param indexPatterns lcc-log-YYYYMMDD
+     * @param indexPrefix   lcc-log-
+     * @param indexXing     lcc-log-*
      * @return
      * @throws IOException
      */
-    public List<IndexEntity> listIndexNameByPrefix(String indexPatterns,String indexPrefix, String indexXing) throws IOException {
+    public List<IndexEntity> listIndexNameByPrefix(String indexPatterns, String indexPrefix, String indexXing) throws IOException {
         List<IndexEntity> strings = listIndexNameByPrefix(indexPrefix, indexXing);
         return strings;
     }
 
 
-
     @Override
     public Map<String, IndexEntity> listIndexPatternMapThread(boolean setting, String indexPatternPrefix, String indexXing) throws IOException {
         IndexListPatternThreadHandler indexMapHandler = new IndexListPatternThreadHandler(elasticClientService);
-        Map<String, IndexEntity> map = indexMapHandler.listIndexPatternMapThread(setting,indexPatternPrefix,indexXing);
+        Map<String, IndexEntity> map = indexMapHandler.listIndexPatternMapThread(setting, indexPatternPrefix, indexXing);
         return map;
     }
 
@@ -466,7 +518,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     public String createIndex(String indexName) {
         if (StringUtils.isBlank(indexName)) {
             log.warn("索引名称为空，无法创建索引");
-           throw new RuntimeException("索引名称为空");
+            throw new RuntimeException("索引名称为空");
         }
 
         try {
@@ -477,7 +529,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
             log.info("创建索引 {} 成功", indexName);
             return result;
         } catch (Exception e) {
-            log.error("创建索引异常：index:{}  ex:{}", indexName,e.getMessage(), e);
+            log.error("创建索引异常：index:{}  ex:{}", indexName, e.getMessage(), e);
             throw e;
         }
     }
@@ -505,7 +557,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
             log.info("创建索引 {} 成功", indexName);
             return result;
         } catch (Exception e) {
-            log.error("创建索引异常：index:{} templateJson:{} ex:{}", indexName, templateJson,e.getMessage(), e);
+            log.error("创建索引异常：index:{} templateJson:{} ex:{}", indexName, templateJson, e.getMessage(), e);
             throw e;
         }
     }
@@ -561,11 +613,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         JSONObject jsonObjectSetting = setting.getJSONObject(index);
         return parseIndexSetting(index, jsonObjectSetting);
     }
-
-
-
-
-
 
 
     private boolean handleCustomStatistics(String index, IndexOperatorType indexOperatorType, String indexPrefix, String format) {
@@ -643,7 +690,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         }
         return canDoAllOperator(index, indexOperatorType);
     }
-
 
 
     private boolean handleIndexOperation(String index, IndexOperatorType indexOperatorType, String indexPrefix, String format) {
@@ -767,7 +813,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
 
     private static final Pattern pattern = Pattern.compile("[0-9]*");
 
-    public  boolean isAllNumber(String dest) {
-       return pattern.matcher(dest).matches();
+    public boolean isAllNumber(String dest) {
+        return pattern.matcher(dest).matches();
     }
 }

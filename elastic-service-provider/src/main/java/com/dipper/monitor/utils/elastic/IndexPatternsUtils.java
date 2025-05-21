@@ -1,6 +1,7 @@
 package com.dipper.monitor.utils.elastic;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -84,4 +85,33 @@ public class IndexPatternsUtils {
     }
 
 
+    public static String getIndexPrefixNoDate(String indexPatterns) {
+        if(StringUtils.isEmpty(indexPatterns)){
+            return "";
+        }
+        if(indexPatterns.contains("yyyyMMdd")){
+            return getDayIndexPrefixNoDate(indexPatterns,"yyyyMMdd");
+        }else if(indexPatterns.contains("yyyyMM")){
+            return getMonthIndexPrefixNoDate(indexPatterns,"yyyyMM");
+        }else if(indexPatterns.contains("yyyy")){
+            return getYearIndexPrefixNoDate(indexPatterns,"yyyy");
+        }else {
+            return indexPatterns;
+        }
+    }
+
+    private static String getYearIndexPrefixNoDate(String indexPatterns, String yyyy) {
+        int i = indexPatterns.indexOf(yyyy);
+        return indexPatterns.substring(0, i);
+    }
+
+    private static String getMonthIndexPrefixNoDate(String indexPatterns, String yyyyMM) {
+        int i = indexPatterns.indexOf(yyyyMM);
+        return indexPatterns.substring(0, i);
+    }
+
+    private static String getDayIndexPrefixNoDate(String indexPatterns, String yyyyMMdd) {
+        int i = indexPatterns.indexOf(yyyyMMdd);
+        return indexPatterns.substring(0, i);
+    }
 }

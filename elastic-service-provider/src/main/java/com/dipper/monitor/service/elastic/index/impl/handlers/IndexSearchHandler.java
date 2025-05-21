@@ -13,11 +13,16 @@ import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.Tuple2;
+import com.dipper.monitor.utils.elastic.FeatureIndexUtils;
+import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import com.dipper.monitor.utils.elastic.IndexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,61 +50,42 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         String aliasName = indexPageReq.getAliasName();
         String indexState = indexPageReq.getStatus();
         Boolean featureIndex = indexPageReq.getFeatureIndex();
-        String startTime = indexPageReq.getStartTime(); // 格式如 "2025.05.01"
-        String endTime = indexPageReq.getEndTime();     // 格式如 "2025.05.18"
+        if(featureIndex == null){
+            featureIndex = false;
+        }
 
         // 1. 获取 indexPatterns（如果提供了 templateName）
         String indexPatterns = "";
         if (StringUtils.isNotBlank(templateName)) {
             EsUnconvertedTemplate template = elasticStoreTemplateService.getOneUnconvertedTemplateByEnName(templateName);
             if (template != null) {
-                indexPatterns = template.getIndexPatterns();
+                indexPatterns = IndexPatternsUtils.getIndexPrefixNoDate(template.getIndexPatterns());
             }
         }
 
-        // 2. 获取所有索引列表，并根据 indexState 初步过滤
-        List<IndexEntity> allIndexes = elasticRealIndexService.listIndexList(false, false, indexState);
+        List<IndexEntity> allIndexes = new ArrayList<>();
+        if(StringUtils.isBlank(indexPatterns) && StringUtils.isBlank(aliasName)){
+            allIndexes = elasticRealIndexService.listIndexList(false, false, indexState);
+        }else {
+            if(StringUtils.isNotBlank(indexPatterns)){
+                List<IndexEntity> allIndexes1 = elasticRealIndexService.listIndexNameByIndexPatterns(indexPatterns, false, false, indexState);
+                allIndexes.addAll(allIndexes1);
+            }
+            if(StringUtils.isNotBlank(aliasName)){
+                // 2. 获取所有索引列表，并根据 indexState 初步过滤
+                List<IndexEntity> allIndexes2 = elasticRealIndexService.listIndexByAliasName(aliasName,false, false, indexState);
+                allIndexes.addAll(allIndexes2);
+            }
+        }
 
         if (allIndexes == null || allIndexes.isEmpty()) {
             return new Tuple2<>(Collections.emptyList(), 0L);
         }
 
-        List<IndexEntity> filteredList = new ArrayList<>();
 
-        for (IndexEntity entity : allIndexes) {
-            boolean match = true;
-
-            // 3. 按 indexPatterns 匹配索引名（支持通配符 * 和 ?）
-            if (StringUtils.isNotBlank(indexPatterns)) {
-                if (!IndexUtils.isMatchPattern(entity.getIndex(), indexPatterns)) {
-                    match = false;
-                }
-            }
-
-            // 4. 按 aliasName 匹配索引的别名
-            if (StringUtils.isNotBlank(aliasName)) {
-                if (entity.getAliansList() == null || !entity.getAliansList().contains(aliasName)) {
-                    match = false;
-                }
-            }
-
-            // 5. 按 featureIndex 特性匹配（示例逻辑，可根据实际业务调整）
-            if (Boolean.TRUE.equals(featureIndex)) {
-                if (!entity.getIndex().startsWith("feature_")) { // 示例规则
-                    match = false;
-                }
-            }
-
-            // 6. 按时间范围匹配索引名中的日期部分（需 IndexUtils 支持）
-            if (match && (StringUtils.isNotBlank(startTime) || StringUtils.isNotBlank(endTime))) {
-                if (!IndexUtils.isInDateRange(entity.getIndex(), startTime, endTime)) {
-                    match = false;
-                }
-            }
-
-            if (match) {
-                filteredList.add(entity);
-            }
+        List<IndexEntity> filteredList =  getFeatureIndex(allIndexes,featureIndex);
+        if(filteredList == null || filteredList.isEmpty()){
+            return new Tuple2<>(Collections.emptyList(), 0L);
         }
 
         // 7. 设置索引属性（是否可写、别名、配置信息等）
@@ -125,6 +111,22 @@ public class IndexSearchHandler extends AbstractIndexHandler {
 
         return new Tuple2<>(pagedList, (long) total);
     }
+
+    private List<IndexEntity> getFeatureIndex(List<IndexEntity> allIndexes,boolean featureIndex) {
+        if(!featureIndex){
+            return allIndexes;
+        }
+        List<IndexEntity> filteredList = new ArrayList<>();
+        for (IndexEntity item: allIndexes) {
+            String index = item.getIndex();
+            if(FeatureIndexUtils .isFeatureIndex(index)){
+                filteredList.add(item);
+            }
+        }
+        return filteredList;
+    }
+
+
 
     private IndexListView convertToView(IndexEntity entity) {
         IndexListView view = new IndexListView();

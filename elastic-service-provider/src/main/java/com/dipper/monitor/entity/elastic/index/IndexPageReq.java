@@ -9,7 +9,5 @@ public class IndexPageReq {
     private String templateName;
     private String aliasName;
     private String status;
-    private String startTime;
-    private String endTime;
     private Boolean featureIndex;
 }

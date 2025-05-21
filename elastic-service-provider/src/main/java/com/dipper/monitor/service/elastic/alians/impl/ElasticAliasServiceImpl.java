@@ -63,6 +63,9 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
         Map<String, Set<String>> writeAliasIndexMap = new HashMap<>();
 
         try {
+            if(StringUtils.isBlank(aliasData)){
+                return 0;
+            }
             JSONObject json = JSON.parseObject(aliasData);
 
             for (Map.Entry<String, Object> indexEntry : json.entrySet()) {
