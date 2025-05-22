@@ -145,4 +145,29 @@ public class ShardController {
             return ResultUtils.onFail(500, "修复分片异常失败: " + e.getMessage());
         }
     }
+    
+    @PostMapping("/rebalance-node")
+    @Operation(summary = "重平衡节点", description = "对指定节点进行分片重平衡操作")
+    public JSONObject rebalanceNode(@RequestBody JSONObject params) {
+        try {
+            String nodeName = params.getString("nodeName");
+            if (nodeName == null || nodeName.isEmpty()) {
+                return ResultUtils.onFail(400, "节点名称不能为空");
+            }
+            
+            // 调用服务层的重平衡方法
+            boolean success = elasticShardService.rebalanceNode(nodeName);
+            if (success) {
+                return ResultUtils.onSuccess("节点重平衡请求已提交");
+            } else {
+                return ResultUtils.onFail(500, "节点重平衡失败");
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("节点重平衡参数错误: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("节点重平衡失败", e);
+            return ResultUtils.onFail(500, "节点重平衡失败: " + e.getMessage());
+        }
+    }
 }

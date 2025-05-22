@@ -65,4 +65,6 @@ public interface ElasticShardService {
      * @throws IOException
      */
     boolean migrateShard(ShardMigrationReq migrationReq) throws IOException;
+
+    boolean rebalanceNode(String nodeName);
 }

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.ElasticThreadMetricMapper">
+
+    <!-- 插入单条记录 -->
+    <insert id="insert" parameterType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        INSERT INTO t_elastic_thread_metric (
+        cluster_code, node_name, thread_type, active_threads, queue_size,
+        rejected_count, completed_count, largest_size, cpu_usage, memory_usage, collect_time
+        ) VALUES (
+        #{clusterCode}, #{nodeName}, #{threadType}, #{activeThreads}, #{queueSize},
+        #{rejectedCount}, #{completedCount}, #{largestSize}, #{cpuUsage}, #{memoryUsage}, #{collectTime}
+        )
+    </insert>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO t_elastic_thread_metric (
+        cluster_code, node_name, thread_type, active_threads, queue_size,
+        rejected_count, completed_count, largest_size, cpu_usage, memory_usage, collect_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.clusterCode}, #{item.nodeName}, #{item.threadType}, #{item.activeThreads}, #{item.queueSize},
+            #{item.rejectedCount}, #{item.completedCount}, #{item.largestSize}, #{item.cpuUsage}, #{item.memoryUsage}, #{item.collectTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除记录 by ID -->
+    <delete id="deleteById">
+        DELETE FROM t_elastic_thread_metric WHERE id = #{id}
+    </delete>
+
+    <!-- 按采集时间删除旧数据 -->
+    <delete id="deleteByCollectTimeBefore">
+        DELETE FROM t_elastic_thread_metric WHERE collect_time &lt; #{beforeTime}
+    </delete>
+
+    <!-- 查询全部 -->
+    <select id="selectAll" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        SELECT * FROM t_elastic_thread_metric
+    </select>
+
+    <!-- 按照 集群编码、节点名、线程类型、时间范围 查询 -->
+    <select id="selectByClusterNodeAndType" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        <![CDATA[
+        SELECT * FROM t_elastic_thread_metric
+        WHERE cluster_code = #{clusterCode}
+          AND node_name = #{nodeName}
+          AND thread_type = #{threadType}
+          AND collect_time >= #{startTime}
+          AND collect_time <= #{endTime}
+        ]]>
+    </select>
+
+    <!-- 查询某个节点在一段时间内所有类型的线程数据 -->
+    <select id="selectByClusterNodeAndTime" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        <![CDATA[
+        SELECT * FROM t_elastic_thread_metric
+        WHERE cluster_code = #{clusterCode}
+          AND node_name = #{nodeName}
+          AND collect_time >= #{startTime}
+          AND collect_time <= #{endTime}
+        ]]>
+    </select>
+
+    <!-- 查询某个集群下的某类线程池数据 -->
+    <select id="selectByClusterAndType" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        <![CDATA[
+        SELECT * FROM t_elastic_thread_metric
+        WHERE cluster_code = #{clusterCode}
+          AND thread_type = #{threadType}
+          AND collect_time >= #{startTime}
+          AND collect_time <= #{endTime}
+        ]]>
+    </select>
+
+    <!-- 查询最新的一条记录 -->
+    <select id="selectLatest" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        <![CDATA[
+        SELECT * FROM t_elastic_thread_metric
+        ORDER BY collect_time DESC LIMIT 1
+        ]]>
+    </select>
+
+    <!-- 查询某个节点的最新一条记录 -->
+    <select id="selectLatestByNode" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        <![CDATA[
+        SELECT * FROM t_elastic_thread_metric
+        WHERE cluster_code = #{clusterCode}
+          AND node_name = #{nodeName}
+          AND thread_type = #{threadType}
+        ORDER BY collect_time DESC LIMIT 1
+        ]]>
+    </select>
+
+    <!-- 统计某段时间内被拒绝的任务总数 -->
+    <select id="countRejectedTasks" resultType="long">
+        <![CDATA[
+        SELECT SUM(rejected_count) FROM t_elastic_thread_metric
+        WHERE collect_time >= #{startTime}
+          AND collect_time <= #{endTime}
+        ]]>
+    </select>
+
+</mapper>

@@ -33,7 +33,7 @@ logging:
 # ??????
 plugins:
   config:
-    dir: E:\Ideaproject\elastic\dipper-elastic-monitor\elastic-handler-provider\src\main\resources\plugins
+    dir: E:\Ideaproject\elastic\dipper-elastic-monitor\elastic-service-provider\src\main\resources\plugins
   jar:
     dir: plugins
 

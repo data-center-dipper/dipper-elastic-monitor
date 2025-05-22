@@ -240,4 +240,9 @@ public class ElasticShardServiceImpl implements ElasticShardService {
             throw new IOException("分片迁移失败: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public boolean rebalanceNode(String nodeName) {
+        return false;
+    }
 }
