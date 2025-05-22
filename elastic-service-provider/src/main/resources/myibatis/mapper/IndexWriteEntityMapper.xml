@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.IndexWriteEntityMapper">
+
+    <!-- 插入一条记录 -->
+    <insert id="insert">
+        INSERT INTO index_write_stat (
+        template_name,
+        index_name,
+        alias,
+        can_write,
+        field_count,
+        has_special_char,
+        write_rate,
+        doc_count,
+        create_time
+        ) VALUES (
+        #{templateName},
+        #{indexName},
+        #{alias},
+        #{canWrite},
+        #{fieldCount},
+        #{hasSpecialChar},
+        #{writeRate},
+        #{docCount},
+        #{createTime}
+        )
+    </insert>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultType="com.dipper.monitor.entity.db.elastic.IndexWriteEntity">
+        SELECT
+        template_name AS templateName,
+        index_name AS indexName,
+        alias,
+        can_write AS canWrite,
+        field_count AS fieldCount,
+        has_special_char AS hasSpecialChar,
+        write_rate AS writeRate,
+        doc_count AS docCount,
+        create_time AS createTime
+        FROM index_write_stat
+    </select>
+
+    <!-- 根据索引名称删除 -->
+    <delete id="deleteByIndexName">
+        DELETE FROM index_write_stat WHERE index_name = #{indexName}
+    </delete>
+
+    <!-- 批量删除（根据索引名称列表） -->
+    <delete id="batchDeleteByIndexNames">
+        DELETE FROM index_write_stat WHERE index_name IN
+        <foreach item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 删除所有记录 -->
+    <delete id="deleteAll">
+        DELETE FROM index_write_stat
+    </delete>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO index_write_stat (
+        template_name,
+        index_name,
+        alias,
+        can_write,
+        field_count,
+        has_special_char,
+        write_rate,
+        doc_count,
+        create_time
+        ) VALUES
+        <foreach collection="list" item="entity" separator=",">
+            (
+            #{entity.templateName},
+            #{entity.indexName},
+            #{entity.alias},
+            #{entity.canWrite},
+            #{entity.fieldCount},
+            #{entity.hasSpecialChar},
+            #{entity.writeRate},
+            #{entity.docCount},
+            #{entity.createTime}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

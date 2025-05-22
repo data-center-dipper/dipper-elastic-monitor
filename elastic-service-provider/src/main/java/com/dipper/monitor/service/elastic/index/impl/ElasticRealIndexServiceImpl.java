@@ -179,7 +179,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     @Override
-    public JSONObject indexTemplate(String indexName) {
+    public JSONObject getTemplateByIndexName(String indexName) {
         ElasticRealTemplateService elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
         return elasticRealTemplateService.getTemplateByIndexName(indexName);
     }
@@ -192,7 +192,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     @Override
-    public List<IndexEntity> listIndexNameByIndexPatterns(String indexPatterns, boolean b, boolean b1, String indexState) throws IOException {
+    public List<IndexEntity> listIndexNameByIndexPatterns(String indexPatterns) throws IOException {
         String indexPrefixNoDate = IndexPatternsUtils.getIndexPrefixNoDate(indexPatterns);
         String indexXing = indexPrefixNoDate + "*";
         String api = "/_cat/indices/" + indexXing + "?format=json";
@@ -542,6 +542,81 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         });
 
         return indexMap;
+    }
+
+
+    /**
+     * 根据索引名称获取索引的 mapping
+     *
+     * @param indexName 索引名称
+     * @return mapping 信息的 JSONObject 对象
+     */
+    @Override
+    public JSONObject getMappingByIndexName(String indexName) {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("Index name is blank, cannot fetch mapping.");
+            return null;
+        }
+
+        String apiUrl = "/" + indexName + "/_mapping";
+        try {
+            String result = this.elasticClientService.executeGetApi(apiUrl);
+            if (result == null || result.isEmpty()) {
+                log.warn("Empty response from Elasticsearch for mapping of index: {}", indexName);
+                return null;
+            }
+
+            // 解析 JSON 字符串为 JSONObject
+            JSONObject jsonResponse = JSONObject.parseObject(result);
+
+            // 提取 mappings 部分（Elasticsearch 7.x+ 的结构）
+            Map.Entry<String, Object> entry = jsonResponse.entrySet().iterator().next();
+            JSONObject indexInfo = (JSONObject) entry.getValue();
+            JSONObject mappings = indexInfo.getJSONObject("mappings");
+
+            if (mappings == null || mappings.isEmpty()) {
+                log.warn("No 'mappings' found in the response for index: {}", indexName);
+                return null;
+            }
+
+            return mappings;
+        } catch (Exception e) {
+            log.error("Error fetching mapping for index: {}", indexName, e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定索引的文档总数
+     *
+     * @param indexName 索引名称
+     * @return 文档总数，失败返回 null
+     */
+    @Override
+    public Long getDocumentCount(String indexName) {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("Index name is blank, cannot fetch document count.");
+            return null;
+        }
+
+        String apiUrl = "/_cat/count/" + indexName + "?h=count"; // h=count 表示只返回 count 字段
+        try {
+            String result = this.elasticClientService.executeGetApi(apiUrl);
+            if (StringUtils.isBlank(result)) {
+                log.warn("Empty response from Elasticsearch for count of index: {}", indexName);
+                return null;
+            }
+
+            // 去除空白字符后直接转换为 Long
+            return Long.parseLong(result.trim());
+
+        } catch (NumberFormatException e) {
+            log.error("Failed to parse document count for index: {}", indexName, e);
+            return null;
+        } catch (Exception e) {
+            log.error("Error fetching document count for index: {}", indexName, e);
+            return null;
+        }
     }
 
     private IndexSetting parseIndexSetting(String index, JSONObject jsonObjectSetting) {

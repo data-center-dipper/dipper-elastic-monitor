@@ -36,5 +36,4 @@ public interface ElasticClientService {
 
      public String executeDeleteApi(String apiUrl, HttpEntity entity) throws IOException;
 
-    
 }

@@ -132,7 +132,7 @@ public class IndexListController {
     @GetMapping("/indexTemplate")
     public JSONObject indexTemplate(@RequestParam("indexName") String indexName) {
         try {
-            JSONObject jsonObject = elasticRealIndexService.indexTemplate(indexName);
+            JSONObject jsonObject = elasticRealIndexService.getTemplateByIndexName(indexName);
             return ResultUtils.onSuccess(jsonObject);
         } catch (IllegalArgumentException e) {
             log.error("Error adding template", e);

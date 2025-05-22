@@ -68,7 +68,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
             allIndexes = elasticRealIndexService.listIndexList(false, false, indexState);
         }else {
             if(StringUtils.isNotBlank(indexPatterns)){
-                List<IndexEntity> allIndexes1 = elasticRealIndexService.listIndexNameByIndexPatterns(indexPatterns, false, false, indexState);
+                List<IndexEntity> allIndexes1 = elasticRealIndexService.listIndexNameByIndexPatterns(indexPatterns);
                 allIndexes.addAll(allIndexes1);
             }
             if(StringUtils.isNotBlank(aliasName)){
@@ -83,7 +83,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         }
 
 
-        List<IndexEntity> filteredList =  getFeatureIndex(allIndexes,featureIndex);
+        List<IndexEntity> filteredList =  FeatureIndexUtils.getFeatureIndex(allIndexes,featureIndex);
         if(filteredList == null || filteredList.isEmpty()){
             return new Tuple2<>(Collections.emptyList(), 0L);
         }
@@ -110,20 +110,6 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         List<IndexListView> pagedList = viewList.subList(fromIndex, toIndex);
 
         return new Tuple2<>(pagedList, (long) total);
-    }
-
-    private List<IndexEntity> getFeatureIndex(List<IndexEntity> allIndexes,boolean featureIndex) {
-        if(!featureIndex){
-            return allIndexes;
-        }
-        List<IndexEntity> filteredList = new ArrayList<>();
-        for (IndexEntity item: allIndexes) {
-            String index = item.getIndex();
-            if(FeatureIndexUtils .isFeatureIndex(index)){
-                filteredList.add(item);
-            }
-        }
-        return filteredList;
     }
 
 

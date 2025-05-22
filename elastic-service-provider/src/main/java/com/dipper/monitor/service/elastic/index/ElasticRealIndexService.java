@@ -74,7 +74,7 @@ public interface ElasticRealIndexService {
      * @param indexName
      * @return
      */
-    JSONObject indexTemplate(String indexName);
+    JSONObject getTemplateByIndexName(String indexName);
 
     /**
      * 根据别名获取索引列表
@@ -85,9 +85,13 @@ public interface ElasticRealIndexService {
      * 根据索引前缀获取索引列表
      * @param indexPatterns xx-yyyyMMdd-* 这种格式
      */
-    List<IndexEntity> listIndexNameByIndexPatterns(String indexPatterns, boolean b, boolean b1, String indexState) throws IOException;
+    List<IndexEntity> listIndexNameByIndexPatterns(String indexPatterns) throws IOException;
 
     public List<IndexEntity> listIndexByPrefix(boolean setting, String indexPrefix, String indexXing) throws IOException;
 
     public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException;
+
+    JSONObject getMappingByIndexName(String indexName);
+
+    Long getDocumentCount(String indexName);
 }

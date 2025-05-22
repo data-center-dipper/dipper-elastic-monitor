@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -114,4 +116,75 @@ public class IndexPatternsUtils {
         int i = indexPatterns.indexOf(yyyyMMdd);
         return indexPatterns.substring(0, i);
     }
+
+    public static String getIndexDatePattern(String indexPatterns) {
+        if(StringUtils.isEmpty(indexPatterns)){
+            return "";
+        }
+        if(indexPatterns.contains("yyyyMMdd")){
+            return "yyyyMMdd";
+        }else if(indexPatterns.contains("yyyyMM")){
+            return "yyyyMM";
+        }else if(indexPatterns.contains("yyyy")){
+            return "yyyy";
+        }else {
+            return "";
+        }
+    }
+
+    /**
+     * 获取最近 n 天的日期列表。
+     *
+     * @param n       需要获取的天数。
+     * @param pattern 输出的日期格式。
+     * @return 包含最近 n 天日期的列表。
+     */
+    public static List<String> getLastNDays(int n, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        List<String> dates = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            LocalDate date = LocalDate.now().minusDays(i);
+            // 插入到列表头部，保证最近的日期在前面
+            dates.add(0, date.format(formatter));
+        }
+        return dates;
+    }
+
+    /**
+     * 获取最近 n 个月的月份列表。
+     *
+     * @param n       需要获取的月份数。
+     * @param pattern 输出的日期格式。
+     * @return 包含最近 n 个月份的列表。
+     */
+    public static List<String> getLastNMonths(int n, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        List<String> dates = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            LocalDate date = LocalDate.now().minusMonths(i);
+            // 插入到列表头部，保证最近的月份在前面
+            dates.add(0, date.format(formatter));
+        }
+        return dates;
+    }
+
+    /**
+     * 获取最近 n 年的年份列表。
+     *
+     * @param n       需要获取的年数。
+     * @param pattern 输出的日期格式。
+     * @return 包含最近 n 年的列表。
+     */
+    public static List<String> getLastNYears(int n, String pattern) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        List<String> dates = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            LocalDate date = LocalDate.now().minusYears(i);
+            // 插入到列表头部，保证最近的年份在前面
+            dates.add(0, date.format(formatter));
+        }
+        return dates;
+    }
+
+
 }

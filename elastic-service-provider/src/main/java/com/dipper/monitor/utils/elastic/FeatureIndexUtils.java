@@ -1,8 +1,12 @@
 package com.dipper.monitor.utils.elastic;
 
+import com.dipper.monitor.entity.elastic.index.IndexEntity;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FeatureIndexUtils {
 
@@ -70,5 +74,19 @@ public class FeatureIndexUtils {
         }
 
         return false;
+    }
+
+    public static List<IndexEntity> getFeatureIndex(List<IndexEntity> allIndexes, Boolean featureIndex) {
+        if(!featureIndex){
+            return allIndexes;
+        }
+        List<IndexEntity> filteredList = new ArrayList<>();
+        for (IndexEntity item: allIndexes) {
+            String index = item.getIndex();
+            if(FeatureIndexUtils .isFeatureIndex(index)){
+                filteredList.add(item);
+            }
+        }
+        return filteredList;
     }
 }
