@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.shard.*;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
+import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.shard.impl.handler.ListShardMapHandler;
 import com.dipper.monitor.service.elastic.shard.impl.handler.check.CheckShardErrorHandler;
@@ -32,6 +34,8 @@ public class ElasticShardServiceImpl implements ElasticShardService {
 
     @Autowired
     private ElasticClientService elasticClientService;
+    @Autowired
+    private ElasticRealNodeService elasticRealNodeService;
 
     @Override
     public List<JSONObject> getShardError() throws IOException {
@@ -151,31 +155,8 @@ public class ElasticShardServiceImpl implements ElasticShardService {
 
     @Override
     public List<String> getClusterNodes() throws IOException {
-        if (ApplicationUtils.isWindows()) {
-            // 模拟数据，实际环境中应该从ES集群获取
-            List<String> mockNodes = new ArrayList<>();
-            mockNodes.add("node-1");
-            mockNodes.add("node-2");
-            mockNodes.add("node-3");
-            return mockNodes;
-        }
-
-        // 获取集群节点信息
-        String nodesInfo = elasticClientService.executeGetApi("/_cat/nodes?format=json");
-        log.info("节点信息：\n{}", nodesInfo);
-
-        JSONArray nodesArray = JSONArray.parseArray(nodesInfo);
-        List<String> nodeNames = new ArrayList<>();
-
-        for (int i = 0; i < nodesArray.size(); i++) {
-            JSONObject nodeJson = nodesArray.getJSONObject(i);
-            String nodeName = nodeJson.getString("name");
-            if (nodeName != null && !nodeName.isEmpty()) {
-                nodeNames.add(nodeName);
-            }
-        }
-
-        return nodeNames;
+        List<String>  nodes =  elasticRealNodeService.getNodeNameList();
+        return nodes;
     }
 
     @Override

@@ -27,14 +27,12 @@ public class ThreadManagerController {
 
 
 
-    @PostMapping("/threadPage")
+    @GetMapping("/threadPage")
     @Operation(summary = "分页查询热点线程", description = "分页查询热点线程")
-    public JSONObject threadPage(@RequestBody ThreadPageReq threadPageReq) {
+    public JSONObject threadPage() {
         try {
-            Tuple2<List<ThreadHotView>, Long> pageResult = threadManagerService.threadPage(threadPageReq);
-            List<ThreadHotView> threads = pageResult.getK();
-            Long total = pageResult.getV();
-            return ResultUtils.onSuccessWithPageTotal(total, threads);
+            List<ThreadHotView> pageResult = threadManagerService.threadPage();
+            return ResultUtils.onSuccess(pageResult);
         } catch (Exception e) {
             log.error("分页查询热点线程失败", e);
             return ResultUtils.onFail(500, "分页查询热点线程失败: " + e.getMessage());

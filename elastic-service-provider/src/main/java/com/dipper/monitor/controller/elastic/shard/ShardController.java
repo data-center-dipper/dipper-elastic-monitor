@@ -58,14 +58,12 @@ public class ShardController {
         }
     }
     
-    @GetMapping("/nodes")
+    @GetMapping("/clusterNodes")
     @Operation(summary = "获取集群节点列表", description = "获取集群中所有可用节点列表")
-    public JSONObject getNodes() {
+    public JSONObject clusterNodes() {
         try {
             List<String> nodes = elasticShardService.getClusterNodes();
-            JSONObject result = new JSONObject();
-            result.put("nodes", nodes);
-            return ResultUtils.onSuccess(result);
+            return ResultUtils.onSuccess(nodes);
         } catch (Exception e) {
             log.error("获取节点列表失败", e);
             return ResultUtils.onFail(500, "获取节点列表失败: " + e.getMessage());
@@ -96,55 +94,7 @@ public class ShardController {
         }
     }
     
-    @GetMapping("/shard-issues")
-    @Operation(summary = "获取分片异常列表", description = "获取集群中所有异常分片的列表")
-    public JSONObject getShardIssues() {
-        try {
-            List<JSONObject> shardErrors = elasticShardService.getShardError();
-            List<JSONObject> issues = new ArrayList<>();
-            
-            // 将分片错误转换为前端需要的格式
-            for (JSONObject error : shardErrors) {
-                JSONObject issue = new JSONObject();
-                issue.put("index", error.getString("index"));
-                issue.put("shard", error.getIntValue("shard"));
-                
-                // 根据状态生成问题描述
-                String state = error.getString("state");
-                String prirep = error.getString("prirep");
-                String description = "";
-                
-                if ("UNASSIGNED".equals(state)) {
-                    description = ("p".equals(prirep) ? "主分片" : "副本分片") + "未分配";
-                } else if ("INITIALIZING".equals(state)) {
-                    description = ("p".equals(prirep) ? "主分片" : "副本分片") + "正在初始化";
-                } else if ("RELOCATING".equals(state)) {
-                    description = ("p".equals(prirep) ? "主分片" : "副本分片") + "正在重新分配";
-                }
-                
-                issue.put("issue", description);
-                issues.add(issue);
-            }
-            
-            return ResultUtils.onSuccess(issues);
-        } catch (Exception e) {
-            log.error("获取分片异常列表失败", e);
-            return ResultUtils.onFail(500, "获取分片异常列表失败: " + e.getMessage());
-        }
-    }
-    
-    @PostMapping("/fix-shard-issue")
-    @Operation(summary = "修复分片异常", description = "修复指定的分片异常")
-    public JSONObject fixShardIssue(@RequestBody JSONObject issue) {
-        try {
-            // 调用服务层的修复方法
-            String result = elasticShardService.repairShardError();
-            return ResultUtils.onSuccess("分片异常修复操作已执行: " + result);
-        } catch (Exception e) {
-            log.error("修复分片异常失败", e);
-            return ResultUtils.onFail(500, "修复分片异常失败: " + e.getMessage());
-        }
-    }
+
     
     @PostMapping("/rebalance-node")
     @Operation(summary = "重平衡节点", description = "对指定节点进行分片重平衡操作")

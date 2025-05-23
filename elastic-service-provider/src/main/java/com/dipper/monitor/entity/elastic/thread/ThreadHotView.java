@@ -14,4 +14,5 @@ public class ThreadHotView {
     private Date createTime;        // 创建时间
     private String description;     // 线程描述
     private String stackTrace;      // 堆栈信息
+    private String detail;     // 原始信息
 }

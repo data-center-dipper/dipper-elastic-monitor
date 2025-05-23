@@ -13,7 +13,7 @@ public interface ThreadManagerService {
      * @param threadPageReq 分页请求参数
      * @return 线程列表和总数
      */
-    Tuple2<List<ThreadHotView>, Long> threadPage(ThreadPageReq threadPageReq);
+    List<ThreadHotView> threadPage();
 
     /**
      * 获取线程详情

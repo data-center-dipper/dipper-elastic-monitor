@@ -174,6 +174,26 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
         return jsonObject;
     }
 
+    @Override
+    public List<String> getNodeNameList() throws IOException {
+        // 获取集群节点信息
+        String nodesInfo = elasticClientService.executeGetApi("/_cat/nodes?format=json");
+        log.info("节点信息：\n{}", nodesInfo);
+
+        JSONArray nodesArray = JSONArray.parseArray(nodesInfo);
+        List<String> nodeNames = new ArrayList<>();
+
+        for (int i = 0; i < nodesArray.size(); i++) {
+            JSONObject nodeJson = nodesArray.getJSONObject(i);
+            String nodeName = nodeJson.getString("name");
+            if (nodeName != null && !nodeName.isEmpty()) {
+                nodeNames.add(nodeName);
+            }
+        }
+
+        return nodeNames;
+    }
+
     private List<ElasticNodeDisk> getEsNodeDiskList() throws IOException {
         ListHighDiskRiskNodesHandler listHighMemoryRiskNodesHandler = new ListHighDiskRiskNodesHandler(elasticClientService);
         List<ElasticNodeDisk> elasticNodeDisks = listHighMemoryRiskNodesHandler.listHighDiskRiskNodes();

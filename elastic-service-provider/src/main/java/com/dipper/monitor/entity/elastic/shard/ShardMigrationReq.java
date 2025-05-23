@@ -38,4 +38,16 @@ public class ShardMigrationReq {
     public void setToNode(String toNode) {
         this.toNode = toNode;
     }
+
+    // 如果需要添加isPrimary字段
+    private Boolean isPrimary;
+    
+    // 并添加对应的getter和setter
+    public Boolean getIsPrimary() {
+        return isPrimary;
+    }
+    
+    public void setIsPrimary(Boolean isPrimary) {
+        this.isPrimary = isPrimary;
+    }
 }

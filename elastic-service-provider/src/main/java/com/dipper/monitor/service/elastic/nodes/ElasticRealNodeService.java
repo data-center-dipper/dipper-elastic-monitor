@@ -86,4 +86,6 @@ public interface ElasticRealNodeService {
      * @return
      */
     JSONObject getOneNodeOriginalStataInfo(Integer nodeId) throws IOException;
+
+    List<String> getNodeNameList() throws IOException;
 }

@@ -6,7 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.thread.*;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
+import com.dipper.monitor.service.elastic.thread.handlers.HotThreadHandler;
 import com.dipper.monitor.utils.Tuple2;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,60 +28,19 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
     @Autowired
     private ElasticClientService elasticClientService;
 
-    private static final String HOT_THREADS_API = "/_nodes/hot_threads";
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     // 缓存线程列表，避免频繁请求ES
     private List<ThreadHotView> cachedThreadList = new ArrayList<>();
 
     @Override
-    public Tuple2<List<ThreadHotView>, Long> threadPage(ThreadPageReq threadPageReq) {
+    public List<ThreadHotView> threadPage() {
         // 如果缓存为空，则刷新线程列表
         if (cachedThreadList.isEmpty()) {
-            refreshThreadList();
+            cachedThreadList = refreshThreadList();
         }
-
-        List<ThreadHotView> filteredList = cachedThreadList;
-
-        // 根据搜索条件过滤
-        if (StringUtils.isNotBlank(threadPageReq.getSearchText())) {
-            String keyword = threadPageReq.getSearchText().toLowerCase();
-            filteredList = filteredList.stream()
-                    .filter(thread -> 
-                        thread.getName().toLowerCase().contains(keyword) ||
-                        thread.getType().toLowerCase().contains(keyword) ||
-                        thread.getDescription().toLowerCase().contains(keyword))
-                    .collect(Collectors.toList());
-        }
-
-        // 根据线程类型过滤
-        if (StringUtils.isNotBlank(threadPageReq.getThreadType())) {
-            filteredList = filteredList.stream()
-                    .filter(thread -> thread.getType().equals(threadPageReq.getThreadType()))
-                    .collect(Collectors.toList());
-        }
-
-        // 根据线程状态过滤
-        if (StringUtils.isNotBlank(threadPageReq.getThreadStatus())) {
-            filteredList = filteredList.stream()
-                    .filter(thread -> thread.getStatus().equals(threadPageReq.getThreadStatus()))
-                    .collect(Collectors.toList());
-        }
-
-        // 计算总数
-        long total = filteredList.size();
-
-        // 分页处理
-        int start = (threadPageReq.getPageNum() - 1) * threadPageReq.getPageSize();
-        int end = Math.min(start + threadPageReq.getPageSize(), filteredList.size());
-
-        // 防止索引越界
-        if (start >= filteredList.size()) {
-            return new Tuple2<>(new ArrayList<>(), total);
-        }
-
-        List<ThreadHotView> pageList = filteredList.subList(start, end);
-        return new Tuple2<>(pageList, total);
+        return cachedThreadList;
     }
 
     @Override
@@ -92,146 +54,12 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
 
     @Override
     public List<ThreadHotView> refreshThreadList() {
-        try {
-            // 调用ES API获取热点线程信息
-            String response = elasticClientService.executeGetApi(HOT_THREADS_API);
-            
-            // 解析响应并转换为ThreadHotView列表
-            List<ThreadHotView> threadList = parseHotThreadsResponse(response);
-            
-            // 更新缓存
-            cachedThreadList = threadList;
-            return threadList;
-        } catch (Exception e) {
-            log.error("刷新热点线程列表失败", e);
-            return new ArrayList<>();
-        }
+        HotThreadHandler handler = new HotThreadHandler(elasticClientService);
+        return handler.refreshThreadList();
+
     }
 
-    /**
-     * 解析ES热点线程响应
-     * 注意：实际实现需要根据ES返回的具体格式进行解析
-     * 这里提供一个示例实现
-     */
-    private List<ThreadHotView> parseHotThreadsResponse(String response) {
-        List<ThreadHotView> result = new ArrayList<>();
-        
-        try {
-            // 这里是示例解析逻辑，实际需要根据ES返回的格式调整
-            // 假设返回的是文本格式，需要解析文本提取线程信息
-            String[] nodeThreads = response.split(":\n");
-            
-            int id = 1;
-            for (int i = 1; i < nodeThreads.length; i++) { // 跳过第一个元素（通常是响应头）
-                String nodeThread = nodeThreads[i];
-                String[] threadBlocks = nodeThread.split("\n\n");
-                
-                for (String threadBlock : threadBlocks) {
-                    if (StringUtils.isBlank(threadBlock)) continue;
-                    
-                    ThreadHotView thread = new ThreadHotView();
-                    thread.setId(id++);
-                    
-                    // 解析线程名称
-                    String[] lines = threadBlock.split("\n");
-                    if (lines.length > 0) {
-                        String firstLine = lines[0].trim();
-                        if (firstLine.contains("[")) {
-                            thread.setName(firstLine.substring(0, firstLine.indexOf("[")).trim());
-                            
-                            // 根据线程名称推断类型
-                            if (thread.getName().contains("search")) {
-                                thread.setType("搜索线程");
-                            } else if (thread.getName().contains("write")) {
-                                thread.setType("写入线程");
-                            } else if (thread.getName().contains("bulk")) {
-                                thread.setType("批量线程");
-                            } else if (thread.getName().contains("management")) {
-                                thread.setType("管理线程");
-                            } else if (thread.getName().contains("refresh")) {
-                                thread.setType("刷新线程");
-                            } else if (thread.getName().contains("merge")) {
-                                thread.setType("合并线程");
-                            } else if (thread.getName().contains("snapshot")) {
-                                thread.setType("快照线程");
-                            } else if (thread.getName().contains("recovery")) {
-                                thread.setType("恢复线程");
-                            } else {
-                                thread.setType("通用线程");
-                            }
-                        } else {
-                            thread.setName("未知线程");
-                            thread.setType("通用线程");
-                        }
-                    }
-                    
-                    // 设置CPU使用率（示例值）
-                    thread.setCpu((int)(Math.random() * 100));
-                    
-                    // 设置内存占用（示例值）
-                    thread.setMemory(((int)(Math.random() * 200) + 10) + "MB");
-                    
-                    // 设置状态（根据堆栈信息推断）
-                    if (threadBlock.contains("RUNNABLE")) {
-                        thread.setStatus("运行中");
-                    } else if (threadBlock.contains("WAITING") || threadBlock.contains("TIMED_WAITING")) {
-                        thread.setStatus("等待中");
-                    } else if (threadBlock.contains("BLOCKED")) {
-                        thread.setStatus("阻塞");
-                    } else {
-                        thread.setStatus("休眠");
-                    }
-                    
-                    // 设置创建时间（当前时间）
-                    thread.setCreateTime(new Date());
-                    
-                    // 设置描述（根据线程类型生成）
-                    thread.setDescription(generateThreadDescription(thread.getType()));
-                    
-                    // 设置堆栈信息
-                    StringBuilder stackTrace = new StringBuilder();
-                    for (int j = 1; j < lines.length; j++) {
-                        stackTrace.append(lines[j].trim()).append("\n");
-                    }
-                    thread.setStackTrace(stackTrace.toString());
-                    
-                    result.add(thread);
-                }
-            }
-        } catch (Exception e) {
-            log.error("解析热点线程响应失败", e);
-        }
-        
-        return result;
-    }
-    
-    /**
-     * 根据线程类型生成描述
-     */
-    private String generateThreadDescription(String type) {
-        switch (type) {
-            case "搜索线程":
-                return "负责处理搜索请求，高CPU使用率可能表示查询复杂或数据量大。";
-            case "写入线程":
-                return "负责处理索引写入请求，高CPU使用率表示写入压力大。";
-            case "批量线程":
-                return "处理批量操作请求，如批量索引或删除，高CPU使用率表示批量操作频繁。";
-            case "管理线程":
-                return "处理集群管理操作，如节点发现、状态更新等，通常CPU使用率较低。";
-            case "刷新线程":
-                return "负责刷新索引，使新索引的文档可被搜索，低CPU使用率是正常的。";
-            case "合并线程":
-                return "负责段合并操作，优化索引性能，高CPU使用率表示正在进行大量合并。";
-            case "快照线程":
-                return "负责创建和恢复快照，中等CPU使用率表示正在进行快照操作。";
-            case "恢复线程":
-                return "负责分片恢复操作，在节点重启或新节点加入时活跃，中等CPU使用率表示正在进行恢复操作。";
-            case "通用线程":
-                return "通用线程池中的线程，处理各种不同类型的请求，低CPU使用率表示负载较轻。";
-            default:
-                return "未知类型线程";
-        }
-    }
+
 
     @Override
     public ThreadCheckResult checkThreadEnvironment() {
