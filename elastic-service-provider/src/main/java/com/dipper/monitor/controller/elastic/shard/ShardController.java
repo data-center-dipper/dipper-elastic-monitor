@@ -47,8 +47,8 @@ public class ShardController {
     @Operation(summary = "索引角度查看shard分布情况", description = "索引角度查看shard分布情况")
     public JSONObject shardIndexDistribute(@RequestBody ShardIndexDistributeReq shardIndexDistributeReq) {
         try {
-            Tuple2<Integer, ShardIndexDistributeView> shardDistributeView = elasticShardService.shardIndexDistribute(shardIndexDistributeReq);
-            return  ResultUtils.onSuccess();
+            ShardIndexDistributeView shardDistributeView = elasticShardService.shardIndexDistribute(shardIndexDistributeReq);
+            return  ResultUtils.onSuccess(shardDistributeView);
         } catch (IllegalArgumentException e) {
             log.warn("查看shard分布情况错误: {}", e.getMessage());
             return ResultUtils.onFail(400, e.getMessage());

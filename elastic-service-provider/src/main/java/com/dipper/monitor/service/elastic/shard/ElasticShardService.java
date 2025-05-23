@@ -43,7 +43,7 @@ public interface ElasticShardService {
      * @param shardIndexDistributeReq
      * @return
      */
-    Tuple2<Integer, ShardIndexDistributeView> shardIndexDistribute(ShardIndexDistributeReq shardIndexDistributeReq);
+    ShardIndexDistributeView shardIndexDistribute(ShardIndexDistributeReq shardIndexDistributeReq) throws IOException;
 
     /**
      * 获取索引分片信息

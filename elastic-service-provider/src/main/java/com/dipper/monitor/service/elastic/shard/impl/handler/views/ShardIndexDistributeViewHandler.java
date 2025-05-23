@@ -12,7 +12,10 @@ import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 索引角度查看 shard分布视图处理器
@@ -30,38 +33,68 @@ public class ShardIndexDistributeViewHandler {
     /**
      * 获取指定索引的分片分布详情（按索引维度查看）
      */
-    public Tuple2<Integer, ShardIndexDistributeView> shardIndexDistribute(ShardIndexDistributeReq req) {
+    public ShardIndexDistributeView shardIndexDistribute(ShardIndexDistributeReq req) throws IOException {
         String indexName = req.getIndexName();
         if (indexName == null || indexName.trim().isEmpty()) {
-            return new Tuple2<>(400, null); // 参数校验失败
+            throw new IllegalArgumentException("indexName is empty");
         }
 
-        try {
-            List<ShardEntity> indexShards = elasticShardService.getIndexShards(indexName);
-            int primaryCount = getPrimaryCount(indexShards);
-            int replicaCount = getReplicaCount(indexShards);
+        List<ShardEntity> indexShards = elasticShardService.getIndexShards(indexName);
+        int primaryCount = getPrimaryCount(indexShards);
+        int replicaCount = getReplicaCount(indexShards);
+        List<ShardEntity> indexNodeShards = getShardByGroupNode(indexShards);
 
-            // 获取索引的基本信息
-            String statsApi = "/_cat/indices/" + indexName + "?format=json&bytes=b";
-            String indicesInfo = elasticClientService.executeGetApi(statsApi);
-            JSONArray indicesArray = JSONArray.parseArray(indicesInfo);
-            JSONObject indexStats = indicesArray.isEmpty() ? new JSONObject() : indicesArray.getJSONObject(0);
+        // 获取索引的基本信息
+        String statsApi = "/_cat/indices/" + indexName + "?format=json&bytes=b";
+        String indicesInfo = elasticClientService.executeGetApi(statsApi);
+        JSONArray indicesArray = JSONArray.parseArray(indicesInfo);
+        JSONObject indexStats = indicesArray.isEmpty() ? new JSONObject() : indicesArray.getJSONObject(0);
 
-            ShardIndexDistributeView result = new ShardIndexDistributeView();
-            result.setIndexName(indexName);
-            result.setShardNum(primaryCount + replicaCount);
-            result.setPrimaryShardNum(primaryCount);
-            result.setReplicaShardNum(replicaCount);
-            result.setDocNum(indexStats.getIntValue("docs.count"));
-            result.setDiskSize(Double.parseDouble(indexStats.getString("store.size")));
-            result.setShardIndexViews(indexShards);
+        ShardIndexDistributeView result = new ShardIndexDistributeView();
+        result.setIndexName(indexName);
+        result.setShardNum(primaryCount + replicaCount);
+        result.setPrimaryShardNum(primaryCount);
+        result.setReplicaShardNum(replicaCount);
+        result.setDocNum(indexStats.getIntValue("docs.count"));
+        result.setDiskSize(Double.parseDouble(indexStats.getString("store.size")));
+        result.setShardIndexViews(indexShards);
+        result.setShardNodesViews(indexNodeShards);
 
-            return new Tuple2<>(200, result);
+        return result;
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new Tuple2<>(500, null);
+
+    }
+
+
+    /**
+     * 按照节点对分片进行统计（传统 for 循环版本）
+     * @param indexShards 输入的分片实体列表
+     * @return 根据节点分组并统计后的分片实体列表
+     */
+    private List<ShardEntity> getShardByGroupNode(List<ShardEntity> indexShards) {
+        Map<String, ShardEntity> resultMap = new HashMap<>();
+
+        for (ShardEntity shard : indexShards) {
+            String node = shard.getNode();
+
+            if (resultMap.containsKey(node)) {
+                // 如果已经存在该节点，累加 shard 和 docs
+                ShardEntity existing = resultMap.get(node);
+                existing.setShard(existing.getShard() + shard.getShard());
+                existing.setDocs(existing.getDocs() + shard.getDocs());
+            } else {
+                // 否则新建一个条目，只复制需要保留字段
+                ShardEntity entity = new ShardEntity();
+                entity.setIndex(shard.getIndex())
+                        .setShard(shard.getShard())
+                        .setDocs(shard.getDocs())
+                        .setNode(shard.getNode());
+                resultMap.put(node, entity);
+            }
         }
+
+        // 返回结果集合
+        return new ArrayList<>(resultMap.values());
     }
 
     /**

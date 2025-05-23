@@ -144,7 +144,7 @@ public class ElasticShardServiceImpl implements ElasticShardService {
     }
 
     @Override
-    public Tuple2<Integer, ShardIndexDistributeView> shardIndexDistribute(ShardIndexDistributeReq shardIndexDistributeReq) {
+    public ShardIndexDistributeView shardIndexDistribute(ShardIndexDistributeReq shardIndexDistributeReq) throws IOException {
         ShardIndexDistributeViewHandler listShardMapHandler = new ShardIndexDistributeViewHandler(elasticClientService, this);
         return listShardMapHandler.shardIndexDistribute(shardIndexDistributeReq);
     }

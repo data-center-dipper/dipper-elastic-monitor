@@ -19,4 +19,6 @@ public class ShardIndexDistributeView {
 
     // 节点角度的shard分布情况
     private List<ShardEntity> shardIndexViews;
+    // 按照节点分组统计
+    private List<ShardEntity> shardNodesViews;
 }
