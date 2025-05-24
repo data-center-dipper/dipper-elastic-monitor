@@ -8,10 +8,10 @@
     <insert id="insert" parameterType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
         INSERT INTO t_elastic_thread_metric (
         cluster_code, node_name, thread_type, active_threads, queue_size,
-        rejected_count, completed_count, largest_size, cpu_usage, memory_usage, collect_time
+        rejected_count, completed_count, largest_size, collect_time
         ) VALUES (
         #{clusterCode}, #{nodeName}, #{threadType}, #{activeThreads}, #{queueSize},
-        #{rejectedCount}, #{completedCount}, #{largestSize}, #{cpuUsage}, #{memoryUsage}, #{collectTime}
+        #{rejectedCount}, #{completedCount}, #{largestSize}, #{collectTime}
         )
     </insert>
 
@@ -19,12 +19,12 @@
     <insert id="batchInsert">
         INSERT INTO t_elastic_thread_metric (
         cluster_code, node_name, thread_type, active_threads, queue_size,
-        rejected_count, completed_count, largest_size, cpu_usage, memory_usage, collect_time
+        rejected_count, completed_count, largest_size, collect_time
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
             #{item.clusterCode}, #{item.nodeName}, #{item.threadType}, #{item.activeThreads}, #{item.queueSize},
-            #{item.rejectedCount}, #{item.completedCount}, #{item.largestSize}, #{item.cpuUsage}, #{item.memoryUsage}, #{item.collectTime}
+            #{item.rejectedCount}, #{item.completedCount}, #{item.largestSize}, #{item.collectTime}
             )
         </foreach>
     </insert>
@@ -42,6 +42,28 @@
     <!-- 查询全部 -->
     <select id="selectAll" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
         SELECT * FROM t_elastic_thread_metric
+    </select>
+
+    <select id="getThreadMetrics" resultType="com.dipper.monitor.entity.db.elastic.ThreadMetricEntity">
+        SELECT * FROM t_elastic_thread_metric
+        <where>
+            <if test="clusterCode != null and clusterCode != ''">
+                AND cluster_code = #{clusterCode}
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                AND node_name = #{nodeName}
+            </if>
+            <if test="threadType != null and threadType != ''">
+                AND thread_type = #{threadType}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND collect_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND collect_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY collect_time ASC
     </select>
 
     <!-- 按照 集群编码、节点名、线程类型、时间范围 查询 -->

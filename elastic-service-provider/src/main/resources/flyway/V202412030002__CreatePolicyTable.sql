@@ -52,3 +52,20 @@ CREATE TABLE index_write_stat (
     doc_count BIGINT NOT NULL COMMENT '文档总数',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Elasticsearch索引写入统计';
+
+CREATE TABLE IF NOT EXISTS t_elastic_thread_metric (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键ID
+    cluster_code VARCHAR(255) NOT NULL, -- 集群代码
+    node_name VARCHAR(255) NOT NULL, -- 节点名称
+    thread_type VARCHAR(255) NOT NULL, -- 线程池类型
+    active_threads INT DEFAULT 0, -- 活动线程数
+    queue_size INT DEFAULT 0, -- 队列大小
+    rejected_count BIGINT DEFAULT 0, -- 拒绝的任务数量
+    completed_count BIGINT DEFAULT 0, -- 完成的任务数量
+    largest_size INT DEFAULT 0, -- 历史最大线程数
+    cpu_usage DOUBLE DEFAULT 0.00, -- CPU使用率（如果需要）
+    memory_usage BIGINT DEFAULT 0, -- 内存使用情况（如果需要）
+    collect_time DATETIME NOT NULL, -- 数据收集时间
+    INDEX idx_cluster_node_type (cluster_code, node_name, thread_type), -- 复合索引，提高查询效率
+    INDEX idx_collect_time (collect_time) -- 对collect_time建立索引，便于按时间范围查询
+);

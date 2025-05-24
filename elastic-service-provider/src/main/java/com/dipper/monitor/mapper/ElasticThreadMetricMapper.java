@@ -2,6 +2,7 @@ package com.dipper.monitor.mapper;
 
 
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
+import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
@@ -86,4 +87,6 @@ public interface ElasticThreadMetricMapper {
     Long countRejectedTasks(
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);
+
+    List<ThreadMetricEntity> getThreadMetrics(ThreadCharReq threadCharReq);
 }

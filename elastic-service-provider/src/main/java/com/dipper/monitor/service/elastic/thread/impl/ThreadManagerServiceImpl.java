@@ -3,11 +3,18 @@ package com.dipper.monitor.service.elastic.thread.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.thread.*;
+import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
+import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
+import com.dipper.monitor.mapper.ElasticThreadMetricMapper;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.service.elastic.thread.handlers.HotThreadHandler;
+import com.dipper.monitor.service.elastic.thread.handlers.ThreadChartSummaryHandler;
 import com.dipper.monitor.utils.Tuple2;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,7 +35,8 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
 
     @Autowired
     private ElasticClientService elasticClientService;
-
+    @Autowired
+    private ElasticThreadMetricMapper elasticThreadMetricMapper;
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -59,6 +68,52 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
 
     }
 
+
+
+    @Override
+    public void saveThreadMetrics(List<ThreadMetricEntity> metrics) {
+        try {
+            if (metrics == null || metrics.isEmpty()) {
+                log.warn("没有线程池指标数据需要保存");
+                return;
+            }
+
+            elasticThreadMetricMapper.batchInsert(metrics);
+            log.info("成功保存 {} 条线程池指标数据", metrics.size());
+        } catch (Exception e) {
+            log.error("保存线程池指标数据失败", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public void cleanHistoryData(int retentionDays) {
+        try {
+            LocalDateTime beforeTime = LocalDateTime.now().minusDays(retentionDays);
+            int deletedCount = elasticThreadMetricMapper.deleteByCollectTimeBefore(beforeTime);
+            log.info("成功清理 {} 条历史线程池指标数据（保留 {} 天）", deletedCount, retentionDays);
+        } catch (Exception e) {
+            log.error("清理历史线程池指标数据失败", e);
+        }
+    }
+
+    @Override
+    public List<ThreadMetricEntity> getThreadMetricsByClusterAndNode(String clusterCode, String nodeName,
+                                                                     String threadType, LocalDateTime startTime,
+                                                                     LocalDateTime endTime) {
+        return elasticThreadMetricMapper.selectByClusterNodeAndType(clusterCode, nodeName, threadType, startTime, endTime);
+    }
+
+    @Override
+    public List<ThreadMetricEntity> getThreadMetricsByClusterAndType(String clusterCode, String threadType,
+                                                                     LocalDateTime startTime, LocalDateTime endTime) {
+        return elasticThreadMetricMapper.selectByClusterAndType(clusterCode, threadType, startTime, endTime);
+    }
+
+    @Override
+    public ThreadMetricEntity getLatestThreadMetric(String clusterCode, String nodeName, String threadType) {
+        return elasticThreadMetricMapper.selectLatestByNode(clusterCode, nodeName, threadType);
+    }
 
 
     @Override
@@ -301,5 +356,20 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
         result.setSuggestions(suggestions);
         
         return result;
+    }
+
+    @Override
+    public List<ThreadMetricEntity> getThreadMetrics(ThreadCharReq threadCharReq) {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        threadCharReq.setClusterCode(clusterCode);
+        return elasticThreadMetricMapper.getThreadMetrics(threadCharReq);
+    }
+
+    @Override
+    public List<ThreadChartSummary> threadChartSummary(ThreadCharReq threadCharReq) {
+        List<ThreadMetricEntity> threadMetrics = getThreadMetrics(threadCharReq);
+        ThreadChartSummaryHandler handler = new ThreadChartSummaryHandler(threadMetrics);
+        return handler.threadChartSummary();
     }
 }

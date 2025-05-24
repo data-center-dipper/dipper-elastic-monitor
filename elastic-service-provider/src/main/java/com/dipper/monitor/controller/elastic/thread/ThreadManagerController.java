@@ -1,9 +1,12 @@
 package com.dipper.monitor.controller.elastic.thread;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.thread.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.ThreadPageReq;
+import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
+import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -39,6 +42,8 @@ public class ThreadManagerController {
         }
     }
 
+
+
     @GetMapping("/threadDetail")
     @Operation(summary = "获取线程详情", description = "获取线程详情")
     public JSONObject threadDetail(@RequestParam Integer threadId) {
@@ -65,6 +70,31 @@ public class ThreadManagerController {
             return ResultUtils.onFail(500, "刷新线程列表失败: " + e.getMessage());
         }
     }
+
+    @PostMapping("/threadChart")
+    @Operation(summary = "获取线走势图", description = "获取线走势图")
+    public JSONObject threadChart(@RequestBody ThreadCharReq threadCharReq) {
+        try {
+            List<ThreadMetricEntity> threads = threadManagerService.getThreadMetrics(threadCharReq);
+            return ResultUtils.onSuccess(threads);
+        } catch (Exception e) {
+            log.error("刷新线程列表失败", e);
+            return ResultUtils.onFail(500, "刷新线程列表失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/threadChartSummary")
+    @Operation(summary = "获取线走势图一段时间内的统计信息", description = "获取线走势图一段时间内的统计信息")
+    public JSONObject threadChartSummary(@RequestBody ThreadCharReq threadCharReq) {
+        try {
+            List<ThreadChartSummary> threads = threadManagerService.threadChartSummary(threadCharReq);
+            return ResultUtils.onSuccess(threads);
+        } catch (Exception e) {
+            log.error("刷新线程列表失败", e);
+            return ResultUtils.onFail(500, "刷新线程列表失败: " + e.getMessage());
+        }
+    }
+
     
     @GetMapping("/checkThreadEnvironment")
     @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")

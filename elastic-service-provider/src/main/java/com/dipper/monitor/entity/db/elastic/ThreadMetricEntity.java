@@ -16,7 +16,5 @@ public class ThreadMetricEntity {
     private Long rejectedCount;
     private Long completedCount;
     private Integer largestSize;
-    private Double cpuUsage;
-    private Long memoryUsage;
     private LocalDateTime collectTime;
 }
