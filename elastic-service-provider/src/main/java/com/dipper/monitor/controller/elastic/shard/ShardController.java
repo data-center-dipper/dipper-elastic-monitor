@@ -2,11 +2,7 @@ package com.dipper.monitor.controller.elastic.shard;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.shard.ShardIndexDistributeReq;
-import com.dipper.monitor.entity.elastic.shard.ShardIndexDistributeView;
-import com.dipper.monitor.entity.elastic.shard.ShardMigrationReq;
-import com.dipper.monitor.entity.elastic.shard.ShardNodeDistributeReq;
-import com.dipper.monitor.entity.elastic.shard.ShardNodeDistributeView;
+import com.dipper.monitor.entity.elastic.shard.*;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -93,9 +89,58 @@ public class ShardController {
             return ResultUtils.onFail(500, "分片迁移失败: " + e.getMessage());
         }
     }
-    
 
-    
+    @GetMapping("/shard-issues")
+    @Operation(summary = "获取分片异常列表", description = "获取集群中所有异常分片的列表")
+    public JSONObject getShardIssues() {
+        try {
+            List<JSONObject> shardErrors = elasticShardService.getShardError();
+            List<JSONObject> issues = new ArrayList<>();
+
+            // 将分片错误转换为前端需要的格式
+            for (JSONObject error : shardErrors) {
+                JSONObject issue = new JSONObject();
+                issue.put("index", error.getString("index"));
+                issue.put("shard", error.getIntValue("shard"));
+
+                // 根据状态生成问题描述
+                String state = error.getString("state");
+                String prirep = error.getString("prirep");
+                String description = "";
+
+                if ("UNASSIGNED".equals(state)) {
+                    description = ("p".equals(prirep) ? "主分片" : "副本分片") + "未分配";
+                } else if ("INITIALIZING".equals(state)) {
+                    description = ("p".equals(prirep) ? "主分片" : "副本分片") + "正在初始化";
+                } else if ("RELOCATING".equals(state)) {
+                    description = ("p".equals(prirep) ? "主分片" : "副本分片") + "正在重新分配";
+                }
+
+                issue.put("issue", description);
+                issues.add(issue);
+            }
+
+            return ResultUtils.onSuccess(issues);
+        } catch (Exception e) {
+            log.error("获取分片异常列表失败", e);
+            return ResultUtils.onFail(500, "获取分片异常列表失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/fix-shard-issue")
+    @Operation(summary = "修复分片异常", description = "修复指定的分片异常")
+    public JSONObject fixShardIssue(@RequestBody OneShardRepireReq oneShardRepireReq) {
+        try {
+            // 调用服务层的修复方法
+            String result = elasticShardService.repairOneShardError(oneShardRepireReq);
+            return ResultUtils.onSuccess("分片异常修复操作已执行: " + result);
+        } catch (Exception e) {
+            log.error("修复分片异常失败", e);
+            return ResultUtils.onFail(500, "修复分片异常失败: " + e.getMessage());
+        }
+    }
+
+
     @PostMapping("/rebalance-node")
     @Operation(summary = "重平衡节点", description = "对指定节点进行分片重平衡操作")
     public JSONObject rebalanceNode(@RequestBody JSONObject params) {

@@ -15,7 +15,7 @@ import java.io.IOException;
 
 
 @Slf4j
-public class RepairShardErrorHandler  extends AbstractShardErrorHandler {
+public class RepairAllShardErrorHandler extends AbstractShardErrorHandler {
 
     public JSONObject setRoutingAllocation(String value) throws Exception {
         JSONObject response;

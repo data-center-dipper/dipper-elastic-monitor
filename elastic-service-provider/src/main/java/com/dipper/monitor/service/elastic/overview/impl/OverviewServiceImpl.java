@@ -116,7 +116,7 @@ public class OverviewServiceImpl implements OverviewService {
 
     @Override
     public String repairShardError() throws Exception {
-        String lifeCycleList = elasticShardService.repairShardError();
+        String lifeCycleList = elasticShardService.repairAllShardError();
         return  lifeCycleList;
     }
 

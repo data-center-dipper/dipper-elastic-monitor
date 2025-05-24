@@ -26,7 +26,14 @@ public interface ElasticShardService {
      * 修复分片异常
      * @return
      */
-    String repairShardError() throws Exception;
+    String repairAllShardError() throws Exception;
+
+    /**
+     * 修复单个分片异常
+     * @param oneShardRepireReq
+     * @return
+     */
+    String repairOneShardError(OneShardRepireReq oneShardRepireReq);
 
 
     Map<String, List<ShardEntity>> listShardMap() throws IOException;
@@ -67,4 +74,5 @@ public interface ElasticShardService {
     boolean migrateShard(ShardMigrationReq migrationReq) throws IOException;
 
     boolean rebalanceNode(String nodeName);
+
 }
