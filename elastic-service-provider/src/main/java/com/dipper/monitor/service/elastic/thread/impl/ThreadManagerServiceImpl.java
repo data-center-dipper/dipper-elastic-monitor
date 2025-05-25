@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.thread.impl;
 
+import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
@@ -15,8 +16,10 @@ import com.dipper.monitor.service.elastic.thread.ThreadPoolService;
 import com.dipper.monitor.service.elastic.thread.handlers.HotThreadHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadChartSummaryHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadPoolCheckHandler;
+import com.dipper.monitor.service.elastic.thread.handlers.realcheck.ThreadHistoryCheckHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.realcheck.ThreadRealTimeCheckHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import com.dipper.monitor.utils.mock.MockAllData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,23 +101,6 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
         }
     }
 
-    @Override
-    public List<ThreadMetricEntity> getThreadMetricsByClusterAndNode(String clusterCode, String nodeName,
-                                                                     String threadType, LocalDateTime startTime,
-                                                                     LocalDateTime endTime) {
-        return elasticThreadMetricMapper.selectByClusterNodeAndType(clusterCode, nodeName, threadType, startTime, endTime);
-    }
-
-    @Override
-    public List<ThreadMetricEntity> getThreadMetricsByClusterAndType(String clusterCode, String threadType,
-                                                                     LocalDateTime startTime, LocalDateTime endTime) {
-        return elasticThreadMetricMapper.selectByClusterAndType(clusterCode, threadType, startTime, endTime);
-    }
-
-    @Override
-    public ThreadMetricEntity getLatestThreadMetric(String clusterCode, String nodeName, String threadType) {
-        return elasticThreadMetricMapper.selectLatestByNode(clusterCode, nodeName, threadType);
-    }
 
     @Override
     public List<ThreadPoolTrendResult> threadPoolCheck() throws IOException {
@@ -125,12 +111,18 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
 
     @Override
     public ThreadCheckResult threadRealTimeCheck() throws IOException {
+        if(ApplicationUtils.isWindows()){
+//            return MockAllData.threadRealTimeCheck();
+        }
         if (cachedThreadList.isEmpty()) {
             cachedThreadList = refreshThreadList();
         }
         List<ThreadPoolItem> threadPoolItems = threadPoolService.fetchThreadPool();
-        ThreadRealTimeCheckHandler threadRealTimeCheckHandler = new ThreadRealTimeCheckHandler(elasticClientService,threadPoolService);
-        return threadRealTimeCheckHandler.threadRealTimeCheck(cachedThreadList,threadPoolItems);
+        ThreadHistoryCheckHandler threadRealTimeCheckHandler = new ThreadHistoryCheckHandler();
+        return threadRealTimeCheckHandler.threadHistoryTimeCheck(threadPoolItems);
+
+//        ThreadRealTimeCheckHandler threadRealTimeCheckHandler = new ThreadRealTimeCheckHandler(elasticClientService,threadPoolService);
+//        return threadRealTimeCheckHandler.threadRealTimeCheck(cachedThreadList,threadPoolItems);
     }
 
     @Override

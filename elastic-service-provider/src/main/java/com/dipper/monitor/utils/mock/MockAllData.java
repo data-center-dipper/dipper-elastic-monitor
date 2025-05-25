@@ -3,8 +3,12 @@ package com.dipper.monitor.utils.mock;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckItem;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolSuggestion;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MockAllData {
@@ -84,5 +88,72 @@ public class MockAllData {
 
         // 返回填充好的实体对象
         return entity;
+    }
+
+    public static ThreadCheckResult threadRealTimeCheck() {
+        ThreadCheckResult result = new ThreadCheckResult();
+        result.setOverallStatus("异常");
+        result.setReadStatus("警告");
+        result.setWriteStatus("正常");
+        result.setMessage("部分线程池负载过高，请关注");
+
+        // 构造 checkItems
+        List<ThreadCheckItem> checkItems = Arrays.asList(
+                new ThreadCheckItem()
+                        .setCategory("bulk")
+                        .setItem("等待队列长度")
+                        .setValue("120")
+                        .setThreshold("< 100")
+                        .setStatus("警告")
+                        .setDescription("线程池任务较多，需关注"),
+
+                new ThreadCheckItem()
+                        .setCategory("index")
+                        .setItem("活跃线程比例")
+                        .setValue("96%")
+                        .setThreshold("< 80%")
+                        .setStatus("异常")
+                        .setDescription("线程池几乎满负荷运行，可能影响性能"),
+
+                new ThreadCheckItem()
+                        .setCategory("search")
+                        .setItem("核心线程数")
+                        .setValue("30")
+                        .setThreshold(">= 20")
+                        .setStatus("正常")
+                        .setDescription("当前值在推荐范围内"),
+
+                new ThreadCheckItem()
+                        .setCategory("write")
+                        .setItem("最大线程数")
+                        .setValue("50")
+                        .setThreshold(">= 40")
+                        .setStatus("正常")
+                        .setDescription("线程资源充足")
+        );
+
+        // 构造 suggestions
+        List<ThreadPoolSuggestion> suggestions = Arrays.asList(
+                new ThreadPoolSuggestion()
+                        .setTitle("优化建议：调整 bulk 线程池参数")
+                        .setContent("当前 bulk 线程池等待队列过长，建议增加线程数或优化任务执行效率")
+                        .setActions(Arrays.asList(
+                                "调整 bulk 线程池核心线程数",
+                                "检查是否有慢任务阻塞线程"
+                        )),
+
+                new ThreadPoolSuggestion()
+                        .setTitle("优化建议：监控 index 线程池负载")
+                        .setContent("index 线程池负载接近上限，建议设置监控报警")
+                        .setActions(Arrays.asList(
+                                "添加线程池监控指标告警",
+                                "分析任务耗时分布"
+                        ))
+        );
+
+        result.setCheckItems(checkItems);
+        result.setSuggestions(suggestions);
+
+        return result;
     }
 }

@@ -44,39 +44,6 @@ public interface ThreadManagerService {
     void cleanHistoryData(int retentionDays);
 
     /**
-     * 根据集群、节点和线程类型查询指标
-     * @param clusterCode 集群编码
-     * @param nodeName 节点名称
-     * @param threadType 线程类型
-     * @param startTime 开始时间
-     * @param endTime 结束时间
-     * @return 线程池指标列表
-     */
-    List<ThreadMetricEntity> getThreadMetricsByClusterAndNode(String clusterCode, String nodeName,
-                                                              String threadType, LocalDateTime startTime,
-                                                              LocalDateTime endTime);
-
-    /**
-     * 根据集群和线程类型查询指标
-     * @param clusterCode 集群编码
-     * @param threadType 线程类型
-     * @param startTime 开始时间
-     * @param endTime 结束时间
-     * @return 线程池指标列表
-     */
-    List<ThreadMetricEntity> getThreadMetricsByClusterAndType(String clusterCode, String threadType,
-                                                              LocalDateTime startTime, LocalDateTime endTime);
-
-    /**
-     * 获取最新的线程池指标
-     * @param clusterCode 集群编码
-     * @param nodeName 节点名称
-     * @param threadType 线程类型
-     * @return 最新的线程池指标
-     */
-    ThreadMetricEntity getLatestThreadMetric(String clusterCode, String nodeName, String threadType);
-
-    /**
      * 线程池检测
      * @return
      */
