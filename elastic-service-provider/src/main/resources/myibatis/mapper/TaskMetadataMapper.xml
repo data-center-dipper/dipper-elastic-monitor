@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.dipper.monitor.mapper.AnnotationMetadataMapper">
+<mapper namespace="com.dipper.monitor.mapper.TaskMetadataMapper">
 
     <!-- 根据注解类型删除元数据 -->
     <delete id="deleteByAnnotationType" parameterType="string">

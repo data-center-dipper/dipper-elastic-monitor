@@ -2,7 +2,7 @@ package com.dipper.monitor.comment.storage.impl;
 
 import com.dipper.monitor.entity.task.TaskMetadataEntity;
 import com.dipper.monitor.comment.storage.MetadataStorage;
-import com.dipper.monitor.mapper.AnnotationMetadataMapper;
+import com.dipper.monitor.mapper.TaskMetadataMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.List;
 public class LocalMySQLStorage implements MetadataStorage {
 
     @Autowired
-    private AnnotationMetadataMapper annotationMetadataMapper;
+    private TaskMetadataMapper taskMetadataMapper;
 
     @Override
     public int saveMetadata(List<TaskMetadataEntity> metadataList) {
@@ -29,10 +29,10 @@ public class LocalMySQLStorage implements MetadataStorage {
         try {
             // 先删除相同注解类型的旧记录
             String annotationType = metadataList.get(0).getAnnotationType();
-            annotationMetadataMapper.deleteByAnnotationType(annotationType);
+            taskMetadataMapper.deleteByAnnotationType(annotationType);
             
             // 批量插入新记录
-            int count = annotationMetadataMapper.batchInsert(metadataList);
+            int count = taskMetadataMapper.batchInsert(metadataList);
             log.info("成功保存 {} 条注解元数据到本地MySQL", count);
             return count;
         } catch (Exception e) {
@@ -43,11 +43,11 @@ public class LocalMySQLStorage implements MetadataStorage {
 
     @Override
     public List<TaskMetadataEntity> findByAnnotationType(String annotationType) {
-        return annotationMetadataMapper.findByAnnotationType(annotationType);
+        return taskMetadataMapper.findByAnnotationType(annotationType);
     }
 
     @Override
     public List<TaskMetadataEntity> findAll() {
-        return annotationMetadataMapper.findAll();
+        return taskMetadataMapper.findAll();
     }
 }

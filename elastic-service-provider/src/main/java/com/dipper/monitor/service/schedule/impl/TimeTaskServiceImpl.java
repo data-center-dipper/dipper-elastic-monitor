@@ -3,7 +3,8 @@ package com.dipper.monitor.service.schedule.impl;
 import com.dipper.monitor.entity.task.TaskMetadataEntity;
 import com.dipper.monitor.entity.task.TaskListView;
 import com.dipper.monitor.entity.task.TaskPageReq;
-import com.dipper.monitor.mapper.AnnotationMetadataMapper;
+import com.dipper.monitor.mapper.TaskMetadataMapper;
+import com.dipper.monitor.service.schedule.QuartzJobService;
 import com.dipper.monitor.service.schedule.TimeTaskService;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +29,15 @@ import java.util.Set;
 public class TimeTaskServiceImpl implements TimeTaskService {
 
     @Autowired
-    private AnnotationMetadataMapper annotationMetadataMapper;
+    private TaskMetadataMapper taskMetadataMapper;
     
     @Autowired
     private ApplicationContext applicationContext;
     
     @Autowired(required = false)
     private ScheduledAnnotationBeanPostProcessor scheduledProcessor;
+    @Autowired
+    private QuartzJobService quartzJobService;
 
     @Override
     public Tuple2<List<TaskListView>, Long> taskPage(TaskPageReq taskPageReq) {
@@ -42,10 +45,10 @@ public class TimeTaskServiceImpl implements TimeTaskService {
         int offset = (taskPageReq.getPageNum() - 1) * taskPageReq.getPageSize();
         
         // 查询总数
-        Long total = annotationMetadataMapper.countTasks(taskPageReq.getKeyword());
+        Long total = taskMetadataMapper.countTasks(taskPageReq.getKeyword());
         
         // 查询分页数据
-        List<TaskMetadataEntity> entities = annotationMetadataMapper.findTasksByPage(
+        List<TaskMetadataEntity> entities = taskMetadataMapper.findTasksByPage(
                 taskPageReq.getKeyword(), 
                 taskPageReq.getPageSize(), 
                 offset);
@@ -64,7 +67,7 @@ public class TimeTaskServiceImpl implements TimeTaskService {
     @Override
     public void taskStop(Integer taskId) {
         try {
-            TaskMetadataEntity task = annotationMetadataMapper.findById(taskId);
+            TaskMetadataEntity task = taskMetadataMapper.findById(taskId);
             if (task == null) {
                 log.error("任务不存在: {}", taskId);
                 return;
@@ -73,7 +76,12 @@ public class TimeTaskServiceImpl implements TimeTaskService {
             // 获取任务对应的bean和方法
             String className = task.getClassName();
             String methodName = task.getMethodName();
-            
+            String annotationType = task.getAnnotationType();
+            if(annotationType.contains("QuartzJob")){
+                quartzJobService.taskStop(task);
+                return;
+            }
+
             // 停止定时任务
             if (scheduledProcessor != null) {
                 Set<ScheduledTask> scheduledTasks = scheduledProcessor.getScheduledTasks();
@@ -94,7 +102,7 @@ public class TimeTaskServiceImpl implements TimeTaskService {
     @Override
     public void taskStart(Integer taskId) {
         try {
-            TaskMetadataEntity task = annotationMetadataMapper.findById(taskId);
+            TaskMetadataEntity task = taskMetadataMapper.findById(taskId);
             if (task == null) {
                 log.error("任务不存在: {}", taskId);
                 return;
@@ -103,7 +111,12 @@ public class TimeTaskServiceImpl implements TimeTaskService {
             // 获取任务对应的bean和方法
             String className = task.getClassName();
             String methodName = task.getMethodName();
-            
+            String annotationType = task.getAnnotationType();
+            if(annotationType.contains("QuartzJob")){
+                quartzJobService.taskStart(task);
+                return;
+            }
+
             // 获取Bean实例
             Object bean = applicationContext.getBean(Class.forName(className));
             Method method = bean.getClass().getDeclaredMethod(methodName);
@@ -140,7 +153,7 @@ public class TimeTaskServiceImpl implements TimeTaskService {
     @Override
     public void taskExecute(Integer taskId) {
         try {
-            TaskMetadataEntity task = annotationMetadataMapper.findById(taskId);
+            TaskMetadataEntity task = taskMetadataMapper.findById(taskId);
             if (task == null) {
                 log.error("任务不存在: {}", taskId);
                 return;
@@ -149,7 +162,13 @@ public class TimeTaskServiceImpl implements TimeTaskService {
             // 获取任务对应的bean和方法
             String className = task.getClassName();
             String methodName = task.getMethodName();
-            
+            String annotationType = task.getAnnotationType();
+            if(annotationType.contains("QuartzJob")){
+                quartzJobService.taskExecute(task);
+                return;
+            }
+
+
             // 获取Bean实例
             Object bean = applicationContext.getBean(Class.forName(className));
             Method method = bean.getClass().getDeclaredMethod(methodName);

@@ -10,7 +10,7 @@ import java.util.List;
  * 注解元数据Mapper接口
  */
 @Mapper
-public interface AnnotationMetadataMapper {
+public interface TaskMetadataMapper {
     
     /**
      * 根据注解类型删除元数据

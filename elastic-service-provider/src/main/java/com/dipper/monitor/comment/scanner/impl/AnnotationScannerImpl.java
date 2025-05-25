@@ -3,7 +3,7 @@ package com.dipper.monitor.comment.scanner.impl;
 import com.dipper.monitor.annotation.quartz.QuartzJob;
 import com.dipper.monitor.entity.task.TaskMetadataEntity;
 import com.dipper.monitor.comment.scanner.AnnotationScanner;
-import com.dipper.monitor.mapper.AnnotationMetadataMapper;
+import com.dipper.monitor.mapper.TaskMetadataMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import java.util.Map;
 public class AnnotationScannerImpl implements AnnotationScanner {
 
     @Autowired
-    private AnnotationMetadataMapper annotationMetadataMapper;
+    private TaskMetadataMapper taskMetadataMapper;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -79,10 +79,10 @@ public class AnnotationScannerImpl implements AnnotationScanner {
         try {
             // 先删除相同注解类型的旧记录
             String annotationType = metadataList.get(0).getAnnotationType();
-            annotationMetadataMapper.deleteByAnnotationType(annotationType);
+            taskMetadataMapper.deleteByAnnotationType(annotationType);
             
             // 批量插入新记录
-            int count = annotationMetadataMapper.batchInsert(metadataList);
+            int count = taskMetadataMapper.batchInsert(metadataList);
             log.info("成功保存 {} 条注解元数据", count);
             return count;
         } catch (Exception e) {
