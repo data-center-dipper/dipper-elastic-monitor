@@ -4,8 +4,9 @@ import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
-import com.dipper.monitor.entity.elastic.thread.check.ThreadPoolCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
+import com.dipper.monitor.entity.elastic.thread.check.yanshi.ThreadPoolItem;
 import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.mapper.ElasticThreadMetricMapper;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -14,6 +15,7 @@ import com.dipper.monitor.service.elastic.thread.ThreadPoolService;
 import com.dipper.monitor.service.elastic.thread.handlers.HotThreadHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadChartSummaryHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadPoolCheckHandler;
+import com.dipper.monitor.service.elastic.thread.handlers.realcheck.ThreadRealTimeCheckHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -122,13 +124,13 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
 
 
     @Override
-    public ThreadPoolCheckResult threadRealTimeCheck() {
+    public ThreadCheckResult threadRealTimeCheck() throws IOException {
         if (cachedThreadList.isEmpty()) {
             cachedThreadList = refreshThreadList();
         }
-//        ThreadRealTimeCheckHandler threadRealTimeCheckHandler = new ThreadRealTimeCheckHandler(elasticClientService);
-//        return threadRealTimeCheckHandler.threadRealTimeCheck(cachedThreadList);
-        return null;
+        List<ThreadPoolItem> threadPoolItems = threadPoolService.fetchThreadPool();
+        ThreadRealTimeCheckHandler threadRealTimeCheckHandler = new ThreadRealTimeCheckHandler(elasticClientService,threadPoolService);
+        return threadRealTimeCheckHandler.threadRealTimeCheck(cachedThreadList,threadPoolItems);
     }
 
     @Override

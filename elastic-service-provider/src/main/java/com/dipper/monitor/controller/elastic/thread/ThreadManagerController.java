@@ -2,8 +2,8 @@ package com.dipper.monitor.controller.elastic.thread;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
-import com.dipper.monitor.entity.elastic.thread.check.ThreadPoolCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
@@ -110,7 +110,7 @@ public class ThreadManagerController {
     @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")
     public JSONObject threadRealTimeCheck() {
         try {
-            ThreadPoolCheckResult result = threadManagerService.threadRealTimeCheck();
+            ThreadCheckResult result = threadManagerService.threadRealTimeCheck();
             return ResultUtils.onSuccess(result);
         } catch (Exception e) {
             log.error("线程环境检测失败", e);

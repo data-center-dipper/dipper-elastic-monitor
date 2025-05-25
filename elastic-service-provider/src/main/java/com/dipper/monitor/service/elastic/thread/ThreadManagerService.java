@@ -1,8 +1,8 @@
 package com.dipper.monitor.service.elastic.thread;
 
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
-import com.dipper.monitor.entity.elastic.thread.check.ThreadPoolCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
@@ -85,7 +85,7 @@ public interface ThreadManagerService {
      * 执行线程环境检测
      * @return 线程检测结果
      */
-    ThreadPoolCheckResult threadRealTimeCheck();
+    ThreadCheckResult threadRealTimeCheck() throws IOException;
 
     List<ThreadMetricEntity> getThreadMetrics(ThreadCharReq threadCharReq);
 

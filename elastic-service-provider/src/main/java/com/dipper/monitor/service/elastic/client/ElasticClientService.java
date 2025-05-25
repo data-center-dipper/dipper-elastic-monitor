@@ -6,10 +6,12 @@ import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
+import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolStat;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**

@@ -1,4 +1,4 @@
-package com.dipper.monitor.entity.elastic.thread.check;
+package com.dipper.monitor.entity.elastic.thread.check.realtime;
 
 import lombok.Data;
 
