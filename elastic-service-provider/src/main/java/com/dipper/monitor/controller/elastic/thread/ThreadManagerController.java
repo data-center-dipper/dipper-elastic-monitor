@@ -2,14 +2,13 @@ package com.dipper.monitor.controller.elastic.thread;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
-import com.dipper.monitor.entity.elastic.thread.ThreadCheckResult;
-import com.dipper.monitor.entity.elastic.thread.ThreadHotView;
-import com.dipper.monitor.entity.elastic.thread.ThreadPageReq;
+import com.dipper.monitor.entity.elastic.thread.check.ThreadPoolCheckResult;
+import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
+import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.utils.ResultUtils;
-import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -95,12 +94,23 @@ public class ThreadManagerController {
         }
     }
 
-    
-    @GetMapping("/checkThreadEnvironment")
+    @GetMapping("/threadPoolCheck")
     @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")
-    public JSONObject checkThreadEnvironment() {
+    public JSONObject threadPoolCheck() {
         try {
-            ThreadCheckResult result = threadManagerService.checkThreadEnvironment();
+            List<ThreadPoolTrendResult> result = threadManagerService.threadPoolCheck();
+            return ResultUtils.onSuccess(result);
+        } catch (Exception e) {
+            log.error("线程环境检测失败", e);
+            return ResultUtils.onFail(500, "线程环境检测失败: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("/threadRealTimeCheck")
+    @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")
+    public JSONObject threadRealTimeCheck() {
+        try {
+            ThreadPoolCheckResult result = threadManagerService.threadRealTimeCheck();
             return ResultUtils.onSuccess(result);
         } catch (Exception e) {
             log.error("线程环境检测失败", e);

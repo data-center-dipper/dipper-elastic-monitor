@@ -1,13 +1,13 @@
 package com.dipper.monitor.service.elastic.thread;
 
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
-import com.dipper.monitor.entity.elastic.thread.ThreadCheckResult;
-import com.dipper.monitor.entity.elastic.thread.ThreadHotView;
-import com.dipper.monitor.entity.elastic.thread.ThreadPageReq;
+import com.dipper.monitor.entity.elastic.thread.check.ThreadPoolCheckResult;
+import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
+import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
-import com.dipper.monitor.utils.Tuple2;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -77,10 +77,15 @@ public interface ThreadManagerService {
     ThreadMetricEntity getLatestThreadMetric(String clusterCode, String nodeName, String threadType);
 
     /**
+     * 线程池检测
+     * @return
+     */
+    List<ThreadPoolTrendResult> threadPoolCheck() throws IOException;
+    /**
      * 执行线程环境检测
      * @return 线程检测结果
      */
-    ThreadCheckResult checkThreadEnvironment();
+    ThreadPoolCheckResult threadRealTimeCheck();
 
     List<ThreadMetricEntity> getThreadMetrics(ThreadCharReq threadCharReq);
 
@@ -90,4 +95,6 @@ public interface ThreadManagerService {
      * @return
      */
     List<ThreadChartSummary> threadChartSummary(ThreadCharReq threadCharReq);
+
+
 }

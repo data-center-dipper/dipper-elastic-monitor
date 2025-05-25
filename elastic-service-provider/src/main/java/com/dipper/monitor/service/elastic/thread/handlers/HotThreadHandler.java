@@ -1,11 +1,10 @@
 package com.dipper.monitor.service.elastic.thread.handlers;
 
-import com.dipper.monitor.entity.elastic.thread.ThreadHotView;
+import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.hot.HotThreadMeta;
 import com.dipper.monitor.entity.elastic.thread.hot.HotThreadMiddle;
 import com.dipper.monitor.entity.elastic.thread.hot.NodeMetadata;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.utils.Tuple2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 

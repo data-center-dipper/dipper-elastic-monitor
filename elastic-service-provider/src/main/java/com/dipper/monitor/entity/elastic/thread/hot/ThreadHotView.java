@@ -1,8 +1,7 @@
-package com.dipper.monitor.entity.elastic.thread;
+package com.dipper.monitor.entity.elastic.thread.hot;
 
-import com.dipper.monitor.entity.elastic.thread.hot.HotThreadMeta;
 import lombok.Data;
-import java.util.Date;
+
 import java.util.List;
 
 @Data
