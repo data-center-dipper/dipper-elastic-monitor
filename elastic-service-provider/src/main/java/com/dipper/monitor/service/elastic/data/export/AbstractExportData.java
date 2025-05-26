@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.data.export;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.config.ExportConfig;
 import com.dipper.monitor.entity.elastic.data.ExportDataReq;
 import com.dipper.monitor.entity.elastic.data.ProgressInfo;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -25,14 +26,17 @@ public abstract class AbstractExportData implements Runnable {
     protected final ExportDataReq exportDataReq;
     protected final ElasticClientService elasticClientService;
     protected final DataExportService dataExportService;
+    protected final ExportConfig exportConfig;
 
     public AbstractExportData(String taskId, ExportDataReq exportDataReq,
                               ElasticClientService elasticClientService,
-                              DataExportService dataExportService) {
+                              DataExportService dataExportService,
+                              ExportConfig exportConfig) {
         this.taskId = taskId;
         this.exportDataReq = exportDataReq;
         this.elasticClientService = elasticClientService;
         this.dataExportService = dataExportService;
+        this.exportConfig = exportConfig;
     }
 
     @Override
@@ -57,11 +61,15 @@ public abstract class AbstractExportData implements Runnable {
             String response = elasticClientService.executePostApi(api, entity);
 
             // 解析响应中的 hits 数据
-            List<Map<String, Object>> hits = parseHitsFromResponse(response); // 需要你自己实现
+            List<JSONObject> hits = parseHitsFromResponse(response); // 需要你自己实现
 
             // 创建导出文件路径
             String fileName = "export_" + exportDataReq.getIndex() + "_" + System.currentTimeMillis() + getExtension();
-            String filePath = System.getProperty("java.io.tmpdir") + File.separator + fileName;
+            String exportBasePath = exportConfig.getExportBasePath();
+            if (exportBasePath == null || exportBasePath.isEmpty()) {
+                throw new RuntimeException("Export base path is not configured");
+            }
+            String filePath = exportBasePath + File.separator + fileName;
 
             // 导出数据到目标格式（JSON / CSV）
             exportData(hits, filePath, progressInfo);
@@ -83,7 +91,7 @@ public abstract class AbstractExportData implements Runnable {
 
     protected abstract String getExtension();
 
-    protected abstract void exportData(List<Map<String, Object>> hits, String filePath, ProgressInfo progressInfo) throws IOException;
+    protected abstract void exportData(List<JSONObject> hits, String filePath, ProgressInfo progressInfo) throws IOException;
 
     private String buildSearchRequestBody(String query, int size) {
         // 如果 query 为空，默认是 match_all
@@ -93,8 +101,8 @@ public abstract class AbstractExportData implements Runnable {
         return "{\"size\":" + size + ",\"query\":" + query + "}";
     }
 
-    protected List<Map<String, Object>> parseHitsFromResponse(String responseJson) {
-        List<Map<String, Object>> result = new ArrayList<>();
+    protected List<JSONObject> parseHitsFromResponse(String responseJson) {
+        List<JSONObject> result = new ArrayList<>();
         try {
             // 使用fastjson解析响应
             JSONObject jsonObject = JSON.parseObject(responseJson);
@@ -108,7 +116,7 @@ public abstract class AbstractExportData implements Runnable {
                             JSONObject source = hit.getJSONObject("_source");
                             if (source != null) {
                                 // 将JSONObject转换为Map
-                                result.add(source.getInnerMap());
+                                result.add(source);
                             }
                         }
                     }

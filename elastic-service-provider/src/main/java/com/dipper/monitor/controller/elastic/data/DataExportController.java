@@ -66,7 +66,7 @@ public class DataExportController {
             String filePath = (String) progress.getFilePath();
             File file = new File(filePath);
 
-            response.setContentType("application/octet-stream");
+            response.setContentType("application/json");
             response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
 
             try (InputStream is = new FileInputStream(file);

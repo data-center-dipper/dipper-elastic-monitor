@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.data.impl;
 
+import com.dipper.monitor.config.ExportConfig;
 import com.dipper.monitor.entity.elastic.data.ExportDataReq;
 import com.dipper.monitor.entity.elastic.data.ProgressInfo;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -32,6 +33,8 @@ public class DataExportServiceImpl implements DataExportService {
     private ElasticClientService elasticClientService;
     @Autowired
     private ElasticRealIndexService elasticRealIndexService;
+    @Autowired
+    private ExportConfig exportConfig;
 
     @Override
     public String exportData(ExportDataReq exportDataReq) {
@@ -56,10 +59,10 @@ public class DataExportServiceImpl implements DataExportService {
         // 启动异步任务
         if ("json".equalsIgnoreCase(format)) {
             executorService.submit(new JsonExportDataHandler(taskId, exportDataReq,
-                    elasticClientService,this));
+                    elasticClientService,this,exportConfig));
         } else {
             executorService.submit(new CsvExportDataHandler(taskId, exportDataReq,
-                    elasticClientService,this));
+                    elasticClientService,this,exportConfig));
         }
 
         logger.info("已启动导出任务，任务ID: {}", taskId);

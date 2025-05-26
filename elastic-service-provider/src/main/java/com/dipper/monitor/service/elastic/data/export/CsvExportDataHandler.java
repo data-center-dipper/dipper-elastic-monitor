@@ -1,5 +1,7 @@
 package com.dipper.monitor.service.elastic.data.export;
 
+import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.config.ExportConfig;
 import com.dipper.monitor.entity.elastic.data.ProgressInfo;
 import com.dipper.monitor.entity.elastic.data.ExportDataReq;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -15,8 +17,9 @@ public class CsvExportDataHandler extends AbstractExportData {
 
     public CsvExportDataHandler(String taskId, ExportDataReq exportDataReq,
                                 ElasticClientService elasticClientService,
-                                DataExportService dataExportService ) {
-        super(taskId, exportDataReq, elasticClientService,dataExportService);
+                                DataExportService dataExportService,
+                                ExportConfig exportConfig) {
+        super(taskId, exportDataReq, elasticClientService,dataExportService,exportConfig);
     }
 
     @Override
@@ -25,7 +28,7 @@ public class CsvExportDataHandler extends AbstractExportData {
     }
 
     @Override
-    protected void exportData(List<Map<String, Object>> hits, String filePath, ProgressInfo progressInfo) throws IOException {
+    protected void exportData(List<JSONObject> hits, String filePath, ProgressInfo progressInfo) throws IOException {
         if (hits.isEmpty()) {
             try (FileWriter writer = new FileWriter(filePath)) {
                 writer.write(""); // 空文件
