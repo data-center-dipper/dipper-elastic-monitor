@@ -1,6 +1,8 @@
 package com.dipper.monitor.service.elastic.slowsearch.impl;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
 import com.dipper.monitor.mapper.SlowQueryMapper;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +42,32 @@ public class SlowQueryStoreServiceImpl implements SlowQueryStoreService {
 
     @Override
     public void cleanHistoryData(int retentionDays) {
-        slowQueryMapper.deleteById()
+        slowQueryMapper.cleanHistoryData(retentionDays);
+    }
+
+    @Override
+    public int queryPageNum(SlowQueryPageReq pageReq) {
+        return slowQueryMapper.queryPageNum(pageReq);
+    }
+
+    @Override
+    public List<SlowQueryEntity> queryPage(SlowQueryPageReq pageReq) {
+        int offset = (pageReq.getPageNum() - 1) * pageReq.getPageSize();
+        pageReq.setOffset(offset);
+
+        List<SlowQueryEntity> list = slowQueryMapper.queryPage(pageReq);
+        return list;
+    }
+
+    @Override
+    public SlowQueryEntity getQueryDetail(Integer queryId) {
+        SlowQueryEntity slowQueryEntity = slowQueryMapper.selectById(queryId);
+        return slowQueryEntity;
+    }
+
+    @Override
+    public void updateSlowQuery(SlowQueryEntity entity) {
+        slowQueryMapper.updateSlowQuery(entity);
     }
 
 }

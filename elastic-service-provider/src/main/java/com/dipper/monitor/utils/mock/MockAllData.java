@@ -3,13 +3,14 @@ package com.dipper.monitor.utils.mock;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryTaskEntity;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolSuggestion;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class MockAllData {
 
@@ -155,5 +156,70 @@ public class MockAllData {
         result.setSuggestions(suggestions);
 
         return result;
+    }
+
+    private static final Random random = new Random();
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * 生成带有随机值的 SlowQueryTaskEntity 列表
+     *
+     * @return 模拟的 SlowQueryTaskEntity 列表
+     */
+    public static List<SlowQueryTaskEntity> getRelaSlowQuery() {
+        List<SlowQueryTaskEntity> mockList = new ArrayList<>();
+
+        int count = 5; // 生成 5 条模拟数据
+        LocalDateTime baseTime = LocalDateTime.now();
+
+        String[] clusters = {"cluster-a", "cluster-b", "cluster-c"};
+        String[] nodes = {"node-1", "node-2", "node-3", "node-4"};
+        String[] statuses = {"completed", "running", "failed"};
+        String[] actions = {"search:query", "search:scroll", "search:aggregation"};
+
+        for (int i = 0; i < count; i++) {
+            SlowQueryTaskEntity entity = new SlowQueryTaskEntity();
+
+            // 随机字段
+            String clusterCode = clusters[random.nextInt(clusters.length)];
+            String nodeId = nodes[random.nextInt(nodes.length)];
+            String status = statuses[random.nextInt(statuses.length)];
+            String action = actions[random.nextInt(actions.length)];
+
+            // 查询类型
+            String queryType;
+            if (action.contains("scroll")) {
+                queryType = "scroll";
+            } else if (action.contains("aggregation")) {
+                queryType = "aggregation";
+            } else {
+                queryType = "search";
+            }
+
+            // 执行时间（100ms - 5000ms）
+            long executionTime = 100 + (Math.abs(random.nextLong()) % 4901);
+
+            // 开始时间（当前时间往前推 0~60 分钟）
+            LocalDateTime startTime = baseTime.minusMinutes(random.nextInt(60));
+
+            // 描述信息（可模拟部分 DSL 内容）
+            String description = String.format("{\"query\":{\"match_all\":{}},\"size\":%d}", random.nextInt(1000));
+
+            entity.setClusterCode(clusterCode);
+            entity.setNodeId(nodeId);
+            entity.setNodeName("Node-" + nodeId.substring(nodeId.length() - 1));
+            entity.setTaskId(UUID.randomUUID().toString());
+            entity.setAction(action);
+            entity.setQueryType(queryType);
+            entity.setExecutionTime(executionTime);
+            entity.setStartTime(startTime.format(formatter));
+            entity.setDescription(description);
+            entity.setStatus(status);
+            entity.setCollectTime(new Date()); // 当前采集时间
+
+            mockList.add(entity);
+        }
+
+        return mockList;
     }
 }

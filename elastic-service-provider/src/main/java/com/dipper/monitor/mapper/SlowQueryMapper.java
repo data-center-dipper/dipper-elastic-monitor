@@ -1,6 +1,7 @@
 package com.dipper.monitor.mapper;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -37,4 +38,9 @@ public interface SlowQueryMapper {
     List<SlowQueryEntity> selectByIds(@Param("ids") List<Integer> ids);
 
 
+    void cleanHistoryData(@Param("retentionDays") int retentionDays);
+
+    int queryPageNum(SlowQueryPageReq pageReq);
+
+    List<SlowQueryEntity> queryPage(SlowQueryPageReq pageReq);
 }

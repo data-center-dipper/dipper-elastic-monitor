@@ -71,17 +71,45 @@ CREATE TABLE IF NOT EXISTS t_elastic_thread_metric (
 );
 
 CREATE TABLE t_slow_query (
-    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-    cluster_code VARCHAR(255) NOT NULL COMMENT '集群编码',
-    index_name VARCHAR(255) COMMENT '索引名称',
-    query_type ENUM('search', 'aggregation', 'scroll') COMMENT '查询类型：search, aggregation, scroll',
-    start_time VARCHAR(30) COMMENT '开始时间',
-    execution_time BIGINT COMMENT '执行时间(毫秒)',
-    status ENUM('running', 'completed', 'killed', 'failed') COMMENT '状态',
-    node_id VARCHAR(255) COMMENT '节点ID',
-    node_name VARCHAR(255) COMMENT '节点名称',
-    task_id VARCHAR(255) COMMENT '任务ID',
-    query_content TEXT COMMENT '查询内容',
-    stack_trace TEXT COMMENT '堆栈信息',
-    collect_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '收集时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='慢查询日志表';
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+
+    -- 集群 & 节点信息
+    cluster_code VARCHAR(64) NOT NULL COMMENT '集群编码（如 prod-es-cluster）',
+    node_id VARCHAR(128) NOT NULL COMMENT '节点ID（Elasticsearch节点唯一标识）',
+    node_name VARCHAR(128) COMMENT '节点名称（可选）',
+
+    -- 查询上下文信息
+    task_id VARCHAR(128) NOT NULL COMMENT '任务ID（对应Elasticsearch中的task_id）',
+    action VARCHAR(64) COMMENT '任务类型（如 search:query, search:scroll）',
+    query_type VARCHAR(32) COMMENT '查询类型（search, aggregation, scroll, suggest）',
+    index_name VARCHAR(256) COMMENT '索引名称（可能为空，多个用逗号分隔）',
+
+    -- 执行时间与状态
+    start_time DATETIME NOT NULL COMMENT '任务开始时间',
+    execution_time_ms BIGINT NOT NULL COMMENT '执行耗时（毫秒）',
+    status VARCHAR(32) NOT NULL COMMENT '任务状态（running, completed, killed, failed）',
+
+    -- 查询内容与上下文
+    query_content TEXT COMMENT '查询语句摘要或完整DSL内容',
+    description TEXT COMMENT '任务描述（如SearchSourceBuilder{...}）',
+    stack_trace TEXT COMMENT '堆栈信息（用于异常情况下的调试）',
+
+    -- 其他信息
+    collect_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '采集时间',
+    is_processed TINYINT DEFAULT 0 COMMENT '是否已处理（可用于标记是否已发送告警等）',
+
+    -- 索引优化
+    INDEX idx_cluster_task(cluster_code, task_id),
+    INDEX idx_start_time(start_time),
+    INDEX idx_execution_time(execution_time_ms)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Elasticsearch 慢查询日志记录表';
+
+
+CREATE TABLE t_slow_query_kill (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    query_id BIGINT NOT NULL,
+    task_id VARCHAR(255),
+    success TINYINT NOT NULL DEFAULT 0, -- 0失败 1成功
+    reason TEXT,
+    kill_time DATETIME DEFAULT CURRENT_TIMESTAMP
+);

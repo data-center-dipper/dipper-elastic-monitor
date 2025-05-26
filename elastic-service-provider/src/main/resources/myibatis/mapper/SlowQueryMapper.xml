@@ -6,113 +6,128 @@
 
     <!-- 插入一条慢查询记录 -->
     <insert id="insertSlowQuery">
-        INSERT INTO slow_query (
+        INSERT INTO t_slow_query (
         cluster_code,
-        index_name,
-        query_type,
-        start_time,
-        execution_time,
-        status,
         node_id,
         node_name,
         task_id,
+        action,
+        query_type,
+        index_name,
+        start_time,
+        execution_time_ms,
+        status,
         query_content,
+        description,
         stack_trace,
-        collect_time
+        collect_time,
+        is_processed
         ) VALUES (
         #{clusterCode},
-        #{indexName},
-        #{queryType},
-        #{startTime},
-        #{executionTime},
-        #{status},
         #{nodeId},
         #{nodeName},
         #{taskId},
+        #{action},
+        #{queryType},
+        #{indexName},
+        #{startTime},
+        #{executionTimeMs},
+        #{status},
         #{queryContent},
+        #{description},
         #{stackTrace},
-        #{collectTime}
+        #{collectTime},
+        #{isProcessed}
         )
     </insert>
 
     <!-- 批量插入 -->
     <insert id="saveSlowQueries">
-        INSERT INTO slow_query (
+        INSERT INTO t_slow_query (
         cluster_code,
-        index_name,
-        query_type,
-        start_time,
-        execution_time,
-        status,
         node_id,
         node_name,
         task_id,
+        action,
+        query_type,
+        index_name,
+        start_time,
+        execution_time_ms,
+        status,
         query_content,
+        description,
         stack_trace,
-        collect_time
+        collect_time,
+        is_processed
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
             #{item.clusterCode},
-            #{item.indexName},
-            #{item.queryType},
-            #{item.startTime},
-            #{item.executionTime},
-            #{item.status},
             #{item.nodeId},
             #{item.nodeName},
             #{item.taskId},
+            #{item.action},
+            #{item.queryType},
+            #{item.indexName},
+            #{item.startTime},
+            #{item.executionTimeMs},
+            #{item.status},
             #{item.queryContent},
+            #{item.description},
             #{item.stackTrace},
-            #{item.collectTime}
+            #{item.collectTime},
+            #{item.isProcessed}
             )
         </foreach>
     </insert>
 
     <!-- 根据 ID 删除记录 -->
     <delete id="deleteById">
-        DELETE FROM slow_query WHERE id = #{id}
+        DELETE FROM t_slow_query WHERE id = #{id}
     </delete>
 
     <!-- 更新记录 -->
     <update id="updateSlowQuery">
-        UPDATE slow_query
+        UPDATE t_slow_query
         SET
         cluster_code = #{clusterCode},
-        index_name = #{indexName},
-        query_type = #{queryType},
-        start_time = #{startTime},
-        execution_time = #{executionTime},
-        status = #{status},
         node_id = #{nodeId},
         node_name = #{nodeName},
         task_id = #{taskId},
+        action = #{action},
+        query_type = #{queryType},
+        index_name = #{indexName},
+        start_time = #{startTime},
+        execution_time_ms = #{executionTimeMs},
+        status = #{status},
         query_content = #{queryContent},
+        description = #{description},
         stack_trace = #{stackTrace},
-        collect_time = #{collectTime}
+        collect_time = #{collectTime},
+        is_processed = #{isProcessed}
         WHERE id = #{id}
     </update>
 
     <!-- 根据 ID 查询记录 -->
-    <select id="selectById" resultType="com.example.entity.SlowQueryEntity">
-        SELECT * FROM slow_query WHERE id = #{id}
+    <select id="selectById" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
+        SELECT * FROM t_slow_query WHERE id = #{id}
     </select>
 
     <!-- 分页查询 -->
-    <select id="selectByPage" resultType="com.example.entity.SlowQueryEntity">
+    <select id="selectByPage" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
         SELECT *
-        FROM slow_query
+        FROM t_slow_query
         <where>
-            <if test="clusterCode != null and clusterCode != ''">
+            <if test="clusterCode != null and !clusterCode.isEmpty()">
                 AND cluster_code LIKE CONCAT('%', #{clusterCode}, '%')
             </if>
-            <if test="queryType != null and queryType != ''">
+            <if test="queryType != null and !queryType.isEmpty()">
                 AND query_type = #{queryType}
             </if>
-            <if test="status != null and status != ''">
+            <if test="status != null and !status.isEmpty()">
                 AND status = #{status}
             </if>
-            <if test="startTime != null and startTime != ''">
+            <if test="startTime != null">
                 AND start_time >= #{startTime}
             </if>
         </where>
@@ -123,31 +138,145 @@
     <!-- 获取总记录数（用于分页） -->
     <select id="countByPage" resultType="int">
         SELECT COUNT(*)
-        FROM slow_query
+        FROM t_slow_query
         <where>
-            <if test="clusterCode != null and clusterCode != ''">
+            <if test="clusterCode != null and !clusterCode.isEmpty()">
                 AND cluster_code LIKE CONCAT('%', #{clusterCode}, '%')
             </if>
-            <if test="queryType != null and queryType != ''">
+            <if test="queryType != null and !queryType.isEmpty()">
                 AND query_type = #{queryType}
             </if>
-            <if test="status != null and status != ''">
+            <if test="status != null and !status.isEmpty()">
                 AND status = #{status}
             </if>
-            <if test="startTime != null and startTime != ''">
+            <if test="startTime != null">
                 AND start_time >= #{startTime}
             </if>
         </where>
     </select>
 
     <!-- 批量查询 by IDs -->
-    <select id="selectByIds" resultType="com.example.entity.SlowQueryEntity">
+    <select id="selectByIds" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
         SELECT *
-        FROM slow_query
+        FROM t_slow_query
         WHERE id IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </select>
+
+    <!-- 删除超过指定天数的历史记录 -->
+    <delete id="cleanHistoryData">
+        DELETE FROM t_slow_query
+        WHERE collect_time &lt; DATE_SUB(NOW(), INTERVAL #{retentionDays} DAY)
+    </delete>
+
+    <!-- 获取总记录数（用于分页） -->
+    <select id="countByPage" resultType="int">
+        SELECT COUNT(*)
+        FROM t_slow_query
+        <where>
+            <!-- 时间范围 -->
+            <if test="startTime != null">
+                AND start_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND start_time &lt;= #{endTime}
+            </if>
+
+            <!-- 查询类型 -->
+            <if test="queryType != null and !queryType.isEmpty()">
+                AND query_type = #{queryType}
+            </if>
+
+            <!-- 状态 -->
+            <if test="status != null and !status.isEmpty()">
+                AND status = #{status}
+            </if>
+
+            <!-- 索引名称 -->
+            <if test="indexName != null and !indexName.isEmpty()">
+                AND index_name LIKE CONCAT('%', #{indexName}, '%')
+            </if>
+
+            <!-- 节点名称 -->
+            <if test="nodeName != null and !nodeName.isEmpty()">
+                AND node_name LIKE CONCAT('%', #{nodeName}, '%')
+            </if>
+
+            <!-- 执行时间区间 -->
+            <if test="minExecutionTime != null">
+                AND execution_time_ms >= #{minExecutionTime}
+            </if>
+            <if test="maxExecutionTime != null">
+                AND execution_time_ms &lt;= #{maxExecutionTime}
+            </if>
+
+            <!-- 全文搜索关键词 -->
+            <if test="searchText != null and !searchText.isEmpty()">
+                AND (
+                task_id LIKE CONCAT('%', #{searchText}, '%') OR
+                description LIKE CONCAT('%', #{searchText}, '%') OR
+                query_content LIKE CONCAT('%', #{searchText}, '%') OR
+                cluster_code LIKE CONCAT('%', #{searchText}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="selectByPage" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
+        SELECT *
+        FROM t_slow_query
+        <where>
+            <!-- 时间范围 -->
+            <if test="startTime != null">
+                AND start_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND start_time &lt;= #{endTime}
+            </if>
+
+            <!-- 查询类型 -->
+            <if test="queryType != null and !queryType.isEmpty()">
+                AND query_type = #{queryType}
+            </if>
+
+            <!-- 状态 -->
+            <if test="status != null and !status.isEmpty()">
+                AND status = #{status}
+            </if>
+
+            <!-- 索引名称 -->
+            <if test="indexName != null and !indexName.isEmpty()">
+                AND index_name LIKE CONCAT('%', #{indexName}, '%')
+            </if>
+
+            <!-- 节点名称 -->
+            <if test="nodeName != null and !nodeName.isEmpty()">
+                AND node_name LIKE CONCAT('%', #{nodeName}, '%')
+            </if>
+
+            <!-- 执行时间区间 -->
+            <if test="minExecutionTime != null">
+                AND execution_time_ms >= #{minExecutionTime}
+            </if>
+            <if test="maxExecutionTime != null">
+                AND execution_time_ms &lt;= #{maxExecutionTime}
+            </if>
+
+            <!-- 全文搜索关键词 -->
+            <if test="searchText != null and !searchText.isEmpty()">
+                AND (
+                task_id LIKE CONCAT('%', #{searchText}, '%') OR
+                description LIKE CONCAT('%', #{searchText}, '%') OR
+                query_content LIKE CONCAT('%', #{searchText}, '%') OR
+                cluster_code LIKE CONCAT('%', #{searchText}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY collect_time DESC
+        LIMIT #{offset}, #{pageSize}
     </select>
 
 </mapper>

@@ -5,19 +5,39 @@ import lombok.Data;
 
 import java.util.Date;
 
+/**
+ * Elasticsearch 慢查询日志实体类
+ * 对应数据库表 es_slow_query_log
+ */
 @Data
 public class SlowQueryEntity {
-    private Integer id;          // 主键ID
-    private String clusterCode;  // 集群编码
-    private String indexName;    // 索引名称
-    private String queryType;    // 查询类型：search, aggregation, scroll
-    private String startTime;    // 开始时间
-    private Long executionTime;  // 执行时间(毫秒)
-    private String status;       // 状态：running, completed, killed, failed
-    private String nodeId;       // 节点ID
-    private String nodeName;     // 节点名称
-    private String taskId;       // 任务ID
-    private String queryContent; // 查询内容
-    private String stackTrace;   // 堆栈信息
-    private Date collectTime;    // 收集时间
+    private Long id; // 主键ID
+
+    // 集群 & 节点信息
+    private String clusterCode; // 集群编码
+    private String nodeId;      // 节点ID
+    private String nodeName;    // 节点名称
+
+    // 任务信息
+    private String taskId;      // 任务ID
+    private String action;      // 任务类型（如 search:query）
+    private String queryType;   // 查询类型（search, aggregation, scroll）
+
+    // 查询上下文
+    private String indexName;   // 索引名称（多个用逗号分隔）
+    private String description; // 任务描述（DSL语句摘要）
+    private String queryContent; // 查询内容（完整DSL或提取的条件）
+
+    // 执行信息
+    private Date startTime;     // 开始时间
+    private Long executionTimeMs; // 执行耗时（毫秒）
+    private String status;      // 状态（running, completed, killed, failed）
+
+    // 错误/调试信息
+    private String stackTrace;  // 堆栈信息（用于异常追踪）
+
+    // 元信息
+    private Date collectTime;   // 数据采集时间
+    private Integer isProcessed; // 是否已处理（0=未处理，1=已处理）
 }
+

@@ -5,6 +5,8 @@ import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
 import java.util.List;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
 
 import java.util.List;
 
@@ -21,4 +23,12 @@ public interface SlowQueryStoreService {
     void saveSlowQueries(List<SlowQueryEntity> slowQueries);
 
     void cleanHistoryData(int retentionDays);
+
+    int queryPageNum(SlowQueryPageReq pageReq);
+
+    List<SlowQueryEntity> queryPage(SlowQueryPageReq pageReq);
+
+    SlowQueryEntity getQueryDetail(Integer queryId);
+
+    void updateSlowQuery(SlowQueryEntity entity);
 }
