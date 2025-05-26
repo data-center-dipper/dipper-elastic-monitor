@@ -69,3 +69,19 @@ CREATE TABLE IF NOT EXISTS t_elastic_thread_metric (
     INDEX idx_cluster_node_type (cluster_code, node_name, thread_type), -- 复合索引，提高查询效率
     INDEX idx_collect_time (collect_time) -- 对collect_time建立索引，便于按时间范围查询
 );
+
+CREATE TABLE t_slow_query (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    cluster_code VARCHAR(255) NOT NULL COMMENT '集群编码',
+    index_name VARCHAR(255) COMMENT '索引名称',
+    query_type ENUM('search', 'aggregation', 'scroll') COMMENT '查询类型：search, aggregation, scroll',
+    start_time VARCHAR(30) COMMENT '开始时间',
+    execution_time BIGINT COMMENT '执行时间(毫秒)',
+    status ENUM('running', 'completed', 'killed', 'failed') COMMENT '状态',
+    node_id VARCHAR(255) COMMENT '节点ID',
+    node_name VARCHAR(255) COMMENT '节点名称',
+    task_id VARCHAR(255) COMMENT '任务ID',
+    query_content TEXT COMMENT '查询内容',
+    stack_trace TEXT COMMENT '堆栈信息',
+    collect_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '收集时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='慢查询日志表';

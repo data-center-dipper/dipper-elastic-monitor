@@ -45,11 +45,16 @@ public class ControllerLoAspect {
 
     @AfterReturning(returning = "ret", pointcut = "log()")
     public void doAfterReturning(Object ret) {
-        if (ret != null && ret.toString().length() > 65535) {
-            ret = ret.toString().substring(0, 65535);
-            logger.info("返回值太长已经截取:{}", ret);
+        if (ret != null) {
+            String result = ret.toString();
+            if (result.length() > 65535) {
+                result = result.substring(0, 65535);
+                logger.info("返回值太长已经截取:{}", result);
+            } else {
+                logger.info("返回值:{}", result);
+            }
         } else {
-            logger.info("返回值:{}", ret.toString());
+            logger.info("返回值为 null");
         }
     }
 }

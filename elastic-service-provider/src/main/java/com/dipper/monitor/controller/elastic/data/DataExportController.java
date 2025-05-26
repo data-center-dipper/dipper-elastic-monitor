@@ -8,6 +8,11 @@ import com.dipper.monitor.utils.ResultUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
@@ -59,29 +64,19 @@ public class DataExportController {
      * 注意：实际实现中应该添加文件下载逻辑
      */
     @GetMapping("/download/{taskId}")
-    public void downloadExportFile(@PathVariable String taskId, HttpServletResponse response) {
+    public ResponseEntity<Resource> downloadExportFile(@PathVariable String taskId) {
         ProgressInfo progress = dataExportService.getExportProgress(taskId);
 
         if ("completed".equals(progress.getStatus())) {
             String filePath = (String) progress.getFilePath();
-            File file = new File(filePath);
+            Resource resource = new FileSystemResource(new File(filePath));
 
-            response.setContentType("application/json");
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
-
-            try (InputStream is = new FileInputStream(file);
-                 OutputStream os = response.getOutputStream()) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    os.write(buffer, 0, bytesRead);
-                }
-            } catch (IOException e) {
-                log.error("文件下载失败", e);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
         } else {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 }
