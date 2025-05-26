@@ -1,5 +1,8 @@
 package com.dipper.monitor.service.elastic.data.export;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.data.ExportDataReq;
 import com.dipper.monitor.entity.elastic.data.ProgressInfo;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -73,7 +76,7 @@ public abstract class AbstractExportData implements Runnable {
             ProgressInfo progressInfo = dataExportService.getExportTasks().get(taskId);
             if (progressInfo != null) {
                 progressInfo.setStatus("failed");
-                progressInfo.setError(e.getMessage());
+                progressInfo.setMessage(e.getMessage()); // 使用setMessage替代setError
             }
         }
     }
@@ -90,11 +93,31 @@ public abstract class AbstractExportData implements Runnable {
         return "{\"size\":" + size + ",\"query\":" + query + "}";
     }
 
-    // 解析响应中的 hits 数据
     protected List<Map<String, Object>> parseHitsFromResponse(String responseJson) {
-        // 实际应使用 JSON 解析库（如 Jackson/Gson）解析 responseJson 中的 hits 字段
-        // 这里简化处理，返回一个空列表作为示例
-        return new ArrayList<>();
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            // 使用fastjson解析响应
+            JSONObject jsonObject = JSON.parseObject(responseJson);
+            JSONObject hits = jsonObject.getJSONObject("hits");
+            if (hits != null) {
+                JSONArray hitsArray = hits.getJSONArray("hits");
+                if (hitsArray != null) {
+                    for (int i = 0; i < hitsArray.size(); i++) {
+                        JSONObject hit = hitsArray.getJSONObject(i);
+                        if (hit != null) {
+                            JSONObject source = hit.getJSONObject("_source");
+                            if (source != null) {
+                                // 将JSONObject转换为Map
+                                result.add(source.getInnerMap());
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("解析响应数据失败", e);
+        }
+        return result;
     }
 
     protected void updateProgress(ProgressInfo progressInfo, int total, int current) {

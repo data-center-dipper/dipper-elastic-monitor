@@ -46,10 +46,10 @@ public class DataExportController {
             ProgressInfo progress = dataExportService.getExportProgress(taskId);
             return ResultUtils.onSuccess(progress);
         } catch (IllegalArgumentException e) {
-            log.error("Error adding template", e);
+            log.error("导出数据失败", e); // 修正为导出相关的描述
             return ResultUtils.onFail(e.getMessage());
         } catch (Exception e) {
-            log.error("Error adding template", e);
+            log.error("导出数据失败", e); // 修正为导出相关的描述
             return ResultUtils.onFail("Operation error");
         }
     }

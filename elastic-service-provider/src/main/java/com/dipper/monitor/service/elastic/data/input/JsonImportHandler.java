@@ -3,7 +3,6 @@ package com.dipper.monitor.service.elastic.data.input;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.data.ImportDataReq;
-import com.dipper.monitor.vo.ProgressInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -21,66 +20,67 @@ public class JsonImportHandler extends AbstractImportHandler {
     /**
      * 构造函数
      */
-    public JsonImportHandler(ImportDataReq importDataReq) throws Exception {
-        super(importDataReq);
+    public JsonImportHandler(ImportDataReq importDataReq, int totalLines, ProgressUpdater progressUpdater) {
+        super(importDataReq, totalLines, progressUpdater);
     }
-
-
 
     /**
      * 处理单行 JSON 数据
      *
      * @param line JSON 字符串
+     * @return 处理是否成功
      */
     @Override
-    public void processLine(String line) {
+    public boolean processLine(String line) {
         try {
+            // 解析JSON
             JSONObject jsonObject = JSON.parseObject(line);
 
-            // 模拟写入 Elasticsearch
+            // 写入 Elasticsearch
             writeToElasticsearch(jsonObject);
-
+            return true;
         } catch (Exception e) {
-            log.error("JSON 解析失败: {}", line, e);
+            return handleError("JSON 解析失败: " + line, e);
         }
     }
 
     /**
-     * 模拟写入 Elasticsearch
-     * 实际项目中应替换为真实调用 Elasticsearch 客户端的代码
-     *
+     * 写入 Elasticsearch
      * @param document 要写入的文档
      */
     private void writeToElasticsearch(JSONObject document) {
         // TODO: 替换为实际 ES 写入逻辑，如：
-        // elasticsearchTemplate.convertAndSend(...)
+        // elasticsearchTemplate.convertAndSend(importDataReq.getIndex(), document);
 
         // 当前只是打印日志
-        log.info("写入 Elasticsearch 数据: {}", document.toJSONString());
+        log.info("写入 Elasticsearch 索引 {}: {}", importDataReq.getIndex(), document.toJSONString());
     }
-
-    /**
-     * 计算当前进度百分比
-     */
-    private int calculateProgress(int current, int total) {
-        if (total <= 0) return 0;
-        return Math.min(95, (int) (((double) current / total) * 95));
-    }
-
 
     @Override
     public void run() {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                processLine(line);
+                // 处理行，如果处理失败且不忽略错误，则中断处理
+                if (!processLine(line) && !ignoreErrors) {
+                    progressUpdater.updateProgress(0, "JSON 导入失败: 处理数据时发生错误", errorCount.get());
+                    return;
+                }
+                
+                // 更新进度
                 int currentProgress = calculateProgress(linesProcessed.incrementAndGet(), totalLines);
-                progressUpdater.updateProgress(currentProgress, "正在处理第 " + linesProcessed.get() + " 行...");
+                progressUpdater.updateProgress(currentProgress, 
+                        "正在处理第 " + linesProcessed.get() + " 行...", 
+                        errorCount.get());
             }
-            progressUpdater.updateProgress(100, "JSON 导入完成");
+            
+            // 完成导入
+            progressUpdater.updateProgress(100, "JSON 导入完成" + 
+                    (errorCount.get() > 0 ? "，但有 " + errorCount.get() + " 条数据处理失败" : ""), 
+                    errorCount.get());
         } catch (Exception e) {
             log.error("处理 JSON 文件失败: {}", filePath, e);
-            progressUpdater.updateProgress(0, "JSON 导入失败: " + e.getMessage());
+            progressUpdater.updateProgress(0, "JSON 导入失败: " + e.getMessage(), errorCount.get());
         }
     }
 }
