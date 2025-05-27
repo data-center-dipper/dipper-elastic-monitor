@@ -1,7 +1,6 @@
 package com.dipper.monitor.service.elastic.slowsearch;
 
-import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillQueryReq;
 import com.dipper.monitor.utils.Tuple2;

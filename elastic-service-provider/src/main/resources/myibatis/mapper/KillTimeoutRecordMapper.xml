@@ -33,7 +33,7 @@
 
     <!-- 分页查询 -->
     <!-- 分页查询 -->
-    <select id="queryPage" resultType="com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord">
+    <select id="queryPage" resultType="com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord">
         SELECT *
         FROM t_slow_query_kill
         <where>
@@ -71,8 +71,24 @@
 
     <!-- 根据 ID 查询单条记录 -->
     <select id="getById" parameterType="int"
-            resultType="com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord">
+            resultType="com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord">
         SELECT * FROM t_slow_query_kill WHERE id = #{id}
     </select>
 
+    <!-- 根据时间范围查询 -->
+    <select id="queryByTimeRange" resultType="com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord">
+        SELECT *
+        FROM t_slow_query_kill
+        <where>
+            <if test="startTime != null and startTime != ''">
+                AND kill_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND kill_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    
 </mapper>

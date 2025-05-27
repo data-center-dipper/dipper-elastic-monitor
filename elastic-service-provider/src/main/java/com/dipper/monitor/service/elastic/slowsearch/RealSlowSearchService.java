@@ -1,7 +1,7 @@
 package com.dipper.monitor.service.elastic.slowsearch;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryTaskEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
 
 import java.io.IOException;
 import java.util.List;

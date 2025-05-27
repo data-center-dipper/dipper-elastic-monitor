@@ -1,8 +1,9 @@
 package com.dipper.monitor.service.elastic.slowsearch;
 
-import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryView;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -15,8 +16,11 @@ public interface SlowSearchService {
      * @return 慢查询列表和总数
      */
     Tuple2<List<SlowQueryView>, Integer> slowSearchPage(SlowQueryPageReq pageReq) throws IOException;
-    
 
-
-
+    /**
+     * 慢查询统计
+     * @param slowQuerySummaryReq 慢查询统计请求参数
+     * @return 慢查询统计结果
+     */
+    SlowQuerySummaryView slowSearchSummary(SlowQuerySummaryReq slowQuerySummaryReq);
 }

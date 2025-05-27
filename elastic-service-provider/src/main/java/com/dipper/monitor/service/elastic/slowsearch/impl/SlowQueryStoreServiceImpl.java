@@ -1,14 +1,15 @@
 package com.dipper.monitor.service.elastic.slowsearch.impl;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 import com.dipper.monitor.mapper.SlowQueryMapper;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -68,6 +69,25 @@ public class SlowQueryStoreServiceImpl implements SlowQueryStoreService {
     @Override
     public void updateSlowQuery(SlowQueryEntity entity) {
         slowQueryMapper.updateSlowQuery(entity);
+    }
+
+    @Override
+    public List<SlowQueryEntity> queryByTimeRange(Date startTime, Date endTime) {
+        try {
+            // 创建查询参数
+            SlowQueryPageReq pageReq = new SlowQueryPageReq();
+            pageReq.setStartTime(startTime);
+            pageReq.setEndTime(endTime);
+            pageReq.setPageNum(1);
+            pageReq.setPageSize(1000); // 设置一个较大的值以获取所有记录
+            
+            // 调用现有的分页查询方法
+            List<SlowQueryEntity> list = slowQueryMapper.queryPage(pageReq);
+            return list != null ? list : new ArrayList<>();
+        } catch (Exception e) {
+            log.error("按时间范围查询慢查询记录异常: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
     }
 
 }

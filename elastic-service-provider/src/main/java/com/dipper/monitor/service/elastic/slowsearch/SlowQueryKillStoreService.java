@@ -1,10 +1,9 @@
 package com.dipper.monitor.service.elastic.slowsearch;
 
-import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.kill.KillPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillQueryResult;
-import com.dipper.monitor.utils.Tuple2;
+import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
 
+import java.util.Date;
 import java.util.List;
 
 public interface SlowQueryKillStoreService {
@@ -13,4 +12,6 @@ public interface SlowQueryKillStoreService {
      * @param result 终止结果
      */
     void saveKillRecord(KillQueryResult result);
+
+    List<KillTimeoutRecord> queryByTimeRange(Date startTime, Date endTime);
 }

@@ -4,7 +4,7 @@ import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.config.SlowSearchConfig;
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryTaskEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.slowsearch.RealSlowSearchService;
 import com.dipper.monitor.service.elastic.slowsearch.handlers.SlowQueryParseHandler;

@@ -1,19 +1,21 @@
 package com.dipper.monitor.service.elastic.slowsearch.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryTaskEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryView;
+import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
 import com.dipper.monitor.mapper.KillTimeoutRecordMapper;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.slowsearch.RealSlowSearchService;
+import com.dipper.monitor.service.elastic.slowsearch.SlowQueryKillStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowSearchService;
+import com.dipper.monitor.service.elastic.slowsearch.handlers.slow.SlowQuerySummaryHandler;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,10 +23,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,16 +39,10 @@ public class SlowSearchServiceImpl implements SlowSearchService {
     private SlowQueryStoreService slowQueryStoreService;
     @Autowired
     private RealSlowSearchService realSlowSearchService;
+    @Autowired
+    private SlowQueryKillStoreService slowQueryKillStoreService;
 
-    private static final String TASKS_API = "/_tasks";
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    // 缓存慢查询列表，避免频繁请求ES
-    private List<SlowQueryView> cachedQueryList = new ArrayList<>();
-    
-    // 存储终止超时记录
-    private List<KillTimeoutRecord> killTimeoutRecords = new CopyOnWriteArrayList<>();
-    
     @Override
     public Tuple2<List<SlowQueryView>, Integer> slowSearchPage(SlowQueryPageReq pageReq) throws IOException {
         searchNowAndSave();
@@ -57,6 +51,13 @@ public class SlowSearchServiceImpl implements SlowSearchService {
         List<SlowQueryEntity> slowQueries = slowQueryStoreService.queryPage(pageReq);
         List<SlowQueryView> views = transToSlowQueryView(slowQueries);
         return new Tuple2<>(views, total);
+    }
+
+    @Override
+    public SlowQuerySummaryView slowSearchSummary(SlowQuerySummaryReq slowQuerySummaryReq) {
+        SlowQuerySummaryHandler slowQuerySummaryHandler = new SlowQuerySummaryHandler(realSlowSearchService,
+                slowQueryStoreService,slowQueryKillStoreService);
+        return slowQuerySummaryHandler.slowSearchSummary(slowQuerySummaryReq);
     }
 
     private void searchNowAndSave() throws IOException {

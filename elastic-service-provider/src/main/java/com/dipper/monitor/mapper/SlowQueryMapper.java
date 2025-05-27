@@ -1,7 +1,7 @@
 package com.dipper.monitor.mapper;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -43,4 +43,13 @@ public interface SlowQueryMapper {
     int queryPageNum(SlowQueryPageReq pageReq);
 
     List<SlowQueryEntity> queryPage(SlowQueryPageReq pageReq);
+
+    /**
+     * 根据时间范围查询慢查询记录
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @return 慢查询记录列表
+     */
+    List<SlowQueryEntity> queryByTimeRange(@Param("startTime") Date startTime,
+                                         @Param("endTime") Date endTime);
 }

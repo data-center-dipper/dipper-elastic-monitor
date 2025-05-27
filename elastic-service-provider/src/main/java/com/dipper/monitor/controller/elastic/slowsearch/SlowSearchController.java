@@ -1,10 +1,10 @@
 package com.dipper.monitor.controller.elastic.slowsearch;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
-import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryView;
 import com.dipper.monitor.service.elastic.slowsearch.SlowSearchService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -39,4 +39,28 @@ public class SlowSearchController {
         }
     }
 
+
+    @PostMapping("/slowSearchSummary")
+    @Operation(summary = "慢查询统计", description = "慢查询统计")
+    public JSONObject slowSearchSummary(@RequestBody SlowQuerySummaryReq slowQuerySummaryReq) {
+        try {
+            SlowQuerySummaryView slowQuerySummaryView = slowSearchService.slowSearchSummary(slowQuerySummaryReq);
+            return  ResultUtils.onSuccess(slowQuerySummaryView);
+        } catch (Exception e) {
+            log.error("慢查询统计失败", e);
+            return ResultUtils.onFail(500, "慢查询统计失败: " + e.getMessage());
+        }
+    }
+    
+    @PostMapping("/queryAnalysis")
+    @Operation(summary = "慢查询分析", description = "获取慢查询分析统计数据")
+    public JSONObject queryAnalysis(@RequestBody SlowQuerySummaryReq slowQuerySummaryReq) {
+        try {
+            SlowQuerySummaryView slowQuerySummaryView = slowSearchService.slowSearchSummary(slowQuerySummaryReq);
+            return ResultUtils.onSuccess(slowQuerySummaryView);
+        } catch (Exception e) {
+            log.error("获取慢查询分析数据失败", e);
+            return ResultUtils.onFail(500, "获取慢查询分析数据失败: " + e.getMessage());
+        }
+    }
 }

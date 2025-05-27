@@ -2,13 +2,10 @@ package com.dipper.monitor.service.elastic.slowsearch;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
 
+import java.util.Date;
 import java.util.List;
 
-import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
-
-import java.util.List;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 
 /**
  * 慢查询日志存储服务接口
@@ -31,4 +28,6 @@ public interface SlowQueryStoreService {
     SlowQueryEntity getQueryDetail(Integer queryId);
 
     void updateSlowQuery(SlowQueryEntity entity);
+
+    List<SlowQueryEntity>  queryByTimeRange(Date startTime, Date endTime);
 }

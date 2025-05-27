@@ -3,7 +3,7 @@ package com.dipper.monitor.utils.mock;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryTaskEntity;
+import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolSuggestion;

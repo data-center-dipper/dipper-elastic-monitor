@@ -1,7 +1,6 @@
 package com.dipper.monitor.service.elastic.slowsearch.impl;
 
-import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillQueryReq;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -12,10 +11,8 @@ import com.dipper.monitor.service.elastic.slowsearch.handlers.kill.KillQueryHand
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;

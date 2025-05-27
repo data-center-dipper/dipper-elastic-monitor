@@ -1,4 +1,4 @@
-package com.dipper.monitor.entity.elastic.slowsearch;
+package com.dipper.monitor.entity.elastic.slowsearch.kill;
 
 import lombok.Data;
 

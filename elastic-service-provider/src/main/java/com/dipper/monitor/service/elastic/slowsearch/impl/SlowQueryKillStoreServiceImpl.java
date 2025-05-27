@@ -1,8 +1,6 @@
 package com.dipper.monitor.service.elastic.slowsearch.impl;
 
-import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryPageReq;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillQueryResult;
 import com.dipper.monitor.mapper.KillTimeoutRecordMapper;
@@ -48,7 +46,24 @@ public class SlowQueryKillStoreServiceImpl implements SlowQueryKillStoreService 
             log.error("保存终止记录异常: {}", e.getMessage(), e);
         }
     }
-    
+
+    @Override
+    public List<KillTimeoutRecord> queryByTimeRange(Date startTime, Date endTime) {
+        try {
+            // 格式化日期
+            String formattedStartTime = startTime != null ? DATE_FORMAT.format(startTime) : null;
+            String formattedEndTime = endTime != null ? DATE_FORMAT.format(endTime) : null;
+            
+            // 调用Mapper查询
+            List<KillTimeoutRecord> records = killTimeoutRecordMapper.queryByTimeRange(formattedStartTime, formattedEndTime);
+            
+            return records != null ? records : new ArrayList<>();
+        } catch (Exception e) {
+            log.error("按时间范围查询终止记录异常: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
     /**
      * 分页查询终止记录
      * @param killPageReq 分页请求

@@ -1,20 +1,13 @@
 package com.dipper.monitor.task.slow_search;
 
-import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.annotation.quartz.QuartzJob;
 import com.dipper.monitor.config.SlowSearchConfig;
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
-import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
-import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryTaskEntity;
-import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
 import com.dipper.monitor.service.elastic.slowsearch.RealSlowSearchService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
-import com.dipper.monitor.service.elastic.slowsearch.SlowSearchService;
-import com.dipper.monitor.service.elastic.slowsearch.handlers.SlowQueryParseHandler;
-import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

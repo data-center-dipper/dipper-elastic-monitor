@@ -279,4 +279,19 @@
         LIMIT #{offset}, #{pageSize}
     </select>
 
+    <!-- 根据时间范围查询 -->
+    <select id="queryByTimeRange" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
+        SELECT *
+        FROM t_slow_query
+        <where>
+            <if test="startTime != null">
+                AND start_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND start_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY collect_time DESC
+    </select>
+
 </mapper>
