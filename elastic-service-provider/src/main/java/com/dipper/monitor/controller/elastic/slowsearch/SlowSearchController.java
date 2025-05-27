@@ -1,11 +1,8 @@
 package com.dipper.monitor.controller.elastic.slowsearch;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.QueryOptimizationReq;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.*;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryView;
 import com.dipper.monitor.service.elastic.slowsearch.SlowSearchService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -54,9 +51,9 @@ public class SlowSearchController {
 
     @PostMapping("/indexOptimization")
     @Operation(summary = "针对index的查询优化", description = "针对index的查询优化")
-    public JSONObject indexOptimization(@RequestBody QueryOptimizationReq queryOptimizationReq) {
+    public JSONObject indexOptimization(@RequestBody IndexOptimizationReq indexOptimizationReq) {
         try {
-            String pageResult = slowSearchService.indexOptimization(queryOptimizationReq);
+            IndexSlowAnalysisResult pageResult = slowSearchService.indexOptimization(indexOptimizationReq);
             return  ResultUtils.onSuccess(pageResult);
         } catch (Exception e) {
             log.error("分页查询策略失败", e);

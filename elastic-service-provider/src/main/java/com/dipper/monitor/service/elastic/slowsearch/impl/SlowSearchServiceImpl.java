@@ -2,14 +2,12 @@ package com.dipper.monitor.service.elastic.slowsearch.impl;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.QueryOptimizationReq;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
-import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryView;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.*;
 import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
 import com.dipper.monitor.mapper.KillTimeoutRecordMapper;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.slowsearch.RealSlowSearchService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryKillStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
@@ -44,6 +42,8 @@ public class SlowSearchServiceImpl implements SlowSearchService {
     private RealSlowSearchService realSlowSearchService;
     @Autowired
     private SlowQueryKillStoreService slowQueryKillStoreService;
+    @Autowired
+    private ElasticRealIndexService elasticRealIndexService;
 
 
     @Override
@@ -70,9 +70,12 @@ public class SlowSearchServiceImpl implements SlowSearchService {
     }
 
     @Override
-    public String indexOptimization(QueryOptimizationReq queryOptimizationReq) {
-        IndexOptimizationHandler oneQueryOptimizationHandler = new IndexOptimizationHandler(elasticClientService);
-        return oneQueryOptimizationHandler.indexOptimization(queryOptimizationReq);
+    public IndexSlowAnalysisResult indexOptimization(IndexOptimizationReq indexOptimizationReq) {
+        IndexOptimizationHandler oneQueryOptimizationHandler = new IndexOptimizationHandler(elasticClientService,
+                elasticRealIndexService ,
+                realSlowSearchService,
+                slowQueryStoreService);
+        return oneQueryOptimizationHandler.indexOptimization(indexOptimizationReq);
     }
 
     private void searchNowAndSave() throws IOException {
