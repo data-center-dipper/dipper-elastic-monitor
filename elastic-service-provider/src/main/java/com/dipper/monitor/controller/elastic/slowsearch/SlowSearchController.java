@@ -52,6 +52,18 @@ public class SlowSearchController {
         }
     }
 
+    @PostMapping("/indexOptimization")
+    @Operation(summary = "针对index的查询优化", description = "针对index的查询优化")
+    public JSONObject indexOptimization(@RequestBody QueryOptimizationReq queryOptimizationReq) {
+        try {
+            String pageResult = slowSearchService.indexOptimization(queryOptimizationReq);
+            return  ResultUtils.onSuccess(pageResult);
+        } catch (Exception e) {
+            log.error("分页查询策略失败", e);
+            return ResultUtils.onFail(500, "分页查询策略失败: " + e.getMessage());
+        }
+    }
+
 
 
 

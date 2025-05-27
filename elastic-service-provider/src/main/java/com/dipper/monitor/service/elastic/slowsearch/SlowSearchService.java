@@ -31,4 +31,11 @@ public interface SlowSearchService {
      * @return
      */
     String queryOptimization(QueryOptimizationReq queryOptimizationReq);
+
+    /**
+     * 索引优化建议
+     * @param queryOptimizationReq
+     * @return
+     */
+    String indexOptimization(QueryOptimizationReq queryOptimizationReq);
 }

@@ -16,6 +16,7 @@ import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowSearchService;
 import com.dipper.monitor.service.elastic.slowsearch.handlers.slow.OneQueryOptimizationHandler;
 import com.dipper.monitor.service.elastic.slowsearch.handlers.slow.SlowQuerySummaryHandler;
+import com.dipper.monitor.service.elastic.slowsearch.handlers.slow.optimization.index.IndexOptimizationHandler;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -66,6 +67,12 @@ public class SlowSearchServiceImpl implements SlowSearchService {
     public String queryOptimization(QueryOptimizationReq queryOptimizationReq) {
         OneQueryOptimizationHandler oneQueryOptimizationHandler = new OneQueryOptimizationHandler(elasticClientService);
         return oneQueryOptimizationHandler.queryOptimization(queryOptimizationReq);
+    }
+
+    @Override
+    public String indexOptimization(QueryOptimizationReq queryOptimizationReq) {
+        IndexOptimizationHandler oneQueryOptimizationHandler = new IndexOptimizationHandler(elasticClientService);
+        return oneQueryOptimizationHandler.indexOptimization(queryOptimizationReq);
     }
 
     private void searchNowAndSave() throws IOException {
