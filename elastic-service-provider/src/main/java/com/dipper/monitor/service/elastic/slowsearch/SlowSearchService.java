@@ -19,18 +19,4 @@ public interface SlowSearchService {
 
 
 
-    /**
-     * 分页查询终止超时记录
-     * @param pageReq 分页请求参数
-     * @return 超时记录列表和总数
-     */
-    Tuple2<List<KillTimeoutRecord>, Long> queryKillTimeoutPage(SlowQueryPageReq pageReq);
-    
-    /**
-     * 获取终止超时记录详情
-     * @param recordId 记录ID
-     * @return 超时记录详情
-     */
-    KillTimeoutRecord getKillTimeoutDetail(Integer recordId);
-
 }

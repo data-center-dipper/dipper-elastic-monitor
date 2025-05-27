@@ -105,11 +105,18 @@ CREATE TABLE t_slow_query (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Elasticsearch 慢查询日志记录表';
 
 
-CREATE TABLE t_slow_query_kill (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    query_id BIGINT NOT NULL,
-    task_id VARCHAR(255),
-    success TINYINT NOT NULL DEFAULT 0, -- 0失败 1成功
-    reason TEXT,
-    kill_time DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE `t_slow_query_kill` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+
+  `query_id` INT NULL DEFAULT NULL COMMENT '关联的查询ID',
+  `index_name` VARCHAR(255) NULL DEFAULT NULL COMMENT '索引名称',
+  `query_type` VARCHAR(100) NULL DEFAULT NULL COMMENT '查询类型',
+  `kill_time` VARCHAR(30) NULL DEFAULT NULL COMMENT '终止时间（字符串格式）',
+  `execution_time` BIGINT NULL DEFAULT NULL COMMENT '执行时间（毫秒）',
+  `status` VARCHAR(50) NULL DEFAULT NULL COMMENT '状态（如killed）',
+  `reason` text NULL DEFAULT NULL COMMENT '超时原因',
+  `node_id` VARCHAR(255) NULL DEFAULT NULL COMMENT '节点ID',
+  `task_id` VARCHAR(255) NULL DEFAULT NULL COMMENT '任务ID',
+  `query_content` TEXT NULL DEFAULT NULL COMMENT '原始查询内容',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='慢查询终止记录表';

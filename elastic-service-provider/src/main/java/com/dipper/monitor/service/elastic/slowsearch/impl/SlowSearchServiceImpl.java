@@ -119,31 +119,5 @@ public class SlowSearchServiceImpl implements SlowSearchService {
 
 
 
-    
-    @Override
-    public Tuple2<List<KillTimeoutRecord>, Long> queryKillTimeoutPage(SlowQueryPageReq pageReq) {
-        // 计算分页参数
-        int offset = (pageReq.getPageNum() - 1) * pageReq.getPageSize();
-        int limit = pageReq.getPageSize();
-        
-        // 查询总数
-        long total = killTimeoutRecordMapper.count(pageReq);
-        
-        // 如果没有记录，直接返回空列表
-        if (total == 0) {
-            return new Tuple2<>(new ArrayList<>(), 0L);
-        }
-        
-        // 查询分页数据
-        List<KillTimeoutRecord> records = killTimeoutRecordMapper.queryPage(pageReq, offset, limit);
-        
-        return new Tuple2<>(records, total);
-    }
-    
-    @Override
-    public KillTimeoutRecord getKillTimeoutDetail(Integer recordId) {
-        return killTimeoutRecordMapper.getById(recordId);
-    }
-
 
 }

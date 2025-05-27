@@ -57,17 +57,14 @@ public class SlowQueryKillStoreServiceImpl implements SlowQueryKillStoreService 
     public Tuple2<List<KillTimeoutRecord>, Long> queryKillRecordPage(KillPageReq killPageReq) {
         try {
             // 转换为通用查询请求
-            SlowQueryPageReq pageReq = new SlowQueryPageReq();
-            pageReq.setPageNum(killPageReq.getPageNum());
-            pageReq.setPageSize(killPageReq.getPageSize());
-            pageReq.setSearchText(killPageReq.getSearchText());
+
             
             // 计算分页参数
-            int offset = (pageReq.getPageNum() - 1) * pageReq.getPageSize();
-            int limit = pageReq.getPageSize();
+            int offset = (killPageReq.getPageNum() - 1) * killPageReq.getPageSize();
+            int limit = killPageReq.getPageSize();
             
             // 查询总数
-            long total = killTimeoutRecordMapper.count(pageReq);
+            long total = killTimeoutRecordMapper.count(killPageReq);
             
             // 如果没有记录，直接返回空列表
             if (total == 0) {
@@ -75,7 +72,7 @@ public class SlowQueryKillStoreServiceImpl implements SlowQueryKillStoreService 
             }
             
             // 查询分页数据
-            List<KillTimeoutRecord> records = killTimeoutRecordMapper.queryPage(pageReq, offset, limit);
+            List<KillTimeoutRecord> records = killTimeoutRecordMapper.queryPage(killPageReq, offset, limit);
             
             return new Tuple2<>(records, total);
         } catch (Exception e) {
