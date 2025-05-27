@@ -94,4 +94,6 @@ public interface ElasticRealIndexService {
     JSONObject getMappingByIndexName(String indexName);
 
     Long getDocumentCount(String indexName);
+
+    JSONObject getIndexSetting(String indexName);
 }

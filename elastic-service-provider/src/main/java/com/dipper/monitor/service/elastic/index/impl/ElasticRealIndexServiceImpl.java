@@ -619,6 +619,41 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         }
     }
 
+    @Override
+    public JSONObject getIndexSetting(String indexName) {
+        if (StringUtils.isBlank(indexName)) {
+            log.warn("Index name is blank, cannot fetch settings.");
+            return null;
+        }
+
+        String apiUrl = "/" + indexName + "/_settings";
+        try {
+            String result = this.elasticClientService.executeGetApi(apiUrl);
+            if (result == null || result.isEmpty()) {
+                log.warn("Empty response from Elasticsearch for settings of index: {}", indexName);
+                return null;
+            }
+
+            // 解析 JSON 字符串为 JSONObject
+            JSONObject jsonResponse = JSONObject.parseObject(result);
+
+            // 提取 settings 部分
+            Map.Entry<String, Object> entry = jsonResponse.entrySet().iterator().next();
+            JSONObject indexInfo = (JSONObject) entry.getValue();
+            JSONObject settings = indexInfo.getJSONObject("settings");
+
+            if (settings == null || settings.isEmpty()) {
+                log.warn("No 'settings' found in the response for index: {}", indexName);
+                return null;
+            }
+
+            return settings;
+        } catch (Exception e) {
+            log.error("Error fetching settings for index: {}", indexName, e);
+            return null;
+        }
+    }
+
     private IndexSetting parseIndexSetting(String index, JSONObject jsonObjectSetting) {
         IndexSetting indexSetting = new IndexSetting();
         indexSetting.setSettingData(jsonObjectSetting);

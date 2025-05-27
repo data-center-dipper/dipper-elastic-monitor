@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.slowsearch.impl;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.QueryOptimizationReq;
 import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
 import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryView;
@@ -13,6 +14,7 @@ import com.dipper.monitor.service.elastic.slowsearch.RealSlowSearchService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryKillStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowSearchService;
+import com.dipper.monitor.service.elastic.slowsearch.handlers.slow.OneQueryOptimizationHandler;
 import com.dipper.monitor.service.elastic.slowsearch.handlers.slow.SlowQuerySummaryHandler;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +60,12 @@ public class SlowSearchServiceImpl implements SlowSearchService {
         SlowQuerySummaryHandler slowQuerySummaryHandler = new SlowQuerySummaryHandler(realSlowSearchService,
                 slowQueryStoreService,slowQueryKillStoreService);
         return slowQuerySummaryHandler.slowSearchSummary(slowQuerySummaryReq);
+    }
+
+    @Override
+    public String queryOptimization(QueryOptimizationReq queryOptimizationReq) {
+        OneQueryOptimizationHandler oneQueryOptimizationHandler = new OneQueryOptimizationHandler(elasticClientService);
+        return oneQueryOptimizationHandler.queryOptimization(queryOptimizationReq);
     }
 
     private void searchNowAndSave() throws IOException {

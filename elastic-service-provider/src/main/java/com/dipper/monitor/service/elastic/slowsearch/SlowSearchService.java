@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.slowsearch;
 
+import com.dipper.monitor.entity.elastic.slowsearch.slow.QueryOptimizationReq;
 import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQueryPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
 import com.dipper.monitor.entity.elastic.slowsearch.slow.SlowQuerySummaryReq;
@@ -23,4 +24,11 @@ public interface SlowSearchService {
      * @return 慢查询统计结果
      */
     SlowQuerySummaryView slowSearchSummary(SlowQuerySummaryReq slowQuerySummaryReq);
+
+    /**
+     * 查询优化建议
+     * @param queryOptimizationReq
+     * @return
+     */
+    String queryOptimization(QueryOptimizationReq queryOptimizationReq);
 }
