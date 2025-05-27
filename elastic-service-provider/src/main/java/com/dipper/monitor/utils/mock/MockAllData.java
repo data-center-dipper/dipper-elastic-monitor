@@ -166,13 +166,12 @@ public class MockAllData {
      *
      * @return 模拟的 SlowQueryTaskEntity 列表
      */
-    public static List<SlowQueryTaskEntity> getRelaSlowQuery() {
+    public static List<SlowQueryTaskEntity> getRelaSlowQuery(String clusterCode) {
         List<SlowQueryTaskEntity> mockList = new ArrayList<>();
 
         int count = 5; // 生成 5 条模拟数据
         LocalDateTime baseTime = LocalDateTime.now();
 
-        String[] clusters = {"cluster-a", "cluster-b", "cluster-c"};
         String[] nodes = {"node-1", "node-2", "node-3", "node-4"};
         String[] statuses = {"completed", "running", "failed"};
         String[] actions = {"search:query", "search:scroll", "search:aggregation"};
@@ -181,7 +180,6 @@ public class MockAllData {
             SlowQueryTaskEntity entity = new SlowQueryTaskEntity();
 
             // 随机字段
-            String clusterCode = clusters[random.nextInt(clusters.length)];
             String nodeId = nodes[random.nextInt(nodes.length)];
             String status = statuses[random.nextInt(statuses.length)];
             String action = actions[random.nextInt(actions.length)];

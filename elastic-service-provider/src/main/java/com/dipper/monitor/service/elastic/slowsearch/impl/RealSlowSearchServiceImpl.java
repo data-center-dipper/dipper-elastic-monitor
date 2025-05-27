@@ -55,13 +55,14 @@ public class RealSlowSearchServiceImpl implements RealSlowSearchService {
 
     @Override
     public List<SlowQueryTaskEntity> getRelaSlowQuery() throws IOException {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+
         if(ApplicationUtils.isWindows()){
-            return MockAllData.getRelaSlowQuery();
+            return MockAllData.getRelaSlowQuery(clusterCode);
         }
         String response = elasticClientService.executeGetApi(REAL_SLOW_SEARCH_API);
 
-        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
-        String clusterCode = currentCluster.getClusterCode();
         int slowQueryThreshold = slowSearchConfig.getSlowQueryThreshold();
 
         TaskSlowQueryParseHandler parseHandler = new TaskSlowQueryParseHandler();

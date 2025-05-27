@@ -1,11 +1,15 @@
 package com.dipper.monitor.service.elastic.slowsearch.impl;
 
+import com.dipper.monitor.entity.elastic.slowsearch.KillTimeoutRecord;
+import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.kill.KillPageReq;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillQueryReq;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryKillStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowQueryStoreService;
 import com.dipper.monitor.service.elastic.slowsearch.SlowSearchKillService;
 import com.dipper.monitor.service.elastic.slowsearch.handlers.kill.KillQueryHandler;
+import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +19,7 @@ import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.concurrent.*;
 
 @Service
@@ -42,12 +47,12 @@ public class SlowSearchKillServiceImpl implements SlowSearchKillService {
         BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(100);
 
         this.killQueryExecutor = new ThreadPoolTaskExecutor();
-        ((ThreadPoolTaskExecutor) this.killQueryExecutor).setCorePoolSize(corePoolSize);
-        ((ThreadPoolTaskExecutor) this.killQueryExecutor).setMaxPoolSize(maxPoolSize);
-        ((ThreadPoolTaskExecutor) this.killQueryExecutor).setKeepAliveSeconds((int) keepAliveTime);
-        ((ThreadPoolTaskExecutor) this.killQueryExecutor).setQueueCapacity(100);
-        ((ThreadPoolTaskExecutor) this.killQueryExecutor).setThreadNamePrefix("kill-query-pool-");
-        ((ThreadPoolTaskExecutor) this.killQueryExecutor).initialize();
+        this.killQueryExecutor.setCorePoolSize(corePoolSize);
+        this.killQueryExecutor.setMaxPoolSize(maxPoolSize);
+        this.killQueryExecutor.setKeepAliveSeconds((int) keepAliveTime);
+        this.killQueryExecutor.setQueueCapacity(100);
+        this.killQueryExecutor.setThreadNamePrefix("kill-query-pool-");
+        this.killQueryExecutor.initialize();
 
         log.info("KillQuery 线程池已初始化: corePoolSize={}, maxPoolSize={}", corePoolSize, maxPoolSize);
     }
@@ -74,5 +79,15 @@ public class SlowSearchKillServiceImpl implements SlowSearchKillService {
             log.error("提交终止任务失败: {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    @Override
+    public Tuple2<List<KillTimeoutRecord>, Long> killPage(KillPageReq killPageReq) {
+        return ((SlowQueryKillStoreServiceImpl) slowQueryKillStoreService).queryKillRecordPage(killPageReq);
+    }
+    
+    @Override
+    public KillTimeoutRecord getKillRecordDetail(Integer recordId) {
+        return ((SlowQueryKillStoreServiceImpl) slowQueryKillStoreService).getKillRecordDetail(recordId);
     }
 }

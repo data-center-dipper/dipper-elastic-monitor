@@ -172,7 +172,7 @@
     </delete>
 
     <!-- 获取总记录数（用于分页） -->
-    <select id="countByPage" resultType="int">
+    <select id="queryPageNum" resultType="int">
         SELECT COUNT(*)
         FROM t_slow_query
         <where>
@@ -225,7 +225,7 @@
     </select>
 
     <!-- 分页查询 -->
-    <select id="selectByPage" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
+    <select id="queryPage" resultType="com.dipper.monitor.entity.db.elastic.SlowQueryEntity">
         SELECT *
         FROM t_slow_query
         <where>
