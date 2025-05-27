@@ -75,23 +75,47 @@ public class SlowSearchServiceImpl implements SlowSearchService {
      * @param slowQueries 数据库实体列表
      * @return 视图对象列表
      */
+    /**
+     * 将 SlowQueryEntity 列表转换为 SlowQueryView 列表
+     *
+     * @param slowQueries 数据库实体列表
+     * @return 视图对象列表
+     */
     private List<SlowQueryView> transToSlowQueryView(List<SlowQueryEntity> slowQueries) {
         if (slowQueries == null || slowQueries.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<SlowQueryView> viewList = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // 定义目标时间格式
 
         for (SlowQueryEntity entity : slowQueries) {
             SlowQueryView view = new SlowQueryView();
-            BeanUtils.copyProperties(entity,view);
+            try {
+                // 使用 BeanUtils 拷贝大部分属性
+                BeanUtils.copyProperties(entity, view);
+            } catch (Exception e) {
+               log.error("copy properties error", e);
+            }
+
+            // 手动设置时间字段并格式化
+            if (entity.getStartTime() != null) {
+                view.setStartTime(sdf.format(entity.getStartTime()));
+            } else {
+                view.setStartTime(null);
+            }
+
+            if (entity.getCollectTime() != null) {
+                view.setCollectTime(sdf.format(entity.getCollectTime()));
+            } else {
+                view.setCollectTime(null);
+            }
 
             viewList.add(view);
         }
 
         return viewList;
     }
-
 
 
 

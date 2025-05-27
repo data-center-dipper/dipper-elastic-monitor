@@ -27,7 +27,7 @@ public class SlowQueryView {
     private String queryContent; // 查询内容（完整DSL或提取的条件）
 
     // 执行信息
-    private Date startTime;     // 开始时间
+    private String startTime;     // 开始时间
     private Long executionTimeMs; // 执行耗时（毫秒）
     private String status;      // 状态（running, completed, killed, failed）
 
@@ -35,7 +35,7 @@ public class SlowQueryView {
     private String stackTrace;  // 堆栈信息（用于异常追踪）
 
     // 元信息
-    private Date collectTime;   // 数据采集时间
+    private String collectTime;   // 数据采集时间
     private Integer isProcessed; // 是否已处理（0=未处理，1=已处理）
 
 
