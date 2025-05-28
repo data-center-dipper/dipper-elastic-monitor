@@ -44,11 +44,6 @@ public interface ThreadManagerService {
     void cleanHistoryData(int retentionDays);
 
     /**
-     * 线程池检测
-     * @return
-     */
-    List<ThreadPoolTrendResult> threadPoolCheck() throws IOException;
-    /**
      * 执行线程环境检测
      * @return 线程检测结果
      */

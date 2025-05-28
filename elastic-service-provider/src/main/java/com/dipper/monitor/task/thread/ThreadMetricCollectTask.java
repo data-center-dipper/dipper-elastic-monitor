@@ -42,7 +42,7 @@ public class ThreadMetricCollectTask {
     private String clusterCode;
 
     // 每隔 10 分钟执行一次
-    @QuartzJob(cron = "0 0/10 * * * ?",
+    @QuartzJob(cron = "0 0/1 * * * ?",
             author = "hydra",
             groupName = "hydra",
             jobDesc = "elastic线程池指标采集",

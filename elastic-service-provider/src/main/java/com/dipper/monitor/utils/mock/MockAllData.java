@@ -1,6 +1,7 @@
 package com.dipper.monitor.utils.mock;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
@@ -219,5 +220,62 @@ public class MockAllData {
         }
 
         return mockList;
+    }
+
+    /**
+     *     private String clusterCode;
+     *     private String nodeName;
+     *     private String threadType;
+     *     private Integer activeThreads; 波动性
+     *     private Integer queueSize; 波动性
+     *     private Long rejectedCount; 自增
+     *     private Long completedCount; 自增
+     *     private Integer largestSize; 自增
+     *     private LocalDateTime collectTime; 自增
+     * @param clusterCode
+     * @return
+     */
+    /**
+     * 模拟解析线程池指标数据
+     *
+     * @param clusterCode 集群编码
+     * @return 模拟的线程池指标列表
+     */
+    public static List<ThreadMetricEntity> parseThreadPoolResponse(String clusterCode) {
+        List<ThreadMetricEntity> metrics = new ArrayList<>();
+
+        // 模拟节点名称
+        String[] nodeNames = {"node-1", "node-2", "node-3"};
+        // 线程池类型
+        String[] threadTypes = {"refresh", "search", "write", "management"};
+
+        // 当前时间作为采集时间
+        LocalDateTime collectTime = LocalDateTime.now();
+
+        // 为每个节点和每种线程类型生成模拟数据
+        for (String nodeName : nodeNames) {
+            for (String threadType : threadTypes) {
+                ThreadMetricEntity entity = new ThreadMetricEntity();
+                entity.setClusterCode(clusterCode);
+                entity.setNodeName(nodeName);
+                entity.setThreadType(threadType);
+
+                // 设置波动性字段（activeThreads, queueSize）
+                entity.setActiveThreads((int) (Math.random() * 10)); // 0~9
+                entity.setQueueSize((int) (Math.random() * 50));     // 0~49
+
+                // 设置自增型字段（模拟累计值）
+                entity.setRejectedCount((long) (Math.random() * 100));
+                entity.setCompletedCount((long) (Math.random() * 10000));
+                entity.setLargestSize((int) (Math.random() * 20));
+
+                // 设置采集时间
+                entity.setCollectTime(collectTime);
+
+                metrics.add(entity);
+            }
+        }
+
+        return metrics;
     }
 }

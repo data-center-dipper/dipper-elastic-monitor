@@ -39,7 +39,7 @@ public class TemplateHistoryServiceImpl implements TemplateHistoryService {
     }
 
     @Override
-    public Tuple2<Integer, List<TemplateHistoryView>> getBusenessUseTemplate(TemplatePageInfo templatePageInfo) {
+    public Tuple2<Integer, List<TemplateHistoryView>> getBusinessUseTemplate(TemplatePageInfo templatePageInfo) {
         BusinessHistoryTemplateHandler businessHistoryTemplateHandler = new BusinessHistoryTemplateHandler();
         return businessHistoryTemplateHandler.getBusenessUseTemplate(templatePageInfo);
     }

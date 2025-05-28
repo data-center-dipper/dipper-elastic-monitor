@@ -62,9 +62,9 @@ public class TemplateHistoryController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
     @PostMapping("/getBusenessUseTemplate")
-    public JSONObject getBusenessUseTemplate(@RequestBody TemplatePageInfo templatePageInfo) {
+    public JSONObject getBusinessUseTemplate(@RequestBody TemplatePageInfo templatePageInfo) {
         try {
-            Tuple2<Integer,List<TemplateHistoryView>> dics = templateHistoryService.getBusenessUseTemplate(templatePageInfo);
+            Tuple2<Integer,List<TemplateHistoryView>> dics = templateHistoryService.getBusinessUseTemplate(templatePageInfo);
             Integer k = dics.getK();
             List<TemplateHistoryView> v = dics.getV();
             return ResultUtils.onSuccessWithPageTotal(k,v);

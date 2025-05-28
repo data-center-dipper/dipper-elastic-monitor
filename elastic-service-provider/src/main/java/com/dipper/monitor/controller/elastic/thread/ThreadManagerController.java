@@ -70,6 +70,8 @@ public class ThreadManagerController {
         }
     }
 
+    /********************* 线程走势图 ************************************/
+
     @PostMapping("/threadChart")
     @Operation(summary = "获取线走势图", description = "获取线走势图")
     public JSONObject threadChart(@RequestBody ThreadCharReq threadCharReq) {
@@ -94,18 +96,8 @@ public class ThreadManagerController {
         }
     }
 
-    @GetMapping("/threadPoolCheck")
-    @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")
-    public JSONObject threadPoolCheck() {
-        try {
-            List<ThreadPoolTrendResult> result = threadManagerService.threadPoolCheck();
-            return ResultUtils.onSuccess(result);
-        } catch (Exception e) {
-            log.error("线程环境检测失败", e);
-            return ResultUtils.onFail(500, "线程环境检测失败: " + e.getMessage());
-        }
-    }
-    
+    /********************* 线程检测 ************************************/
+
     @GetMapping("/threadRealTimeCheck")
     @Operation(summary = "线程环境检测", description = "执行线程环境检测并返回检测结果")
     public JSONObject threadRealTimeCheck() {

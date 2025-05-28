@@ -2,7 +2,9 @@ package com.dipper.monitor.service.elastic.thread.handlers;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
+import com.dipper.monitor.utils.mock.MockAllData;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,6 +18,9 @@ public class ThreadPoolParseHandler {
     };
 
     public List<ThreadMetricEntity> parseThreadPoolResponse(String response, String clusterCode) {
+        if(ApplicationUtils.isWindows()){
+            return MockAllData.parseThreadPoolResponse(clusterCode);
+        }
         JSONObject rootNode = JSONObject.parseObject(response);
         JSONObject nodes = rootNode.getJSONObject("nodes");
 

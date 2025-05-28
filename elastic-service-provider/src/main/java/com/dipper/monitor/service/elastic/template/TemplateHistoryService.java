@@ -25,7 +25,7 @@ public interface TemplateHistoryService {
      * @param templatePageInfo
      * @return
      */
-    Tuple2<Integer, List<TemplateHistoryView>> getBusenessUseTemplate(TemplatePageInfo templatePageInfo);
+    Tuple2<Integer, List<TemplateHistoryView>> getBusinessUseTemplate(TemplatePageInfo templatePageInfo);
 
     /**
      * 获取当前使用的系统模版

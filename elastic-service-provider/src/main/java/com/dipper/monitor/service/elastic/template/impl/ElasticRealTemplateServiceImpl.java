@@ -73,7 +73,6 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
         this.cacheTemplate = CacheBuilder.newBuilder()
                 .maximumSize(7L)
                 .expireAfterWrite(300L, TimeUnit.SECONDS)
-                .expireAfterAccess(300L, TimeUnit.SECONDS)
                 .concurrencyLevel(7)
                 .build();
     }

@@ -15,11 +15,8 @@ import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.service.elastic.thread.ThreadPoolService;
 import com.dipper.monitor.service.elastic.thread.handlers.HotThreadHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadChartSummaryHandler;
-import com.dipper.monitor.service.elastic.thread.handlers.ThreadPoolCheckHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.realcheck.ThreadHistoryCheckHandler;
-import com.dipper.monitor.service.elastic.thread.handlers.realcheck.ThreadRealTimeCheckHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
-import com.dipper.monitor.utils.mock.MockAllData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,11 +99,7 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
     }
 
 
-    @Override
-    public List<ThreadPoolTrendResult> threadPoolCheck() throws IOException {
-        ThreadPoolCheckHandler threadRealTimeCheckHandler = new ThreadPoolCheckHandler(elasticClientService,threadPoolService);
-        return threadRealTimeCheckHandler.threadPoolCheck();
-    }
+
 
 
     @Override
@@ -120,9 +113,6 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
         List<ThreadPoolItem> threadPoolItems = threadPoolService.fetchThreadPool();
         ThreadHistoryCheckHandler threadRealTimeCheckHandler = new ThreadHistoryCheckHandler();
         return threadRealTimeCheckHandler.threadHistoryTimeCheck(threadPoolItems);
-
-//        ThreadRealTimeCheckHandler threadRealTimeCheckHandler = new ThreadRealTimeCheckHandler(elasticClientService,threadPoolService);
-//        return threadRealTimeCheckHandler.threadRealTimeCheck(cachedThreadList,threadPoolItems);
     }
 
     @Override
