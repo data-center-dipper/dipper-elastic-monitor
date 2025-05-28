@@ -1,4 +1,4 @@
-package com.dipper.monitor.service.elastic.slowsearch.handlers.slow;
+package com.dipper.monitor.service.elastic.slowsearch.handlers.slow.summary;
 
 import com.dipper.monitor.entity.db.elastic.SlowQueryEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.kill.KillTimeoutRecord;

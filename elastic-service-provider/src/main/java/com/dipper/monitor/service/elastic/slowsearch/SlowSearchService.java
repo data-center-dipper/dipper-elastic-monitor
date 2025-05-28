@@ -2,6 +2,9 @@ package com.dipper.monitor.service.elastic.slowsearch;
 
 import com.dipper.monitor.entity.elastic.slowsearch.slow.*;
 import com.dipper.monitor.entity.elastic.slowsearch.SlowQueryView;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.index.IndexOptimizationReq;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.index.IndexOptimizationSummaryView;
+import com.dipper.monitor.entity.elastic.slowsearch.slow.index.IndexSlowAnalysisResult;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -34,5 +37,5 @@ public interface SlowSearchService {
      * @param queryOptimizationReq
      * @return
      */
-    IndexSlowAnalysisResult indexOptimization(IndexOptimizationReq indexOptimizationReq);
+    IndexOptimizationSummaryView indexOptimization(IndexOptimizationReq indexOptimizationReq);
 }
