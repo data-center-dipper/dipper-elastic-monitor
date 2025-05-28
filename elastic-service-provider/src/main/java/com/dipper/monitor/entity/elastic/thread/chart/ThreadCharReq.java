@@ -2,6 +2,7 @@ package com.dipper.monitor.entity.elastic.thread.chart;
 
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 
@@ -13,7 +14,7 @@ public class ThreadCharReq {
     //  线程类型
     String threadType;
     // 开始时间
-    String startTime;
+    Instant startTime;
     // 结束时间
-    String endTime;
+    Instant endTime;
 }

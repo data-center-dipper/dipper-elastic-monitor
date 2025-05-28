@@ -14,8 +14,10 @@ import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,17 +45,13 @@ public class ThreadHistoryCheckHandler {
         }
 
         // 获取最近1小时内的线程池指标数据
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneHourAgo = now.minusHours(1);
+        Instant endInstant = Instant.now();
+        Instant startInstant = endInstant.minus(1, ChronoUnit.HOURS);
 
-        // 构建请求参数
         ThreadCharReq threadCharReq = new ThreadCharReq();
         threadCharReq.setClusterCode(ElasticBeanUtils.getCurrentCluster().getClusterCode());
-
-        // 设置时间格式（可根据项目中定义的时间格式调整）
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        threadCharReq.setStartTime(oneHourAgo.format(formatter));
-        threadCharReq.setEndTime(now.format(formatter));
+        threadCharReq.setStartTime(startInstant);
+        threadCharReq.setEndTime(endInstant);
 
         // 查询数据库中的历史指标数据
         List<ThreadMetricEntity> metrics = threadManagerService.getThreadMetrics(threadCharReq);

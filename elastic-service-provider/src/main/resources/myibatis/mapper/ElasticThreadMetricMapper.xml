@@ -56,10 +56,10 @@
             <if test="threadType != null and threadType != ''">
                 AND thread_type = #{threadType}
             </if>
-            <if test="startTime != null and startTime != ''">
+            <if test="startTime != null ">
                 AND collect_time &gt;= #{startTime}
             </if>
-            <if test="endTime != null and endTime != ''">
+            <if test="endTime != null ">
                 AND collect_time &lt;= #{endTime}
             </if>
         </where>
