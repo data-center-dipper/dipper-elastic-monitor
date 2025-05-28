@@ -7,7 +7,6 @@ import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
-import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.*;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.immediately.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,29 +72,9 @@ public class RollingIndexByTemplateHandler {
                 DaysOfRollingIndexHandler dailyRollingIndexHandler = new DaysOfRollingIndexHandler(esUnconvertedTemplate);
                 dailyRollingIndexHandler.handle();
                 break;
-            case EVERY_7_DAYS:
-                Every2DaysRollingIndexHandler every2DaysRollingIndexHandler = new Every2DaysRollingIndexHandler(esUnconvertedTemplate);
-                every2DaysRollingIndexHandler.handle();
-                break;
-            case EVERY_10_DAYS:
-                Every10DaysRollingIndexHandler every10DaysRollingIndexHandler = new Every10DaysRollingIndexHandler(esUnconvertedTemplate);
-                every10DaysRollingIndexHandler.handle();
-                break;
-            case EVERY_15_DAYS:
-                Every15DaysRollingIndexHandler every15DaysRollingIndexHandler = new Every15DaysRollingIndexHandler(esUnconvertedTemplate);
-                every15DaysRollingIndexHandler.handle();
-                break;
             case EVERY_30_DAYS:
                 MonthRollingIndexHandler monthRollingIndexHandler = new MonthRollingIndexHandler(esUnconvertedTemplate);
                 monthRollingIndexHandler.handle();
-                break;
-            case EVERY_60_DAYS:
-                Every60DaysRollingIndexHandler every60DaysRollingIndexHandler = new Every60DaysRollingIndexHandler(esUnconvertedTemplate);
-                every60DaysRollingIndexHandler.handle();
-                break;
-            case EVERY_90_DAYS:
-                Every90DaysRollingIndexHandler every90DaysRollingIndexHandler = new Every90DaysRollingIndexHandler(esUnconvertedTemplate);
-                every90DaysRollingIndexHandler.handle();
                 break;
             case EVERY_180_DAYS:
                 HafYearRollingIndexHandler hafYearRollingIndexHandler = new HafYearRollingIndexHandler(esUnconvertedTemplate);

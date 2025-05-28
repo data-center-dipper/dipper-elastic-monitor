@@ -69,12 +69,7 @@ public class PrefabricateTemplateInitHandler {
             return null;
         }
         log.info("预制模板配置目录: {}", configDirPath);
-
-        String home = System.getProperty("user.dir");
-        log.info("当前工作目录: {}", home);
-        String pluginConfig = home + "/" + configDirPath;
-        log.info("预制模板配置目录: {}", pluginConfig);
-        return pluginConfig;
+        return configDirPath;
     }
 
     /**

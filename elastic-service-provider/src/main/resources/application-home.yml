@@ -37,6 +37,7 @@ plugins:
   jar:
     dir: plugins
 
+
 prefabricate:
   template:
-    path: \\elastic-handler-provider\\src\\main\\resources\\template\\prefabricate
+    path: D:\\lcc\\IdeaProject\\dipper-elastic-monitor\\elastic-service-provider\\src\\main\\resources\\template\\prefabricate
