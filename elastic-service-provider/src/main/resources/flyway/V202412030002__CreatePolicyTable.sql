@@ -120,3 +120,60 @@ CREATE TABLE `t_slow_query_kill` (
   `query_content` TEXT NULL DEFAULT NULL COMMENT '原始查询内容',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='慢查询终止记录表';
+
+CREATE TABLE IF NOT EXISTS t_elastic_node_metric (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    cluster_code VARCHAR(64) NOT NULL COMMENT '集群编码',
+    node_id VARCHAR(128) NOT NULL COMMENT '节点ID',
+    node_name VARCHAR(128) NOT NULL COMMENT '节点名称',
+    host_ip VARCHAR(64) COMMENT '主机IP',
+    transport_address VARCHAR(128) COMMENT '传输地址',
+    roles VARCHAR(255) COMMENT '节点角色',
+    
+    -- CPU指标
+    cpu_percent INT COMMENT 'CPU使用率(%)',
+    
+    -- 内存指标
+    os_mem_total DOUBLE COMMENT '系统总内存(GB)',
+    os_mem_free DOUBLE COMMENT '系统空闲内存(GB)',
+    os_mem_used DOUBLE COMMENT '系统已用内存(GB)',
+    os_mem_used_percent INT COMMENT '系统内存使用率(%)',
+    os_mem_free_percent INT COMMENT '系统内存空闲率(%)',
+    jvm_mem_heap_used DOUBLE COMMENT 'JVM堆内存使用量(GB)',
+    jvm_mem_heap_used_percent INT COMMENT 'JVM堆内存使用率(%)',
+    jvm_mem_heap_max DOUBLE COMMENT 'JVM最大堆内存(GB)',
+    
+    -- 磁盘指标
+    disk_total VARCHAR(64) COMMENT '磁盘总空间',
+    disk_used VARCHAR(64) COMMENT '磁盘已用空间',
+    disk_avail VARCHAR(64) COMMENT '磁盘可用空间',
+    disk_percent DOUBLE COMMENT '磁盘使用率(%)',
+    
+    -- 文件描述符
+    open_file_descriptors INT COMMENT '打开的文件描述符数',
+    max_file_descriptors INT COMMENT '最大文件描述符数',
+    
+    -- 线程指标
+    threads_count INT COMMENT '线程数',
+    
+    -- 网络指标
+    network_rx_size BIGINT COMMENT '网络接收字节数',
+    network_rx_packets BIGINT COMMENT '网络接收包数',
+    network_tx_size BIGINT COMMENT '网络发送字节数',
+    network_tx_packets BIGINT COMMENT '网络发送包数',
+    
+    -- IO指标
+    io_read_operations BIGINT COMMENT 'IO读操作数',
+    io_write_operations BIGINT COMMENT 'IO写操作数',
+    io_read_size BIGINT COMMENT 'IO读取字节数',
+    io_write_size BIGINT COMMENT 'IO写入字节数',
+    
+    -- 其他指标
+    shards_count INT COMMENT '分片数量',
+    indices_count INT COMMENT '索引数量',
+    
+    collect_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '采集时间',
+    
+    INDEX idx_cluster_node (cluster_code, node_name),
+    INDEX idx_collect_time (collect_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Elasticsearch节点指标监控表';

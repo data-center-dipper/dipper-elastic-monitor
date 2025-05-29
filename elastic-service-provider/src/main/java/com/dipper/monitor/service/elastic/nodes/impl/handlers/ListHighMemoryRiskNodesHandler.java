@@ -48,14 +48,20 @@ public class ListHighMemoryRiskNodesHandler {
         List<ElasticNodeDetail> nodeList = new ArrayList<>();
         nodes.forEach((key, value) -> {
             JSONObject nodeJson = (JSONObject) value;
-            ElasticNodeDetail nodeDetail = buildElasticNodeDetail(nodeJson);
+            ElasticNodeDetail nodeDetail = buildElasticNodeDetail(nodeJson, true);
             nodeList.add(nodeDetail);
         });
         return nodeList;
     }
 
-    private ElasticNodeDetail buildElasticNodeDetail(JSONObject nodeJson) {
-        return new ElasticNodeDetail()
+    /**
+     * 构建节点详情对象
+     * @param nodeJson 节点JSON数据
+     * @param setRiskThresholds 是否设置风险阈值和分数
+     * @return 节点详情对象
+     */
+    public static ElasticNodeDetail buildElasticNodeDetail(JSONObject nodeJson, boolean setRiskThresholds) {
+        ElasticNodeDetail nodeDetail = new ElasticNodeDetail()
                 .setName(getSafeString(nodeJson, "name"))
                 .setTransportAddress(getSafeString(nodeJson, "transport_address"))
                 .setRoles(getSafeArrayAsString(nodeJson, "roles"))
@@ -71,31 +77,41 @@ public class ListHighMemoryRiskNodesHandler {
                 .setOpenFileDescriptors(getSafeIntegerFromNestedJson(nodeJson, "process.open_file_descriptors"))
                 .setMaxFileDescriptors(getSafeIntegerFromNestedJson(nodeJson, "process.max_file_descriptors"))
                 .setThreadsCount(getSafeInteger(nodeJson, "threads"))
-                .setHostIp(getSafeString(nodeJson, "host"))
-                .setEsJvmThreshouldInt(90)
-                .setEsDiskThreshouldInt(80)
-                .setScore(getSafeIntegerFromNestedJson(nodeJson, "jvm.mem.heap_used_percent"));
+                .setHostIp(getSafeString(nodeJson, "host"));
+        
+        if (setRiskThresholds) {
+            nodeDetail.setEsJvmThreshouldInt(90)
+                     .setEsDiskThreshouldInt(80)
+                     .setScore(getSafeIntegerFromNestedJson(nodeJson, "jvm.mem.heap_used_percent"));
+        }
+        
+        return nodeDetail;
+    }
+    
+    // 重载方法，保持向后兼容性
+    private ElasticNodeDetail buildElasticNodeDetail(JSONObject nodeJson) {
+        return buildElasticNodeDetail(nodeJson, true);
     }
 
-    // 辅助方法用于安全获取JSON中的值
-    private String getSafeString(JSONObject json, String key) {
+    // 将所有辅助方法改为静态方法
+    private static String getSafeString(JSONObject json, String key) {
         return Optional.ofNullable(json.getString(key)).orElse("");
     }
 
-    private Integer getSafeInteger(JSONObject json, String key) {
+    private static Integer getSafeInteger(JSONObject json, String key) {
         return Optional.ofNullable(json.getInteger(key)).orElse(null);
     }
 
-    private Long getSafeLong(JSONObject json, String key) {
+    private static Long getSafeLong(JSONObject json, String key) {
         return Optional.ofNullable(json.getLong(key)).orElse(null);
     }
 
-    private String getSafeArrayAsString(JSONObject json, String key) {
+    private static String getSafeArrayAsString(JSONObject json, String key) {
         JSONArray array = json.getJSONArray(key);
         return array != null ? array.toJavaList(String.class).toString() : "";
     }
 
-    private Integer getSafeIntegerFromNestedJson(JSONObject json, String nestedKey) {
+    private static Integer getSafeIntegerFromNestedJson(JSONObject json, String nestedKey) {
         String[] keys = nestedKey.split("\\.");
         Object value = json;
         for (String k : keys) {
@@ -105,7 +121,7 @@ public class ListHighMemoryRiskNodesHandler {
         return value instanceof Integer ? (Integer) value : null;
     }
 
-    private Long getSafeLongFromNestedJson(JSONObject json, String nestedKey) {
+    private static Long getSafeLongFromNestedJson(JSONObject json, String nestedKey) {
         String[] keys = nestedKey.split("\\.");
         Object value = json;
         for (String k : keys) {
@@ -115,7 +131,7 @@ public class ListHighMemoryRiskNodesHandler {
         return value instanceof Long ? (Long) value : null;
     }
 
-    private Double getSizeInGB(Long bytes) {
+    private static Double getSizeInGB(Long bytes) {
         return bytes != null ? bytes / 1073741824.0 : null;
     }
 
