@@ -1,0 +1,25 @@
+{
+  "zhName": "日志保留1天",
+  "enName": "logs_1_day",
+  "policyContent": {
+    "policy": {
+      "phases": {
+        "hot": {
+          "min_age": "0ms",
+          "actions": {
+            "rollover": {
+              "max_primary_shard_size": "50gb",
+              "max_age": "24h"
+            }
+          }
+        },
+        "delete": {
+          "min_age": "1d",
+          "actions": {
+            "delete": {}
+          }
+        }
+      }
+    }
+  }
+}

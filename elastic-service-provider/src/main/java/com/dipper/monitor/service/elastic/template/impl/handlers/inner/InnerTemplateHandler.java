@@ -1,0 +1,91 @@
+package com.dipper.monitor.service.elastic.template.impl.handlers.inner;
+
+import cn.hutool.core.io.FileUtil;
+import com.dipper.monitor.config.template.TemplateConfig;
+import com.dipper.monitor.entity.elastic.template.unconverted.PrefabricateTemplateEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+@Slf4j
+public class InnerTemplateHandler {
+
+    private TemplateConfig templateConfig;
+    private String configDirPath = null;
+    private List<PrefabricateTemplateEntity> esUnconvertedTemplateList = new ArrayList<>();
+
+    public InnerTemplateHandler(TemplateConfig templateConfig) {
+        this.templateConfig = templateConfig;
+        this.configDirPath = templateConfig.getInnerTemplatePath();
+    }
+
+    /**
+     * 初始化预制模版
+     */
+    public void initTemplate() {
+        try {
+            // 获取 classpath 下的 prefabricate 目录
+            String templatesDirPath = getTemplatesDirectoryPath();
+            File file = new File(templatesDirPath);
+            if (FileUtil.exist(file)) {
+                File[] files = file.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        if (f.isDirectory()) {
+                            continue; // 跳过子目录
+                        }
+                        PrefabricateTemplateEntity template = convertFileToEsUnconvertedTemplate(f.toPath());
+                        if (template != null) {
+                            esUnconvertedTemplateList.add(template);
+                        }
+                    }
+                }
+            } else {
+                log.error("模板目录不存在：" + templatesDirPath);
+            }
+        } catch (Exception e) {
+            log.error("初始化预制模版失败", e);
+        }
+        log.info("预制模版初始化完成, size: {}", esUnconvertedTemplateList.size());
+        esUnconvertedTemplateList.sort(Comparator.comparing(PrefabricateTemplateEntity::getOrder, Comparator.nullsLast(Integer::compareTo)));
+    }
+
+    /**
+     * 根据操作系统获取模板目录路径
+     */
+    private String getTemplatesDirectoryPath() throws IOException, java.net.URISyntaxException {
+        if (configDirPath == null || configDirPath.isEmpty()) {
+            log.error("预制模板配置目录未指定！");
+            return null;
+        }
+        log.info("预制模板配置目录: {}", configDirPath);
+        return configDirPath;
+    }
+
+    /**
+     * 将文件内容转换为 EsUnconvertedTemplate 对象
+     */
+    private PrefabricateTemplateEntity convertFileToEsUnconvertedTemplate(Path path) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            return objectMapper.readValue(content, PrefabricateTemplateEntity.class);
+        } catch (IOException e) {
+            log.error("读取或解析模板文件失败：{}", path.toString(), e);
+            return null;
+        }
+    }
+
+
+    public List<PrefabricateTemplateEntity> getEsUnconvertedTemplateList() {
+        return esUnconvertedTemplateList;
+    }
+}

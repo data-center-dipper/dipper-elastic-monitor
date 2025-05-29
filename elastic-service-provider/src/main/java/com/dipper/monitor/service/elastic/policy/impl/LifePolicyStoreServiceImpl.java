@@ -202,6 +202,25 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
         return lifePolicyResponses;
     }
 
+    @Override
+    public List<LifePolicyEntity> getAllPolicieEntitys() {
+        List<LifePolicyEntity> entitys = lifePolicyStoreMapper.getAllPolicies();
+        return entitys;
+    }
+
+    @Override
+    public boolean batchInsertTemplates(List<LifePolicyEntity> toBeSaved) {
+        if(CollectionUtils.isEmpty(toBeSaved)){
+            return true;
+        }
+        for (LifePolicyEntity lifePolicyResponse : toBeSaved) {
+            lifePolicyStoreMapper.insert(lifePolicyResponse);
+        }
+        return true;
+    }
+
+
+
     /**
      * 将实体对象转换为响应对象
      */

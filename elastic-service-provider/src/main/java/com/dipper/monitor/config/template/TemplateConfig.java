@@ -12,4 +12,15 @@ public class TemplateConfig {
      */
     @Value("${prefabricate.template.path}")
     private String prefabricateTemplatePath;
+
+    /**
+     * 内置模版的路径
+     */
+    @Value("${inner.template.path}")
+    private String innerTemplatePath;
+    /**
+     * 内置模版的路径
+     */
+    @Value("${inner.policy.path}")
+    private String innerPolicyPath;
 }

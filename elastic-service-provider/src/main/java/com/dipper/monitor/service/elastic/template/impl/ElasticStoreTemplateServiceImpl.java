@@ -42,23 +42,23 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         Map<String, Object> settings = esUnconvertedTemplate.getSettings();
 
         EsTemplateEntity esTemplate = new EsTemplateEntity();
-        BeanUtils.copyProperties(esUnconvertedTemplate,esTemplate);
+        BeanUtils.copyProperties(esUnconvertedTemplate, esTemplate);
         esTemplate.setClusterCode(clusterCode);
         esTemplate.setCreateTime(new Date());
         esTemplate.setUpdateTime(new Date());
-        if(settings == null || settings.isEmpty()){
+        if (settings == null || settings.isEmpty()) {
             esTemplate.setSettings("{}");
-        }else {
+        } else {
             JSONObject jsonObject = new JSONObject(settings);
             esTemplate.setSettings(jsonObject.toJSONString());
         }
 
         validate(esTemplate);
 
-        EsTemplateEntity db = esTemplateMapper.getTemplateByEnName(clusterCode,enName);
-        if(db != null){
+        EsTemplateEntity db = esTemplateMapper.getTemplateByEnName(clusterCode, enName);
+        if (db != null) {
             esTemplateMapper.updateTemplate(esTemplate);
-        }else {
+        } else {
             esTemplateMapper.insertTemplate(esTemplate);
         }
 
@@ -74,11 +74,11 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     public EsTemplateEntity updateTemplate(EsUnconvertedTemplate esUnconvertedTemplate) {
         // 转换成 EsTemplateEntity
         EsTemplateEntity esTemplateEntity = convertToEsTemplateEntity(esUnconvertedTemplate);
-        
+
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
         esTemplateEntity.setClusterCode(clusterCode);
-    
+
         validate(esTemplateEntity);
         esTemplateMapper.updateTemplate(esTemplateEntity);
         return esTemplateEntity;
@@ -86,13 +86,14 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     /**
      * 将未转换的模板转换为模板实体
+     *
      * @param esUnconvertedTemplate 未转换的模板
      * @return 模板实体
      */
     private EsTemplateEntity convertToEsTemplateEntity(EsUnconvertedTemplate esUnconvertedTemplate) {
         EsTemplateEntity esTemplateEntity = new EsTemplateEntity();
         BeanUtils.copyProperties(esUnconvertedTemplate, esTemplateEntity);
-        
+
         // 设置基本属性
         esTemplateEntity.setId(esUnconvertedTemplate.getId());
         esTemplateEntity.setZhName(esUnconvertedTemplate.getZhName());
@@ -103,13 +104,13 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         esTemplateEntity.setNumberOfShards(esUnconvertedTemplate.getNumberOfShards());
         esTemplateEntity.setNumberOfReplicas(esUnconvertedTemplate.getNumberOfReplicas());
         esTemplateEntity.setEnableAutoShards(esUnconvertedTemplate.getEnableAutoShards());
-        
+
         // 设置模板内容
         esTemplateEntity.setTemplateContent(esUnconvertedTemplate.getTemplateContent());
-        
+
         // 设置其他必要属性
         // 如果有其他需要转换的属性，在这里添加
-        
+
         return esTemplateEntity;
     }
 
@@ -125,7 +126,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public void updateTemplateStat(List<EsTemplateStatEntity> templateStat) {
-        for (EsTemplateStatEntity item: templateStat) {
+        for (EsTemplateStatEntity item : templateStat) {
             Integer id = item.getId();
             String statMessage = JSONObject.toJSONString(item);
             esTemplateMapper.updateTemplateStat(id, statMessage);
@@ -148,19 +149,19 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
         String keyword = templatePageInfo.getKeyword();
-        return esTemplateMapper.getTemplateNum(clusterCode,keyword);
+        return esTemplateMapper.getTemplateNum(clusterCode, keyword);
     }
 
     @Override
     public List<ElasticTemplateListView> getTemplateListViewByPage(TemplatePageInfo templatePageInfo) {
         List<EsTemplateEntity> templateByPage = getTemplateByPage(templatePageInfo);
-        if(CollectionUtils.isEmpty(templateByPage)){
+        if (CollectionUtils.isEmpty(templateByPage)) {
             return Collections.emptyList();
         }
         List<ElasticTemplateListView> elasticTemplateViews = new ArrayList<>();
         for (EsTemplateEntity esTemplateEntity : templateByPage) {
             ElasticTemplateListView elasticTemplateView = new ElasticTemplateListView();
-            BeanUtils.copyProperties(esTemplateEntity,elasticTemplateView);
+            BeanUtils.copyProperties(esTemplateEntity, elasticTemplateView);
             elasticTemplateView.setUpdateTime(DateDipperUtil.formatDate(esTemplateEntity.getUpdateTime()));
             elasticTemplateView.setId(esTemplateEntity.getId());
             elasticTemplateViews.add(elasticTemplateView);
@@ -218,12 +219,12 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public EsUnconvertedTemplate getOneUnconvertedTemplateByEnName(String enName) {
-        if(StringUtils.isBlank(enName)){
+        if (StringUtils.isBlank(enName)) {
             throw new IllegalArgumentException("enName is blank");
         }
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
-        EsTemplateEntity template = esTemplateMapper.getTemplateByEnName(clusterCode,enName);
+        EsTemplateEntity template = esTemplateMapper.getTemplateByEnName(clusterCode, enName);
         if (template == null) {
             throw new IllegalArgumentException("template not found");
         }
@@ -234,7 +235,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public EsTemplateStatEntity templateStat(Integer id) {
-        if(ApplicationUtils.isWindows()){
+        if (ApplicationUtils.isWindows()) {
             return MockAllData.templateStat(id);
         }
         EsTemplateEntity template = getTemplate(id);
@@ -242,7 +243,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
             throw new IllegalArgumentException("template not exist");
         }
         String statMessage = template.getStatMessage();
-        if(StringUtils.isBlank(statMessage)) {
+        if (StringUtils.isBlank(statMessage)) {
             return null;
         }
         EsTemplateStatEntity esTemplateStatEntity = JSONObject.parseObject(statMessage, EsTemplateStatEntity.class);
@@ -251,13 +252,13 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public List<String> templateNames(String nameLike) {
-        TemplatePageInfo  templatePageInfo = new TemplatePageInfo();
+        TemplatePageInfo templatePageInfo = new TemplatePageInfo();
         templatePageInfo.setPageNum(1);
         templatePageInfo.setPageSize(20);
         templatePageInfo.setKeyword(nameLike);
 
         List<EsTemplateEntity> allTemplates = getTemplateByPage(templatePageInfo);
-        if(CollectionUtils.isEmpty(allTemplates)){
+        if (CollectionUtils.isEmpty(allTemplates)) {
             return List.of();
         }
         return allTemplates.stream()
@@ -265,16 +266,27 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean batchInsertTemplates(List<EsTemplateEntity> toBeSaved) {
+        if (CollectionUtils.isEmpty(toBeSaved)) {
+            return false;
+        }
+        for (EsTemplateEntity esTemplateEntity : toBeSaved) {
+            esTemplateMapper.insertTemplate(esTemplateEntity);
+        }
+        return true;
+    }
+
 
     @Override
-    public  List<EsTemplateEntity> getTemplateByPage(TemplatePageInfo templatePageInfo) {
+    public List<EsTemplateEntity> getTemplateByPage(TemplatePageInfo templatePageInfo) {
         Integer pageNum = templatePageInfo.getPageNum();
         Integer pageSize = templatePageInfo.getPageSize();
         String keyword = templatePageInfo.getKeyword();
         Integer offset = (pageNum - 1) * pageSize; // 计算offset
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
-        return esTemplateMapper.getTemplateByPage(clusterCode,keyword, pageSize, offset);
+        return esTemplateMapper.getTemplateByPage(clusterCode, keyword, pageSize, offset);
     }
 
     /**

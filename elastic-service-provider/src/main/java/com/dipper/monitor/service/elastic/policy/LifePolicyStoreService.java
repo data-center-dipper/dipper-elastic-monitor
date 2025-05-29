@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.policy;
 
+import com.dipper.monitor.entity.db.elastic.LifePolicyEntity;
 import com.dipper.monitor.entity.elastic.policy.LifePolicyRequest;
 import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
 import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
@@ -37,4 +38,8 @@ public interface LifePolicyStoreService {
     Tuple2<List<LifePolicyResponse>,Long> getPoliciesByPage(PolicyPageRequest request);
 
     List<LifePolicyResponse> getAllPolicies();
+
+    boolean batchInsertTemplates(List<LifePolicyEntity> toBeSaved);
+
+    List<LifePolicyEntity> getAllPolicieEntitys();
 }

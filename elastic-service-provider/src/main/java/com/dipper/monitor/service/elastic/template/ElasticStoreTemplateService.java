@@ -84,4 +84,5 @@ public interface ElasticStoreTemplateService {
     List<String> templateNames(String templateLike);
 
 
+    boolean batchInsertTemplates(List<EsTemplateEntity> toBeSaved);
 }

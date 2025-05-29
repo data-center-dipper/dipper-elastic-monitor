@@ -1,0 +1,37 @@
+{
+  "zhName": "日志保留6个月",
+  "enName": "logs_6_months",
+  "policyContent": {
+    "policy": {
+      "phases": {
+        "hot": {
+          "min_age": "0ms",
+          "actions": {
+            "rollover": {
+              "max_primary_shard_size": "50gb",
+              "max_age": "24h"
+            }
+          }
+        },
+        "warm": {
+          "min_age": "1d",
+          "actions": {
+            "readonly": {}
+          }
+        },
+        "cold": {
+          "min_age": "30d",
+          "actions": {
+            "freeze": {}
+          }
+        },
+        "delete": {
+          "min_age": "180d",
+          "actions": {
+            "delete": {}
+          }
+        }
+      }
+    }
+  }
+}
