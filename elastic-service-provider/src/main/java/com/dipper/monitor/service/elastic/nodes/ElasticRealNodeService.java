@@ -1,7 +1,6 @@
 package com.dipper.monitor.service.elastic.nodes;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.nodes.detail.NodeDetailView;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
@@ -48,7 +47,6 @@ public interface ElasticRealNodeService {
 
     void updateNode(NodeUpdateReq nodeUpdateReq);
 
-    LineChartDataResponse getLineChartData(NodeCharReq nodeCharReq);
 
     Integer getClusterNodesCount() throws IOException;
 

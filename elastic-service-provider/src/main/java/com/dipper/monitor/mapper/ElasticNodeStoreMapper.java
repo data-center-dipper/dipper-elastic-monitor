@@ -39,4 +39,15 @@ public interface ElasticNodeStoreMapper {
     NodeStoreEntity getByNodeId(@Param("clusterCode") String clusterCode,@Param("nodeId")  Integer nodeId);
 
     void deleteNode(Integer nodeId);
+    
+    /**
+     * 根据节点名称模糊查询节点列表
+     * @param clusterCode 集群编码
+     * @param nodeNameLike 节点名称（模糊匹配）
+     * @param limit 限制返回数量
+     * @return 节点列表
+     */
+    List<NodeStoreEntity> metricNodes(@Param("clusterCode") String clusterCode, 
+                                      @Param("nodeNameLike") String nodeNameLike,
+                                      @Param("limit") Integer limit);
 }

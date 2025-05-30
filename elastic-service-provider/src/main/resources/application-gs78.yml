@@ -40,3 +40,9 @@ plugins:
 prefabricate:
   template:
     path: \\elastic-handler-provider\\src\\main\\resources\\template\\prefabricate
+
+inner:
+  template:
+    path: E:\Ideaproject\elastic\dipper-elastic-monitor\elastic-service-provider\src\main\resources\template\inner
+  policy:
+    path: E:\Ideaproject\elastic\dipper-elastic-monitor\elastic-service-provider\src\main\resources\template\policy

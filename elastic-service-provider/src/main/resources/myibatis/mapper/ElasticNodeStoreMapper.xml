@@ -90,4 +90,14 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 根据节点名称模糊查询节点列表 -->
+    <select id="metricNodes" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
+        SELECT * FROM t_elastic_node_store
+        WHERE cluster_code = #{clusterCode}
+        <if test="nodeNameLike != null and nodeNameLike != ''">
+            AND (host_name LIKE CONCAT('%', #{nodeNameLike}, '%') OR host_ip LIKE CONCAT('%', #{nodeNameLike}, '%'))
+        </if>
+        ORDER BY id
+        LIMIT #{limit}
+    </select>
 </mapper>

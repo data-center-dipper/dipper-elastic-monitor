@@ -34,4 +34,6 @@ public interface ElasticNodeStoreService {
     NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId);
 
     void updateNode(NodeUpdateReq nodeUpdateReq);
+
+    List<String> metricNodes(String nodeNameLike);
 }

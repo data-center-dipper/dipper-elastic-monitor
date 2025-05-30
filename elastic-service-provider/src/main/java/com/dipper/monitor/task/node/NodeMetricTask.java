@@ -3,12 +3,14 @@ package com.dipper.monitor.task.node;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.db.elastic.ElasticNodeMetricEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDetail;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
+import com.dipper.monitor.service.elastic.nodes.NodeMetricStoreService;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +44,9 @@ public class NodeMetricTask {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     
+    @Autowired
+    private NodeMetricStoreService nodeMetricStoreService; // 添加新的服务依赖
+    
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     /**
@@ -64,9 +69,6 @@ public class NodeMetricTask {
             // 收集节点磁盘指标
             collectNodeDiskMetrics(currentCluster);
             
-            // 收集节点网络和IO指标
-            collectNodeNetworkAndIOMetrics(currentCluster);
-            
             log.info("ES节点指标数据收集完成: {}", LocalDateTime.now().format(FORMATTER));
         } catch (Exception e) {
             log.error("收集ES节点指标数据失败", e);
@@ -86,7 +88,7 @@ public class NodeMetricTask {
         JSONObject jsonObject = JSON.parseObject(nodeInfoResult);
         JSONObject nodes = jsonObject.getJSONObject("nodes");
         
-        List<Map<String, Object>> batchParams = new ArrayList<>();
+        List<ElasticNodeMetricEntity> metricEntities = new ArrayList<>();
         
         nodes.forEach((nodeId, value) -> {
             JSONObject nodeJson = (JSONObject) value;
@@ -97,58 +99,59 @@ public class NodeMetricTask {
             JSONObject fsStats = nodeJson.getJSONObject("fs");
             JSONObject networkStats = nodeJson.getJSONObject("transport");
             
-            Map<String, Object> params = new HashMap<>();
-            params.put("cluster_code", currentCluster.getClusterCode());
-            params.put("node_id", nodeId);
-            params.put("node_name", nodeDetail.getName());
-            params.put("host_ip", nodeDetail.getHostIp());
-            params.put("transport_address", nodeDetail.getTransportAddress());
-            params.put("roles", nodeDetail.getRoles());
+            ElasticNodeMetricEntity entity = new ElasticNodeMetricEntity();
+            entity.setClusterCode(currentCluster.getClusterCode());
+            entity.setNodeId(nodeId);
+            entity.setNodeName(nodeDetail.getName());
+            entity.setHostIp(nodeDetail.getHostIp());
+            entity.setTransportAddress(nodeDetail.getTransportAddress());
+            entity.setRoles(nodeDetail.getRoles());
             
             // CPU指标
-            params.put("cpu_percent", nodeDetail.getCpuPercent());
+            entity.setCpuPercent(nodeDetail.getCpuPercent());
             
             // 内存指标
-            params.put("os_mem_total", nodeDetail.getOsMemTotal());
-            params.put("os_mem_free", nodeDetail.getOsMemFree());
-            params.put("os_mem_used", nodeDetail.getOsMemUsed());
-            params.put("os_mem_used_percent", nodeDetail.getOsMemusedPercent());
-            params.put("os_mem_free_percent", nodeDetail.getOsMemFreePercent());
-            params.put("jvm_mem_heap_used", nodeDetail.getJvmMemHeapused());
-            params.put("jvm_mem_heap_used_percent", nodeDetail.getJvmMemHeapusedPrecent());
-            params.put("jvm_mem_heap_max", nodeDetail.getJvmMemHeapMax());
+            entity.setOsMemTotal(nodeDetail.getOsMemTotal());
+            entity.setOsMemFree(nodeDetail.getOsMemFree());
+            entity.setOsMemUsed(nodeDetail.getOsMemUsed());
+            entity.setOsMemUsedPercent(nodeDetail.getOsMemusedPercent());
+            entity.setOsMemFreePercent(nodeDetail.getOsMemFreePercent());
+            entity.setJvmMemHeapUsed(nodeDetail.getJvmMemHeapused());
+            entity.setJvmMemHeapUsedPercent(nodeDetail.getJvmMemHeapusedPrecent());
+            entity.setJvmMemHeapMax(nodeDetail.getJvmMemHeapMax());
             
             // 文件描述符
-            params.put("open_file_descriptors", nodeDetail.getOpenFileDescriptors());
-            params.put("max_file_descriptors", nodeDetail.getMaxFileDescriptors());
+            entity.setOpenFileDescriptors(nodeDetail.getOpenFileDescriptors());
+            entity.setMaxFileDescriptors(nodeDetail.getMaxFileDescriptors());
             
             // 线程指标
-            params.put("threads_count", nodeDetail.getThreadsCount());
+            entity.setThreadsCount(nodeDetail.getThreadsCount());
             
             // 网络指标
             if (networkStats != null) {
-                params.put("network_rx_size", getSafeLongFromNestedJson(nodeJson, "transport.rx_size_in_bytes"));
-                params.put("network_tx_size", getSafeLongFromNestedJson(nodeJson, "transport.tx_size_in_bytes"));
+                entity.setNetworkRxSize(getSafeLongFromNestedJson(nodeJson, "transport.rx_size_in_bytes"));
+                entity.setNetworkTxSize(getSafeLongFromNestedJson(nodeJson, "transport.tx_size_in_bytes"));
             }
             
             // IO指标
             if (fsStats != null) {
                 JSONObject ioStats = fsStats.getJSONObject("io_stats");
                 if (ioStats != null) {
-                    params.put("io_read_operations", getSafeLongFromNestedJson(ioStats, "total.read_operations"));
-                    params.put("io_write_operations", getSafeLongFromNestedJson(ioStats, "total.write_operations"));
-                    params.put("io_read_size", getSafeLongFromNestedJson(ioStats, "total.read_kilobytes"));
-                    params.put("io_write_size", getSafeLongFromNestedJson(ioStats, "total.write_kilobytes"));
+                    entity.setIoReadOperations(getSafeLongFromNestedJson(ioStats, "total.read_operations"));
+                    entity.setIoWriteOperations(getSafeLongFromNestedJson(ioStats, "total.write_operations"));
+                    entity.setIoReadSize(getSafeLongFromNestedJson(ioStats, "total.read_kilobytes"));
+                    entity.setIoWriteSize(getSafeLongFromNestedJson(ioStats, "total.write_kilobytes"));
                 }
             }
             
-            params.put("collect_time", LocalDateTime.now().format(FORMATTER));
-            batchParams.add(params);
+            entity.setCollectTime(LocalDateTime.now());
+            metricEntities.add(entity);
         });
         
-        // 批量插入数据库
-        if (!batchParams.isEmpty()) {
-            batchInsertNodeMetrics(batchParams);
+        // 使用新的服务接口批量保存节点指标
+        if (!metricEntities.isEmpty()) {
+            int savedCount = nodeMetricStoreService.batchSaveNodeMetrics(metricEntities);
+            log.info("成功保存{}条节点指标数据", savedCount);
         }
     }
     
@@ -162,108 +165,55 @@ public class NodeMetricTask {
             return;
         }
         
-        List<Map<String, Object>> batchParams = new ArrayList<>();
+        // 获取当前集群所有节点的最新指标
+        List<ElasticNodeMetricEntity> latestMetrics = nodeMetricStoreService.getLatestNodeMetrics(currentCluster.getClusterCode());
+        Map<String, ElasticNodeMetricEntity> nodeMetricMap = new HashMap<>();
+        for (ElasticNodeMetricEntity metric : latestMetrics) {
+            nodeMetricMap.put(metric.getNodeName(), metric);
+        }
+        
+        List<ElasticNodeMetricEntity> updatedMetrics = new ArrayList<>();
         
         for (Map.Entry<String, ElasticNodeDisk> entry : nodeDiskMap.entrySet()) {
             String nodeName = entry.getKey();
             ElasticNodeDisk diskInfo = entry.getValue();
             
-            // 查询已有记录
-            String sql = "SELECT id FROM t_elastic_node_metric WHERE cluster_code = ? AND node_name = ? AND collect_time = ?";
-            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, 
-                    currentCluster.getClusterCode(), nodeName, LocalDateTime.now().format(FORMATTER));
-            
-            if (!results.isEmpty()) {
-                // 更新已有记录
-                for (Map<String, Object> result : results) {
-                    Long id = (Long) result.get("id");
-                    String updateSql = "UPDATE t_elastic_node_metric SET disk_total = ?, disk_used = ?, disk_avail = ?, disk_percent = ?, shards_count = ? WHERE id = ?";
-                    jdbcTemplate.update(updateSql, 
-                            diskInfo.getDiskTotal(),
-                            diskInfo.getDiskUsed(),
-                            diskInfo.getDiskAvail(),
-                            diskInfo.getDiskPercent(),
-                            diskInfo.getShards(),
-                            id);
-                }
+            ElasticNodeMetricEntity existingMetric = nodeMetricMap.get(nodeName);
+            if (existingMetric != null) {
+                // 更新已有记录的磁盘信息
+                existingMetric.setDiskTotal(diskInfo.getDiskTotal());
+                existingMetric.setDiskUsed(diskInfo.getDiskUsed());
+                existingMetric.setDiskAvail(diskInfo.getDiskAvail());
+                existingMetric.setDiskPercent(diskInfo.getDiskPercent());
+                existingMetric.setShardsCount(diskInfo.getShards());
+                updatedMetrics.add(existingMetric);
             } else {
                 // 创建新记录
-                Map<String, Object> params = new HashMap<>();
-                params.put("cluster_code", currentCluster.getClusterCode());
-                params.put("node_name", nodeName);
-                params.put("disk_total", diskInfo.getDiskTotal());
-                params.put("disk_used", diskInfo.getDiskUsed());
-                params.put("disk_avail", diskInfo.getDiskAvail());
-                params.put("disk_percent", diskInfo.getDiskPercent());
-                params.put("shards_count", diskInfo.getShards());
-                params.put("collect_time", LocalDateTime.now().format(FORMATTER));
-                batchParams.add(params);
+                ElasticNodeMetricEntity newMetric = new ElasticNodeMetricEntity();
+                newMetric.setClusterCode(currentCluster.getClusterCode());
+                newMetric.setNodeName(nodeName);
+                newMetric.setDiskTotal(diskInfo.getDiskTotal());
+                newMetric.setDiskUsed(diskInfo.getDiskUsed());
+                newMetric.setDiskAvail(diskInfo.getDiskAvail());
+                newMetric.setDiskPercent(diskInfo.getDiskPercent());
+                newMetric.setShardsCount(diskInfo.getShards());
+                newMetric.setCollectTime(LocalDateTime.now());
+                updatedMetrics.add(newMetric);
             }
         }
         
-        // 批量插入数据库
-        if (!batchParams.isEmpty()) {
-            batchInsertNodeMetrics(batchParams);
+        // 使用新的服务接口批量保存更新后的节点指标
+        if (!updatedMetrics.isEmpty()) {
+            int savedCount = nodeMetricStoreService.batchSaveNodeMetrics(updatedMetrics);
+            log.info("成功更新{}条节点磁盘指标数据", savedCount);
         }
     }
     
-    /**
-     * 收集节点网络和IO指标
-     */
-    private void collectNodeNetworkAndIOMetrics(CurrentClusterEntity currentCluster) throws IOException {
-        // 这部分指标已在collectNodeMemoryAndCpuMetrics方法中收集
-    }
+    // 删除原有的collectNodeNetworkAndIOMetrics方法，因为这部分指标已在collectNodeMemoryAndCpuMetrics方法中收集
     
-    /**
-     * 批量插入节点指标数据
-     */
-    private void batchInsertNodeMetrics(List<Map<String, Object>> batchParams) {
-        if (batchParams.isEmpty()) {
-            return;
-        }
-        
-        // 构建批量插入SQL
-        StringBuilder sql = new StringBuilder("INSERT INTO t_elastic_node_metric (");
-        StringBuilder placeholders = new StringBuilder("VALUES (");
-        
-        // 获取第一个参数的所有键作为列名
-        Map<String, Object> firstParam = batchParams.get(0);
-        List<String> columns = new ArrayList<>(firstParam.keySet());
-        
-        for (int i = 0; i < columns.size(); i++) {
-            sql.append(columns.get(i));
-            placeholders.append("?");
-            
-            if (i < columns.size() - 1) {
-                sql.append(", ");
-                placeholders.append(", ");
-            }
-        }
-        
-        sql.append(") ").append(placeholders).append(")");
-        
-        // 执行批量插入
-        jdbcTemplate.batchUpdate(sql.toString(), batchParams, batchParams.size(),
-                (ps, argument) -> {
-                    int i = 1;
-                    for (String column : columns) {
-                        ps.setObject(i++, argument.get(column));
-                    }
-                });
-        
-        log.info("成功批量插入{}条节点指标数据", batchParams.size());
-    }
+    // 删除原有的batchInsertNodeMetrics方法，使用新的服务接口代替
     
-    /**
-     * 构建节点详情对象
-     */
-    // 删除原有的buildElasticNodeDetail方法
-    // private ElasticNodeDetail buildElasticNodeDetail(JSONObject nodeJson) { ... }
-    
-    // 删除所有辅助方法，因为它们已经在ListHighMemoryRiskNodesHandler中定义为静态方法
-    // 如果这些方法在其他地方也有使用，可以保留，或者考虑创建一个单独的工具类
-    
-    // 辅助方法用于安全获取JSON中的值
+    // 保留辅助方法用于安全获取JSON中的值
     private String getSafeString(JSONObject json, String key) {
         return Optional.ofNullable(json.getString(key)).orElse("");
     }

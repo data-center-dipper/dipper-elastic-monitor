@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -93,6 +94,31 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
         NodeStoreEntity nodeStoreEntity = new NodeStoreEntity();
         BeanUtils.copyProperties(nodeUpdateReq,nodeStoreEntity);
         elasticNodeStoreMapper.updateBroker(nodeStoreEntity);
+    }
+
+    @Override
+    public List<String> metricNodes(String nodeNameLike) {
+        // 获取当前集群编码
+        CurrentClusterEntity currentCluster = getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        
+        // 查询节点列表
+        List<NodeStoreEntity> nodeList;
+        if (StringUtils.isBlank(nodeNameLike)) {
+            // 如果未提供搜索关键词，则获取前10个节点
+            nodeList = listByPage(clusterCode, 1, 10);
+        } else {
+            // 否则模糊查询前10个匹配的节点
+            nodeList = elasticNodeStoreMapper.metricNodes(clusterCode, nodeNameLike, 10);
+        }
+        
+        // 转换为节点名称列表
+        return nodeList.stream()
+                .map(node -> {
+                    // 构建节点信息，格式："id:hostName:hostIp"
+                    return node.getId() + ":" + node.getHostName() + ":" + node.getHostIp();
+                })
+                .collect(Collectors.toList());
     }
 
     private CurrentClusterEntity getCurrentCluster() {

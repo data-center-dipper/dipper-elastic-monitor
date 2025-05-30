@@ -3,9 +3,7 @@ package com.dipper.monitor.service.elastic.nodes.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
-import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.detail.NodeDetailView;
@@ -17,16 +15,15 @@ import com.dipper.monitor.entity.elastic.original.nodes.stats.Node;
 import com.dipper.monitor.entity.elastic.original.nodes.stats.NodeStatsResponse;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
 import com.dipper.monitor.service.elastic.nodes.impl.handlers.*;
-import com.dipper.monitor.service.elastic.nodes.impl.handlers.charts.NodeCharsHandler;
 import com.dipper.monitor.service.elastic.nodes.impl.handlers.desc.NodeListHandler;
 import com.dipper.monitor.service.elastic.nodes.impl.handlers.desc.NodesInfoHandler;
 import com.dipper.monitor.service.elastic.nodes.impl.handlers.desc.OneNodeInfoHandler;
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,12 +42,16 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
     @Autowired
     private ElasticNodeStoreService elasticNodeStoreService;
 
+    @PostConstruct
+    public void init() {
+        refreshNodes();
+    }
 
     @Override
     public void refreshNodes() {
         try {
-            ElasticClusterManagerService managerService = SpringUtil.getBean(ElasticClusterManagerService.class);
-            CurrentClusterEntity currentCluster = managerService.getCurrentCluster();
+            CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+
 
             log.info("准备刷新节点数据");
             List<EsNodeInfo> esNodes = getEsNodes();
@@ -258,11 +259,7 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
         elasticNodeStoreService.updateNode(nodeUpdateReq);
     }
 
-    @Override
-    public LineChartDataResponse getLineChartData(NodeCharReq nodeCharReq) {
-        NodeCharsHandler nodeCharsHandler= new NodeCharsHandler();
-        return nodeCharsHandler.getLineChartData(nodeCharReq);
-    }
+
 
     @Override
     public Integer getClusterNodesCount() throws IOException {

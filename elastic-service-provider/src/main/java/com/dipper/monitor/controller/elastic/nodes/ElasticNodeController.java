@@ -1,7 +1,6 @@
 package com.dipper.monitor.controller.elastic.nodes;
 
 import com.alibaba.fastjson.JSONObject;
-import com.dipper.monitor.entity.elastic.LineChartDataResponse;
 import com.dipper.monitor.entity.elastic.nodes.*;
 import com.dipper.monitor.entity.elastic.nodes.detail.NodeDetailView;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
@@ -157,23 +156,5 @@ public class ElasticNodeController {
         }
     }
 
-
-    /**
-     * 获取折线图数据
-     * @return 折线图数据响应
-     */
-    @GetMapping("/nodesLineChart")
-    public Map<String, Object> getLineChartData(NodeCharReq nodeCharReq) {
-        try {
-            LineChartDataResponse response = elasticRealNodeService.getLineChartData(nodeCharReq);
-            return ResultUtils.onSuccess();
-        } catch (IllegalArgumentException e) {
-            log.error("异常", e);
-            return ResultUtils.onFail(e.getMessage());
-        } catch (Exception e) {
-            log.error("Error updating cluster", e);
-            return ResultUtils.onFail("操作异常" + e.getMessage());
-        }
-    }
 
 }

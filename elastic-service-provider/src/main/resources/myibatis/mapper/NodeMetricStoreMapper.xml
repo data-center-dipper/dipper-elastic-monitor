@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dipper.monitor.mapper.NodeMetricStoreMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.dipper.monitor.entity.db.elastic.ElasticNodeMetricEntity">
+        <id column="id" property="id" />
+        <result column="cluster_code" property="clusterCode" />
+        <result column="node_id" property="nodeId" />
+        <result column="node_name" property="nodeName" />
+        <result column="host_ip" property="hostIp" />
+        <result column="transport_address" property="transportAddress" />
+        <result column="roles" property="roles" />
+        <result column="cpu_percent" property="cpuPercent" />
+        <result column="os_mem_total" property="osMemTotal" />
+        <result column="os_mem_free" property="osMemFree" />
+        <result column="os_mem_used" property="osMemUsed" />
+        <result column="os_mem_used_percent" property="osMemUsedPercent" />
+        <result column="os_mem_free_percent" property="osMemFreePercent" />
+        <result column="jvm_mem_heap_used" property="jvmMemHeapUsed" />
+        <result column="jvm_mem_heap_used_percent" property="jvmMemHeapUsedPercent" />
+        <result column="jvm_mem_heap_max" property="jvmMemHeapMax" />
+        <result column="disk_total" property="diskTotal" />
+        <result column="disk_used" property="diskUsed" />
+        <result column="disk_avail" property="diskAvail" />
+        <result column="disk_percent" property="diskPercent" />
+        <result column="open_file_descriptors" property="openFileDescriptors" />
+        <result column="max_file_descriptors" property="maxFileDescriptors" />
+        <result column="threads_count" property="threadsCount" />
+        <result column="network_rx_size" property="networkRxSize" />
+        <result column="network_rx_packets" property="networkRxPackets" />
+        <result column="network_tx_size" property="networkTxSize" />
+        <result column="network_tx_packets" property="networkTxPackets" />
+        <result column="io_read_operations" property="ioReadOperations" />
+        <result column="io_write_operations" property="ioWriteOperations" />
+        <result column="io_read_size" property="ioReadSize" />
+        <result column="io_write_size" property="ioWriteSize" />
+        <result column="shards_count" property="shardsCount" />
+        <result column="indices_count" property="indicesCount" />
+        <result column="collect_time" property="collectTime" />
+    </resultMap>
+    
+    <!-- 所有列 -->
+    <sql id="Base_Column_List">
+        id, cluster_code, node_id, node_name, host_ip, transport_address, roles,
+        cpu_percent, os_mem_total, os_mem_free, os_mem_used, os_mem_used_percent, os_mem_free_percent,
+        jvm_mem_heap_used, jvm_mem_heap_used_percent, jvm_mem_heap_max,
+        disk_total, disk_used, disk_avail, disk_percent,
+        open_file_descriptors, max_file_descriptors, threads_count,
+        network_rx_size, network_rx_packets, network_tx_size, network_tx_packets,
+        io_read_operations, io_write_operations, io_read_size, io_write_size,
+        shards_count, indices_count, collect_time
+    </sql>
+    
+    <!-- 批量插入 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO t_elastic_node_metric (
+            cluster_code, node_id, node_name, host_ip, transport_address, roles,
+            cpu_percent, os_mem_total, os_mem_free, os_mem_used, os_mem_used_percent, os_mem_free_percent,
+            jvm_mem_heap_used, jvm_mem_heap_used_percent, jvm_mem_heap_max,
+            disk_total, disk_used, disk_avail, disk_percent,
+            open_file_descriptors, max_file_descriptors, threads_count,
+            network_rx_size, network_rx_packets, network_tx_size, network_tx_packets,
+            io_read_operations, io_write_operations, io_read_size, io_write_size,
+            shards_count, indices_count, collect_time
+        ) VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.clusterCode}, #{item.nodeId}, #{item.nodeName}, #{item.hostIp}, #{item.transportAddress}, #{item.roles},
+                #{item.cpuPercent}, #{item.osMemTotal}, #{item.osMemFree}, #{item.osMemUsed}, #{item.osMemUsedPercent}, #{item.osMemFreePercent},
+                #{item.jvmMemHeapUsed}, #{item.jvmMemHeapUsedPercent}, #{item.jvmMemHeapMax},
+                #{item.diskTotal}, #{item.diskUsed}, #{item.diskAvail}, #{item.diskPercent},
+                #{item.openFileDescriptors}, #{item.maxFileDescriptors}, #{item.threadsCount},
+                #{item.networkRxSize}, #{item.networkRxPackets}, #{item.networkTxSize}, #{item.networkTxPackets},
+                #{item.ioReadOperations}, #{item.ioWriteOperations}, #{item.ioReadSize}, #{item.ioWriteSize},
+                #{item.shardsCount}, #{item.indicesCount}, #{item.collectTime}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 根据集群编码和节点名称查询最新的节点指标 -->
+    <select id="selectLatestByClusterAndNode" resultMap="BaseResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM 
+            t_elastic_node_metric
+        WHERE 
+            cluster_code = #{clusterCode}
+            AND node_name = #{nodeName}
+        ORDER BY 
+            collect_time DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 根据集群编码查询所有节点的最新指标 -->
+    <select id="selectLatestByCluster" resultMap="BaseResultMap">
+        SELECT 
+            t1.*
+        FROM 
+            t_elastic_node_metric t1
+        INNER JOIN (
+            SELECT 
+                node_name, MAX(collect_time) as max_time
+            FROM 
+                t_elastic_node_metric
+            WHERE 
+                cluster_code = #{clusterCode}
+            GROUP BY 
+                node_name
+        ) t2 ON t1.node_name = t2.node_name AND t1.collect_time = t2.max_time
+        WHERE 
+            t1.cluster_code = #{clusterCode}
+        ORDER BY 
+            t1.node_name
+    </select>
+    
+    <!-- 根据条件查询节点指标历史数据 -->
+    <select id="selectHistoryByCondition" resultMap="BaseResultMap">
+        SELECT 
+            <include refid="Base_Column_List" />
+        FROM 
+            t_elastic_node_metric
+        <where>
+            cluster_code = #{clusterCode}
+            <if test="nodeName != null and nodeName != ''">
+                AND node_name = #{nodeName}
+            </if>
+            <if test="startTime != null">
+                AND collect_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND collect_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY 
+            collect_time DESC, node_name
+    </select>
+    
+    <!-- 获取节点指标历史数据总数 -->
+    <select id="countHistoryByCondition" resultType="java.lang.Integer">
+        SELECT 
+            COUNT(*)
+        FROM 
+            t_elastic_node_metric
+        <where>
+            cluster_code = #{clusterCode}
+            <if test="nodeName != null and nodeName != ''">
+                AND node_name = #{nodeName}
+            </if>
+            <if test="startTime != null">
+                AND collect_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND collect_time &lt;= #{endTime}
+            </if>
+        </where>
+    </select>
+    
+</mapper>
