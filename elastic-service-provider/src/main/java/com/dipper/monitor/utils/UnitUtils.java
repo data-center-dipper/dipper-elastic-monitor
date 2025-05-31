@@ -1,5 +1,7 @@
 package com.dipper.monitor.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class UnitUtils {
 
     /**
@@ -27,5 +29,27 @@ public class UnitUtils {
         }
 
         return String.format("%.2f %s", value, unit);
+    }
+
+
+    // 转成 GB（保留两位小数）
+    public static double bytesToGB(long bytes) {
+        return Math.round((bytes / (1024.0 * 1024.0 * 1024.0)) * 100.0) / 100.0;
+    }
+
+    public static double bytesToGB(Double bytes) {
+        return Math.round((bytes / (1024.0 * 1024.0 * 1024.0)) * 100.0) / 100.0;
+    }
+
+    public static double bytesToGB(String bytes) {
+        if(StringUtils.isBlank(bytes)){
+            return 0;
+        }
+        return Math.round((Double.parseDouble(bytes) / (1024.0 * 1024.0 * 1024.0)) * 100.0) / 100.0;
+    }
+
+
+    public static Double bytesToMB(Long bytes) {
+        return Math.round((bytes / (1024.0 * 1024.0)) * 100.0) / 100.0;
     }
 }

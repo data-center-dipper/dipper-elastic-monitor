@@ -44,16 +44,16 @@ public class NodeMetricHistoryView {
     private List<Integer> threadsCount;
 
     // 网络相关
-    private List<Long> networkRxSize;
+    private List<Double> networkRxSize;
     private List<Long> networkRxPackets;
-    private List<Long> networkTxSize;
+    private List<Double> networkTxSize;
     private List<Long> networkTxPackets;
 
     // IO相关
     private List<Long> ioReadOperations;
     private List<Long> ioWriteOperations;
-    private List<Long> ioReadSize;
-    private List<Long> ioWriteSize;
+    private List<Double> ioReadSize;
+    private List<Double> ioWriteSize;
 
     // 其他统计
     private List<Integer> shardsCount;
