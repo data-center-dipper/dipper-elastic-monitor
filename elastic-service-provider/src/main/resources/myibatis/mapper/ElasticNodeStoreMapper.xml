@@ -69,8 +69,7 @@
     <!-- 根据节点名称和端口获取 -->
     <select id="getByNodeId" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">
         SELECT * FROM t_elastic_node_store
-        WHERE cluster_code = #{clusterCode}
-        AND id = #{nodeId}
+        WHERE id = #{nodeId}
     </select>
 
     <select id="deleteNode" resultType="com.dipper.monitor.entity.db.elastic.NodeStoreEntity">

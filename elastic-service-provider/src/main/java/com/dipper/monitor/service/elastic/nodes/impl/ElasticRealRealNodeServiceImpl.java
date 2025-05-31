@@ -42,10 +42,6 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
     @Autowired
     private ElasticNodeStoreService elasticNodeStoreService;
 
-    @PostConstruct
-    public void init() {
-        refreshNodes();
-    }
 
     @Override
     public void refreshNodes() {
@@ -221,7 +217,7 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
     public JSONObject getOneNodeOriginal(Integer nodeId) throws IOException {
         // 从服务获取节点存储实体
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
-        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(currentCluster, nodeId);
+        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(nodeId);
         if (nodeStoreEntity == null) {
             log.warn("未找到节点ID为 {} 的节点信息", nodeId);
             return null;
@@ -237,7 +233,7 @@ public class ElasticRealRealNodeServiceImpl implements ElasticRealNodeService {
     public EsNodeInfo getOneNodePackaging(Integer nodeId) throws IOException {
         // 从服务获取节点存储实体
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
-        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(currentCluster, nodeId);
+        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId( nodeId);
         if (nodeStoreEntity == null) {
             log.warn("未找到节点ID为 {} 的节点信息", nodeId);
             return null;

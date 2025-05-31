@@ -84,9 +84,8 @@ public class ElasticNodeStoreServiceImpl implements ElasticNodeStoreService {
     }
 
     @Override
-    public NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId) {
-        String clusterCode = currentCluster.getClusterCode();
-        return elasticNodeStoreMapper.getByNodeId(clusterCode,nodeId);
+    public NodeStoreEntity getByNodeId(Integer nodeId) {
+        return elasticNodeStoreMapper.getByNodeId(nodeId);
     }
 
     @Override

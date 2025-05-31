@@ -37,12 +37,6 @@ public interface NodeMetricStoreService {
     
     /**
      * 根据集群编码和时间范围查询节点指标历史数据
-     * @param clusterCode 集群编码
-     * @param nodeName 节点名称，可为null，表示查询所有节点
-     * @param startTime 开始时间
-     * @param endTime 结束时间
-     * @param page 页码，从1开始
-     * @param pageSize 每页记录数
      * @return 节点指标列表
      */
     NodeMetricHistoryView getNodeMetricHistory(NodeMetricHistoryReq nodeMetricHistoryReq);
@@ -58,5 +52,5 @@ public interface NodeMetricStoreService {
     int getNodeMetricHistoryCount(String clusterCode, String nodeName, 
                                  LocalDateTime startTime, LocalDateTime endTime);
 
-    List<ElasticNodeMetricEntity> selectHistoryByCondition(String clusterCode, String nodeId, String nodeName, Instant startTime, Instant endTime);
+    List<ElasticNodeMetricEntity> selectHistoryByCondition(String clusterCode, String nodeName, Instant startTime, Instant endTime);
 }

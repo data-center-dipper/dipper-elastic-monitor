@@ -31,7 +31,7 @@ public interface ElasticNodeStoreService {
 
     void deleteNode(Integer nodeId);
 
-    NodeStoreEntity getByNodeId(CurrentClusterEntity currentCluster,Integer nodeId);
+    NodeStoreEntity getByNodeId(Integer nodeId);
 
     void updateNode(NodeUpdateReq nodeUpdateReq);
 

@@ -68,7 +68,7 @@ public class ElasticNodeMetricController {
     /**
      * 获取指定节点的历史监控数据
      */
-    @GetMapping("/getNodeMetricHistory")
+    @PostMapping("/getNodeMetricHistory")
     @Operation(summary = "获取指定节点的历史监控数据")
     public Map<String, Object> getNodeMetricHistory(@RequestBody NodeMetricHistoryReq nodeMetricHistoryReq) {
         try {

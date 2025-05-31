@@ -1,9 +1,11 @@
 package com.dipper.monitor.service.elastic.nodes.impl.handlers.charts;
 
 import com.dipper.monitor.entity.db.elastic.ElasticNodeMetricEntity;
+import com.dipper.monitor.entity.db.elastic.NodeStoreEntity;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.metric.NodeMetricHistoryReq;
 import com.dipper.monitor.entity.elastic.nodes.metric.NodeMetricHistoryView;
+import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
 import com.dipper.monitor.service.elastic.nodes.impl.NodeMetricStoreServiceImpl;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 
@@ -14,21 +16,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 public class NodeCharHistoryHandler {
 
     private NodeMetricStoreServiceImpl nodeMetricStoreService;
+    private ElasticNodeStoreService elasticNodeStoreService;
 
-    public NodeCharHistoryHandler(NodeMetricStoreServiceImpl nodeMetricStoreService) {
+    public NodeCharHistoryHandler(NodeMetricStoreServiceImpl nodeMetricStoreService, ElasticNodeStoreService elasticNodeStoreService) {
         this.nodeMetricStoreService = nodeMetricStoreService;
+        this.elasticNodeStoreService = elasticNodeStoreService;
     }
 
     public NodeMetricHistoryView getNodeMetricHistory(NodeMetricHistoryReq nodeMetricHistoryReq) {
 
         // 1. 获取请求参数
-        String nodeId = nodeMetricHistoryReq.getNodeId();
-        String nodeName = nodeMetricHistoryReq.getNodeName();
+        Integer nodeId = nodeMetricHistoryReq.getNodeId();
         Instant startTime = nodeMetricHistoryReq.getStartTime();
         Instant endTime = nodeMetricHistoryReq.getEndTime();
+        List<String> metricTypes = nodeMetricHistoryReq.getMetricTypes();
+
+        NodeStoreEntity entity = elasticNodeStoreService.getByNodeId(nodeId);
+        String nodeName = entity.getHostName();
 
         // 2. 如果未指定时间范围，默认查询最近24小时
         if (endTime == null) {
@@ -44,12 +52,15 @@ public class NodeCharHistoryHandler {
 
         // 4. 查询历史指标数据
         List<ElasticNodeMetricEntity> historyMetrics = nodeMetricStoreService.selectHistoryByCondition(
-                clusterCode, nodeId, nodeName, startTime, endTime);
+                clusterCode, nodeName, startTime, endTime);
 
+        return getFullMetrics(historyMetrics, metricTypes);
+    }
 
-        // 5. 提取所有指标数据
+    private NodeMetricHistoryView getFullMetrics(List<ElasticNodeMetricEntity> historyMetrics, List<String> metricTypes) {
         NodeMetricHistoryView view = new NodeMetricHistoryView();
 
+        // 初始化所有列表
         List<Long> timestamps = new ArrayList<>();
         List<Integer> cpuUsage = new ArrayList<>();
 
@@ -86,91 +97,88 @@ public class NodeCharHistoryHandler {
         List<Integer> shardsCountList = new ArrayList<>();
         List<Integer> indicesCountList = new ArrayList<>();
 
+        // 遍历并按需添加数据
         for (ElasticNodeMetricEntity metric : historyMetrics) {
-            // 时间戳
             timestamps.add(metric.getCollectTime().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli());
 
-            // CPU
-            cpuUsage.add(metric.getCpuPercent());
+            if (metricTypes.contains("cpuPercent")) {
+                cpuUsage.add(metric.getCpuPercent());
+            }
 
-            // 内存
-            osMemTotalList.add(metric.getOsMemTotal());
-            osMemFreeList.add(metric.getOsMemFree());
-            osMemUsedList.add(metric.getOsMemUsed());
-            osMemUsedPercentList.add(metric.getOsMemUsedPercent());
-            osMemFreePercentList.add(metric.getOsMemFreePercent());
-            jvmMemHeapUsedList.add(metric.getJvmMemHeapUsed());
-            jvmMemHeapUsedPercentList.add(metric.getJvmMemHeapUsedPercent());
-            jvmMemHeapMaxList.add(metric.getJvmMemHeapMax());
+            if (metricTypes.contains("osMemTotal")) osMemTotalList.add(metric.getOsMemTotal());
+            if (metricTypes.contains("osMemFree")) osMemFreeList.add(metric.getOsMemFree());
+            if (metricTypes.contains("osMemUsed")) osMemUsedList.add(metric.getOsMemUsed());
+            if (metricTypes.contains("osMemUsedPercent")) osMemUsedPercentList.add(metric.getOsMemUsedPercent());
+            if (metricTypes.contains("osMemFreePercent")) osMemFreePercentList.add(metric.getOsMemFreePercent());
 
-            // 磁盘
-            diskTotalList.add(metric.getDiskTotal());
-            diskUsedList.add(metric.getDiskUsed());
-            diskAvailList.add(metric.getDiskAvail());
-            diskPercentList.add(metric.getDiskPercent());
+            if (metricTypes.contains("jvmMemHeapUsed")) jvmMemHeapUsedList.add(metric.getJvmMemHeapUsed());
+            if (metricTypes.contains("jvmMemHeapUsedPercent"))
+                jvmMemHeapUsedPercentList.add(metric.getJvmMemHeapUsedPercent());
+            if (metricTypes.contains("jvmMemHeapMax")) jvmMemHeapMaxList.add(metric.getJvmMemHeapMax());
 
-            // 文件描述符
-            openFileDescriptorsList.add(metric.getOpenFileDescriptors());
-            maxFileDescriptorsList.add(metric.getMaxFileDescriptors());
+            if (metricTypes.contains("diskTotal")) diskTotalList.add(metric.getDiskTotal());
+            if (metricTypes.contains("diskUsed")) diskUsedList.add(metric.getDiskUsed());
+            if (metricTypes.contains("diskAvail")) diskAvailList.add(metric.getDiskAvail());
+            if (metricTypes.contains("diskPercent")) diskPercentList.add(metric.getDiskPercent());
 
-            // 线程
-            threadsCountList.add(metric.getThreadsCount());
+            if (metricTypes.contains("openFileDescriptors"))
+                openFileDescriptorsList.add(metric.getOpenFileDescriptors());
+            if (metricTypes.contains("maxFileDescriptors")) maxFileDescriptorsList.add(metric.getMaxFileDescriptors());
 
-            // 网络
-            networkRxSizeList.add(metric.getNetworkRxSize());
-            networkRxPacketsList.add(metric.getNetworkRxPackets());
-            networkTxSizeList.add(metric.getNetworkTxSize());
-            networkTxPacketsList.add(metric.getNetworkTxPackets());
+            if (metricTypes.contains("threadsCount")) threadsCountList.add(metric.getThreadsCount());
 
-            // IO
-            ioReadOperationsList.add(metric.getIoReadOperations());
-            ioWriteOperationsList.add(metric.getIoWriteOperations());
-            ioReadSizeList.add(metric.getIoReadSize());
-            ioWriteSizeList.add(metric.getIoWriteSize());
+            if (metricTypes.contains("networkRxSize")) networkRxSizeList.add(metric.getNetworkRxSize());
+            if (metricTypes.contains("networkRxPackets")) networkRxPacketsList.add(metric.getNetworkRxPackets());
+            if (metricTypes.contains("networkTxSize")) networkTxSizeList.add(metric.getNetworkTxSize());
+            if (metricTypes.contains("networkTxPackets")) networkTxPacketsList.add(metric.getNetworkTxPackets());
 
-            // 其他
-            shardsCountList.add(metric.getShardsCount());
-            indicesCountList.add(metric.getIndicesCount());
+            if (metricTypes.contains("ioReadOperations")) ioReadOperationsList.add(metric.getIoReadOperations());
+            if (metricTypes.contains("ioWriteOperations")) ioWriteOperationsList.add(metric.getIoWriteOperations());
+            if (metricTypes.contains("ioReadSize")) ioReadSizeList.add(metric.getIoReadSize());
+            if (metricTypes.contains("ioWriteSize")) ioWriteSizeList.add(metric.getIoWriteSize());
+
+            if (metricTypes.contains("shardsCount")) shardsCountList.add(metric.getShardsCount());
+            if (metricTypes.contains("indicesCount")) indicesCountList.add(metric.getIndicesCount());
         }
 
         // 设置到 View 对象
         view.setTimestamps(timestamps);
-        view.setCpuPercent(cpuUsage);
 
-        view.setOsMemTotal(osMemTotalList);
-        view.setOsMemFree(osMemFreeList);
-        view.setOsMemUsed(osMemUsedList);
-        view.setOsMemUsedPercent(osMemUsedPercentList);
-        view.setOsMemFreePercent(osMemFreePercentList);
+        if (metricTypes.contains("cpuPercent")) view.setCpuPercent(cpuUsage);
 
-        view.setJvmMemHeapUsed(jvmMemHeapUsedList);
-        view.setJvmMemHeapUsedPercent(jvmMemHeapUsedPercentList);
-        view.setJvmMemHeapMax(jvmMemHeapMaxList);
+        if (metricTypes.contains("osMemTotal")) view.setOsMemTotal(osMemTotalList);
+        if (metricTypes.contains("osMemFree")) view.setOsMemFree(osMemFreeList);
+        if (metricTypes.contains("osMemUsed")) view.setOsMemUsed(osMemUsedList);
+        if (metricTypes.contains("osMemUsedPercent")) view.setOsMemUsedPercent(osMemUsedPercentList);
+        if (metricTypes.contains("osMemFreePercent")) view.setOsMemFreePercent(osMemFreePercentList);
 
-        view.setDiskTotal(diskTotalList);
-        view.setDiskUsed(diskUsedList);
-        view.setDiskAvail(diskAvailList);
-        view.setDiskPercent(diskPercentList);
+        if (metricTypes.contains("jvmMemHeapUsed")) view.setJvmMemHeapUsed(jvmMemHeapUsedList);
+        if (metricTypes.contains("jvmMemHeapUsedPercent")) view.setJvmMemHeapUsedPercent(jvmMemHeapUsedPercentList);
+        if (metricTypes.contains("jvmMemHeapMax")) view.setJvmMemHeapMax(jvmMemHeapMaxList);
 
-        view.setOpenFileDescriptors(openFileDescriptorsList);
-        view.setMaxFileDescriptors(maxFileDescriptorsList);
+        if (metricTypes.contains("diskTotal")) view.setDiskTotal(diskTotalList);
+        if (metricTypes.contains("diskUsed")) view.setDiskUsed(diskUsedList);
+        if (metricTypes.contains("diskAvail")) view.setDiskAvail(diskAvailList);
+        if (metricTypes.contains("diskPercent")) view.setDiskPercent(diskPercentList);
 
-        view.setThreadsCount(threadsCountList);
+        if (metricTypes.contains("openFileDescriptors")) view.setOpenFileDescriptors(openFileDescriptorsList);
+        if (metricTypes.contains("maxFileDescriptors")) view.setMaxFileDescriptors(maxFileDescriptorsList);
 
-        view.setNetworkRxSize(networkRxSizeList);
-        view.setNetworkRxPackets(networkRxPacketsList);
-        view.setNetworkTxSize(networkTxSizeList);
-        view.setNetworkTxPackets(networkTxPacketsList);
+        if (metricTypes.contains("threadsCount")) view.setThreadsCount(threadsCountList);
 
-        view.setIoReadOperations(ioReadOperationsList);
-        view.setIoWriteOperations(ioWriteOperationsList);
-        view.setIoReadSize(ioReadSizeList);
-        view.setIoWriteSize(ioWriteSizeList);
+        if (metricTypes.contains("networkRxSize")) view.setNetworkRxSize(networkRxSizeList);
+        if (metricTypes.contains("networkRxPackets")) view.setNetworkRxPackets(networkRxPacketsList);
+        if (metricTypes.contains("networkTxSize")) view.setNetworkTxSize(networkTxSizeList);
+        if (metricTypes.contains("networkTxPackets")) view.setNetworkTxPackets(networkTxPacketsList);
 
-        view.setShardsCount(shardsCountList);
-        view.setIndicesCount(indicesCountList);
+        if (metricTypes.contains("ioReadOperations")) view.setIoReadOperations(ioReadOperationsList);
+        if (metricTypes.contains("ioWriteOperations")) view.setIoWriteOperations(ioWriteOperationsList);
+        if (metricTypes.contains("ioReadSize")) view.setIoReadSize(ioReadSizeList);
+        if (metricTypes.contains("ioWriteSize")) view.setIoWriteSize(ioWriteSizeList);
 
-        // 返回单个节点的监控数据
+        if (metricTypes.contains("shardsCount")) view.setShardsCount(shardsCountList);
+        if (metricTypes.contains("indicesCount")) view.setIndicesCount(indicesCountList);
+
         return view;
     }
 }

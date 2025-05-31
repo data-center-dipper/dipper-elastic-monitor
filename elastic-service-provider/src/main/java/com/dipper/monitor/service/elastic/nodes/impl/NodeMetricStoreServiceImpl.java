@@ -5,6 +5,7 @@ import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.nodes.metric.NodeMetricHistoryReq;
 import com.dipper.monitor.entity.elastic.nodes.metric.NodeMetricHistoryView;
 import com.dipper.monitor.mapper.NodeMetricStoreMapper;
+import com.dipper.monitor.service.elastic.nodes.ElasticNodeStoreService;
 import com.dipper.monitor.service.elastic.nodes.NodeMetricStoreService;
 import com.dipper.monitor.service.elastic.nodes.impl.handlers.charts.NodeCharHistoryHandler;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
@@ -22,7 +23,9 @@ public class NodeMetricStoreServiceImpl implements NodeMetricStoreService {
 
     @Autowired
     private NodeMetricStoreMapper nodeMetricStoreMapper;
-    
+    @Autowired
+    private ElasticNodeStoreService elasticNodeStoreService;
+
     @Override
     public int batchSaveNodeMetrics(List<ElasticNodeMetricEntity> metrics) {
         if (metrics == null || metrics.isEmpty()) {
@@ -48,7 +51,7 @@ public class NodeMetricStoreServiceImpl implements NodeMetricStoreService {
 
     @Override
     public NodeMetricHistoryView getNodeMetricHistory(NodeMetricHistoryReq nodeMetricHistoryReq) {
-        NodeCharHistoryHandler nodeCharHistoryHandler = new NodeCharHistoryHandler(this);
+        NodeCharHistoryHandler nodeCharHistoryHandler = new NodeCharHistoryHandler(this,elasticNodeStoreService);
         return nodeCharHistoryHandler.getNodeMetricHistory(nodeMetricHistoryReq);
 
     }
@@ -60,7 +63,7 @@ public class NodeMetricStoreServiceImpl implements NodeMetricStoreService {
     }
 
     @Override
-    public List<ElasticNodeMetricEntity> selectHistoryByCondition(String clusterCode, String nodeId, String nodeName, Instant startTime, Instant endTime) {
+    public List<ElasticNodeMetricEntity> selectHistoryByCondition(String clusterCode, String nodeName, Instant startTime, Instant endTime) {
         return nodeMetricStoreMapper.selectHistoryByCondition(clusterCode, nodeName, startTime, endTime);
     }
 }

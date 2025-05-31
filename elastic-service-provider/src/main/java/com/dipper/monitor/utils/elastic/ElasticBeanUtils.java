@@ -1,6 +1,7 @@
 package com.dipper.monitor.utils.elastic;
 
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
+import com.dipper.monitor.aware.SpringBeanAwareUtils;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
@@ -17,7 +18,7 @@ public class ElasticBeanUtils {
      */
     public static CurrentClusterEntity getCurrentCluster() {
         if(elasticClusterManagerService == null){
-            elasticClusterManagerService = SpringUtil.getBean(ElasticClusterManagerService.class);
+            elasticClusterManagerService = SpringBeanAwareUtils.getBean(ElasticClusterManagerService.class);
         }
         CurrentClusterEntity currentCluster = elasticClusterManagerService.getCurrentCluster();
         return currentCluster;

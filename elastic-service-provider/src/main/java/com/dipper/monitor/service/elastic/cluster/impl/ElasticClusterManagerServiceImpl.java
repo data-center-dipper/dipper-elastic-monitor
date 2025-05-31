@@ -16,6 +16,7 @@ import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -51,6 +53,14 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
 
     private void invalidCache() {
         currentMap.invalidateAll();
+    }
+
+    @PostConstruct
+    public void init() {
+        CompletableFuture.runAsync(() -> {
+            refreshNodesEventPublisher.publishCustomEvent("refresh nodes");
+        });
+
     }
 
     @Override

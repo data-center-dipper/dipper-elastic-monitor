@@ -1,5 +1,6 @@
-CREATE TABLE t_life_policy (
+CREATE TABLE t_elastic_life_policy (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    cluster_code VARCHAR(255) NOT NULL, -- 集群代码
     zh_name VARCHAR(255) NOT NULL COMMENT '中文名称',
     en_name VARCHAR(255) NOT NULL COMMENT '英文名称',
     policy_value TEXT NOT NULL COMMENT 'JSON格式的策略内容',

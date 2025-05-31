@@ -44,7 +44,7 @@ public class NodeDescHandler {
 
     public NodeDetailView getNodeDetail() throws IOException {
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
-        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(currentCluster, nodeId);
+        NodeStoreEntity nodeStoreEntity = elasticNodeStoreService.getByNodeId(nodeId);
         if (nodeStoreEntity == null) {
             log.warn("未找到节点ID为 {} 的节点信息", nodeId);
             return null;
