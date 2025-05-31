@@ -21,7 +21,7 @@ public interface EsTemplateMapper {
 
     void deleteTemplateById(@Param("id") Long id);
 
-    List<EsTemplateEntity> getAllTemplates();
+    List<EsTemplateEntity> getAllTemplates(@Param("clusterCode") String clusterCode);
 
     /**
      * 根据英文名称查询模版

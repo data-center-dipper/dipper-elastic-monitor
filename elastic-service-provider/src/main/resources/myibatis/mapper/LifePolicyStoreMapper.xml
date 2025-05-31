@@ -7,7 +7,7 @@
     <!-- 插入新策略 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO t_elastic_life_policy(cluster_code,zh_name, en_name, policy_value)
-        VALUES (#{clusterCode},#{entity.zhName}, #{entity.enName}, #{entity.policyValue})
+        VALUES (#{entity.clusterCode},#{entity.zhName}, #{entity.enName}, #{entity.policyValue})
     </insert>
 
     <!-- 更新策略 -->
@@ -70,7 +70,7 @@
 
     <select id="getAllPolicies" resultType="com.dipper.monitor.entity.db.elastic.LifePolicyEntity">
         SELECT *
-        FROM t_elastic_life_policy
+        FROM t_elastic_life_policy where  cluster_code = #{clusterCode}
     </select>
 
 </mapper>

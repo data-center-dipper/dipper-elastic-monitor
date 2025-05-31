@@ -54,6 +54,7 @@ public class TemplateInnerServiceImpl implements TemplateInnerService {
             return;
         }
 
+
         List<EsTemplateEntity> allTemplates = transToEntity(esUnconvertedTemplateList);
         List<EsTemplateEntity> dbTemplates = elasticStoreTemplateService.getAllTemplates();
 

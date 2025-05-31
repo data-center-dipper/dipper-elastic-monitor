@@ -121,7 +121,9 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public List<EsTemplateEntity> getAllTemplates() {
-        return esTemplateMapper.getAllTemplates();
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        return esTemplateMapper.getAllTemplates(clusterCode);
     }
 
     @Override

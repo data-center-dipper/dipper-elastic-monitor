@@ -75,7 +75,7 @@
 
     <!-- 获取所有模板 -->
     <select id="getAllTemplates" resultType="com.dipper.monitor.entity.db.elastic.EsTemplateEntity">
-        SELECT * FROM t_elastic_template
+        SELECT * FROM t_elastic_template where cluster_code = #{clusterCode}
     </select>
 
     <!-- 根据ID获取模板 -->

@@ -190,7 +190,9 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
 
     @Override
     public List<LifePolicyResponse> getAllPolicies() {
-        List<LifePolicyEntity> entitys = lifePolicyStoreMapper.getAllPolicies();
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        List<LifePolicyEntity> entitys = lifePolicyStoreMapper.getAllPolicies(clusterCode);
         if(CollectionUtils.isEmpty(entitys)){
             return new ArrayList<>();
         }
@@ -204,7 +206,9 @@ public class LifePolicyStoreServiceImpl implements LifePolicyStoreService {
 
     @Override
     public List<LifePolicyEntity> getAllPolicieEntitys() {
-        List<LifePolicyEntity> entitys = lifePolicyStoreMapper.getAllPolicies();
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        List<LifePolicyEntity> entitys = lifePolicyStoreMapper.getAllPolicies(clusterCode);
         return entitys;
     }
 

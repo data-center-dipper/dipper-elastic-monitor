@@ -47,5 +47,5 @@ public interface LifePolicyStoreMapper {
                           @Param("enName") String enName,
                           @Param("excludeId") Integer excludeId);
 
-    List<LifePolicyEntity> getAllPolicies();
+    List<LifePolicyEntity> getAllPolicies(@Param("clusterCode") String clusterCode);
 }
