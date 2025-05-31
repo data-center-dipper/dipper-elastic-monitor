@@ -5,14 +5,13 @@ import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
-import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
-import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
-import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
-import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
+import com.dipper.monitor.entity.elastic.template.*;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.mapper.EsTemplateMapper;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.service.elastic.template.impl.handlers.preview.Preview8xTemplateHandler;
+import com.dipper.monitor.service.elastic.template.impl.handlers.shard.TemplateShardHistoryHandler;
 import com.dipper.monitor.utils.DateDipperUtil;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.dipper.monitor.utils.mock.MockAllData;
@@ -22,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -283,6 +283,12 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     @Override
     public void updateAutoCreate(AutoCreateReq autoCreateReq) {
         esTemplateMapper.updateAutoCreate(autoCreateReq);
+    }
+
+    @Override
+    public List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) throws IOException {
+        TemplateShardHistoryHandler templateShardHistoryHandler = new TemplateShardHistoryHandler(this);
+        return templateShardHistoryHandler.getTemplateShardHistory(templateId);
     }
 
 

@@ -187,4 +187,59 @@ public class IndexPatternsUtils {
     }
 
 
+    /**
+     * 从索引名称中提取日期信息并格式化为 "yyyy-MM-dd"
+     *
+     * 支持以下格式：
+     * - log-2025.06.01
+     * - log-20250601
+     * - log-2025.06
+     * - log-202506
+     * - log-2025
+     * - log-2025-000001
+     */
+    public static String extractDateFromIndexName(String index) {
+        if (index == null || index.isEmpty()) {
+            return null;
+        }
+
+        // 按 '-' 分割索引名
+        String[] parts = index.split("-");
+        for (int i = parts.length - 1; i >= 0; i--) {
+            String part = parts[i];
+
+            try {
+                // 匹配 yyyy.MM.dd
+                if (part.matches("\\d{4}\\.\\d{2}\\.\\d{2}")) {
+                    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+                    LocalDate date = LocalDate.parse(part, inputFormatter);
+                    return date.format(DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
+                }
+
+                // 匹配 yyyyMMdd
+                if (part.matches("\\d{8}")) {
+                    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+                    LocalDate date = LocalDate.parse(part, inputFormatter);
+                    return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+                }
+
+                // 匹配 yyyyMM
+                if (part.matches("\\d{6}")) {
+                    int year = Integer.parseInt(part.substring(0, 4));
+                    int month = Integer.parseInt(part.substring(4, 6));
+                    return String.format("%04d-%02d-01", year, month); // 默认设置为当月第一天
+                }
+
+                // 匹配 yyyy
+                if (part.matches("\\d{4}")) {
+                    int year = Integer.parseInt(part);
+                    return String.format("%04d-01-01", year); // 默认设置为当年第一天
+                }
+            } catch (Exception e) {
+                continue; // 跳过无法解析的部分
+            }
+        }
+
+        return null; // 未找到日期信息
+    }
 }

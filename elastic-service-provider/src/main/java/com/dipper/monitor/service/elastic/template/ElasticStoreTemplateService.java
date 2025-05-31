@@ -4,12 +4,10 @@ package com.dipper.monitor.service.elastic.template;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
-import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
-import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
-import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
-import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
+import com.dipper.monitor.entity.elastic.template.*;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ElasticStoreTemplateService {
@@ -92,4 +90,6 @@ public interface ElasticStoreTemplateService {
      * @param autoCreateReq
      */
     void updateAutoCreate(AutoCreateReq autoCreateReq);
+
+    List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) throws IOException;
 }

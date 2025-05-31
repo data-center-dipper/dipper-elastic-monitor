@@ -5,10 +5,12 @@ import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
+import com.dipper.monitor.entity.elastic.template.ShardHistoryItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolSuggestion;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -277,5 +279,22 @@ public class MockAllData {
         }
 
         return metrics;
+    }
+
+    /**
+     * 模拟获取模板分片历史数据（返回最近几天的固定数据）
+     */
+    public static List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) {
+        List<ShardHistoryItem> mockData = new ArrayList<>();
+
+        // 默认返回最近 7 天的数据
+        for (int i = 30; i >= 0; i--) {
+            LocalDate date = LocalDate.now().minusDays(i);
+            int shards = 10 + (int)(Math.random() * 5); // 随机生成分片数
+            double storeSizeGB = Math.round((50 + Math.random() * 30) * 10.0) / 10.0; // GB
+            mockData.add(new ShardHistoryItem(date.toString(), shards, storeSizeGB));
+        }
+
+        return mockData;
     }
 }
