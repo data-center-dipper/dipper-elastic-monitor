@@ -5,6 +5,7 @@ import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
@@ -277,6 +278,11 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
             esTemplateMapper.insertTemplate(esTemplateEntity);
         }
         return true;
+    }
+
+    @Override
+    public void updateAutoCreate(AutoCreateReq autoCreateReq) {
+        esTemplateMapper.updateAutoCreate(autoCreateReq);
     }
 
 

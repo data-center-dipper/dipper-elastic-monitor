@@ -4,6 +4,7 @@ package com.dipper.monitor.service.elastic.template;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
@@ -85,4 +86,10 @@ public interface ElasticStoreTemplateService {
 
 
     boolean batchInsertTemplates(List<EsTemplateEntity> toBeSaved);
+
+    /**
+     * 更新模板自动创建设置
+     * @param autoCreateReq
+     */
+    void updateAutoCreate(AutoCreateReq autoCreateReq);
 }

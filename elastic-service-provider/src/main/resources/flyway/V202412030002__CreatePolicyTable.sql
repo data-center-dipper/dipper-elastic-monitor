@@ -178,3 +178,6 @@ CREATE TABLE IF NOT EXISTS t_elastic_node_metric (
     INDEX idx_cluster_node (cluster_code, node_name),
     INDEX idx_collect_time (collect_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Elasticsearch节点指标监控表';
+
+
+ALTER TABLE elastic_monitor.t_elastic_template ADD auto_create BOOL NULL;

@@ -121,4 +121,18 @@
         LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
+
+    <update id="updateAutoCreate">
+        UPDATE t_elastic_template
+        <set>
+            <!-- rollingPeriod 是 Integer -->
+            <if test="rollingPeriod != null">rolling_period=#{rollingPeriod},</if>
+            <!-- autoCreate 是 Boolean，只需要判断 null -->
+            <if test="autoCreate != null">auto_create=#{autoCreate},</if>
+            <!-- 更新时间 -->
+            update_time=NOW()
+        </set>
+        WHERE id=#{id}
+    </update>
+
 </mapper>

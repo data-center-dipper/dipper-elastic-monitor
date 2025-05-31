@@ -2,6 +2,7 @@ package com.dipper.monitor.mapper;
 
 
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
+import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import org.apache.ibatis.annotations.*;
 
@@ -41,4 +42,6 @@ public interface EsTemplateMapper {
                                                     @Param("keyword") String keyword,
                                                     @Param("pageSize") Integer pageSize,
                                                     @Param("offset") Integer offset);
+
+    void updateAutoCreate(AutoCreateReq autoCreateReq);
 }

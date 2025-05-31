@@ -4,6 +4,7 @@ package com.dipper.monitor.controller.elastic.template;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateView;
 import com.dipper.monitor.entity.elastic.template.TemplatePageInfo;
@@ -77,6 +78,26 @@ public class TemplateStoreController {
             return ResultUtils.onSuccessWithPageTotal(total,dics);
         } catch (Exception e) {
             log.error("Error retrieving templates", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
+    @Operation(summary = "自动创建索引的开关配置",
+            description = "自动创建索引的开关配置",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Templates retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/updateAutoCreate")
+    public JSONObject updateAutoCreate(@RequestBody AutoCreateReq autoCreateReq) {
+        try {
+            elasticStoreTemplateService.updateAutoCreate(autoCreateReq);
+            return ResultUtils.onSuccess();
+        } catch (Exception e) {
+            log.error("自动创建索引的开关配置", e);
             return ResultUtils.onFail("Operation error");
         }
     }
