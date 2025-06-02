@@ -2,13 +2,15 @@ package com.dipper.monitor.controller.elastic.disk;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
-import com.dipper.monitor.entity.elastic.cluster.ElasticClusterRegisterReq;
+import com.dipper.monitor.entity.elastic.disk.clear.DiskClearItemReq;
+import com.dipper.monitor.entity.elastic.disk.clear.DiskClearPageReq;
+import com.dipper.monitor.entity.elastic.disk.clear.DiskClearView;
 import com.dipper.monitor.entity.elastic.disk.GlobalDiskClearReq;
 import com.dipper.monitor.entity.elastic.nodes.risk.ElasticNodeDisk;
 import com.dipper.monitor.service.elastic.disk.DiskClearService;
 import com.dipper.monitor.utils.ResultUtils;
+import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -78,6 +80,75 @@ public class DiskClearController {
         }
     }
 
+
+    @Operation(summary = "模版磁盘清理配置列表",
+            description = "模版磁盘清理配置列表",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = JSONObject.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/templateDiskClearPage")
+    public JSONObject templateDiskClearPage(@RequestBody DiskClearPageReq diskClearPageReq) {
+        try {
+            Tuple2<Integer, List<DiskClearView>>  tuple2 = diskClearService.templateDiskClearPage(diskClearPageReq);
+            return ResultUtils.onSuccessWithPageTotal(tuple2.getK(),tuple2.getV());
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error registering cluster", e);
+            return ResultUtils.onFail("操作异常," + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "模版磁盘清理配置列表",
+            description = "模版磁盘清理配置列表",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = JSONObject.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/templateDiskSaveOrUpdate")
+    public JSONObject templateDiskSaveOrUpdate(@RequestBody DiskClearItemReq diskClearItemReq) {
+        try {
+            diskClearService.templateDiskSaveOrUpdate(diskClearItemReq);
+            return ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error registering cluster", e);
+            return ResultUtils.onFail("操作异常," + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "模版磁盘清理配置删除",
+            description = "模版磁盘清理配置删除",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = JSONObject.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/templateDiskDelete")
+    public JSONObject templateDiskDelete(@RequestParam Integer id) {
+        try {
+            diskClearService.templateDiskDelete(id);
+            return ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.error("异常", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error registering cluster", e);
+            return ResultUtils.onFail("操作异常," + e.getMessage());
+        }
+    }
 
 
 }

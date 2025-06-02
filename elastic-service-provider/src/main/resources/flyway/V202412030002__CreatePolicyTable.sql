@@ -206,4 +206,16 @@ CREATE TABLE `t_config` (
 
 ALTER TABLE elastic_monitor.t_config ADD cluster_code varchar(100) NULL;
 
+CREATE TABLE `t_disk_clear` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `template_name` VARCHAR(255) NOT NULL COMMENT '模板名称',
+  `min_low_threshold` INT NOT NULL DEFAULT 80 COMMENT '磁盘清理最低阈值（百分比）',
+  `priority` INT NOT NULL DEFAULT 5 COMMENT '清理优先级（1-10）',
+  `retention_period` INT NOT NULL DEFAULT 7 COMMENT '保留周期（天）',
+  `min_index_size` INT NOT NULL DEFAULT 1 COMMENT '最小保留索引数量',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
 
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_template_name` (`template_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='磁盘清理模板配置表';

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.DiskClearMapper">
+
+    <resultMap id="BaseResultMap" type="com.dipper.monitor.entity.db.elastic.DiskClearItem">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="template_name" property="templateName" jdbcType="VARCHAR"/>
+        <result column="min_low_threshold" property="minLowThreshold" jdbcType="INTEGER"/>
+        <result column="priority" property="priority" jdbcType="INTEGER"/>
+        <result column="retention_period" property="retentionPeriod" jdbcType="INTEGER"/>
+        <result column="min_index_size" property="minIndexSize" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="DATE"/>
+        <result column="update_time" property="updateTime" jdbcType="DATE"/>
+    </resultMap>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.dipper.monitor.entity.db.elastic.DiskClearItem">
+        INSERT INTO t_disk_clear
+        (template_name, min_low_threshold, priority, retention_period, min_index_size)
+        VALUES
+        (#{templateName}, #{minLowThreshold}, #{priority}, #{retentionPeriod}, #{minIndexSize})
+    </insert>
+
+    <!-- 删除 -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM t_disk_clear WHERE id = #{id}
+    </delete>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.dipper.monitor.entity.db.elastic.DiskClearItem">
+        UPDATE t_disk_clear
+        SET
+        template_name = #{templateName},
+        min_low_threshold = #{minLowThreshold},
+        priority = #{priority},
+        retention_period = #{retentionPeriod},
+        min_index_size = #{minIndexSize}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询单条 -->
+    <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+        SELECT * FROM t_disk_clear WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="selectByPage" parameterType="map" resultMap="BaseResultMap">
+        SELECT *
+        FROM t_disk_clear
+        ORDER BY id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 总数 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM t_disk_clear
+    </select>
+
+    <!-- 查询总数 -->
+    <select id="countByKeyWord" resultType="int">
+        SELECT COUNT(*)
+        FROM t_disk_clear
+        <where>
+            <if test="keyWord != null and keyWord != ''">
+                AND template_name LIKE CONCAT('%', #{keyWord}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 分页查询并排序 -->
+    <select id="selectByPageWithKeyword" resultType="com.dipper.monitor.entity.db.elastic.DiskClearItem">
+        SELECT
+        id,
+        template_name AS templateName,
+        min_low_threshold AS minLowThreshold,
+        priority,
+        retention_period AS retentionPeriod,
+        min_index_size AS minIndexSize
+        FROM t_disk_clear
+        <where>
+            <if test="keyWord != null and keyWord != ''">
+                AND template_name LIKE CONCAT('%', #{keyWord}, '%')
+            </if>
+        </where>
+        ORDER BY min_low_threshold ASC, priority DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+</mapper>
