@@ -4,7 +4,7 @@ import com.dipper.monitor.entity.db.config.ConfItemEntity;
 
 import java.util.List;
 
-public interface CommonPropsService {
+public interface PropsService {
 
     void addIfNotExist(ConfItemEntity item);
 

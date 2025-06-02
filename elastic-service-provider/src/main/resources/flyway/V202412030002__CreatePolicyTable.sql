@@ -181,3 +181,29 @@ CREATE TABLE IF NOT EXISTS t_elastic_node_metric (
 
 
 ALTER TABLE elastic_monitor.t_elastic_template ADD auto_create BOOL NULL;
+
+
+CREATE TABLE `t_config` (
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+
+    `module_name` VARCHAR(255) DEFAULT NULL COMMENT '模块名称',
+    `entity_name` VARCHAR(255) DEFAULT NULL COMMENT '实体名称',
+    `section_name` VARCHAR(255) DEFAULT NULL COMMENT '配置项所属节',
+
+    `config_key` VARCHAR(255) DEFAULT NULL COMMENT '配置键名',
+    `config_name` VARCHAR(256) NOT NULL COMMENT '配置名称（唯一标识）',
+    `config_value` VARCHAR(256) DEFAULT NULL COMMENT '配置值',
+    `config_desc` VARCHAR(256) DEFAULT '' COMMENT '配置描述（默认空字符串）',
+    `config_content` VARCHAR(256) DEFAULT NULL COMMENT '配置内容',
+
+    `create_time` VARCHAR(30) DEFAULT NULL COMMENT '创建时间（字符串格式）',
+    `update_time` VARCHAR(30) DEFAULT NULL COMMENT '更新时间（字符串格式）',
+
+    -- 索引建议
+    INDEX idx_config_name (`config_name`),
+    INDEX idx_config_key (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='配置项表';
+
+ALTER TABLE elastic_monitor.t_config ADD cluster_code varchar(100) NULL;
+
+

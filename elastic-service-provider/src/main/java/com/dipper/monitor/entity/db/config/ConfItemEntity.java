@@ -1,5 +1,6 @@
 package com.dipper.monitor.entity.db.config;
 
+import com.dipper.monitor.enums.props.PropsEnum;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +9,10 @@ import java.util.List;
 public class ConfItemEntity {
 
     private Integer id;
+    private String clusterCode;
     private String moduleName;
     private String entityName;
     private String sectionName;
-
-    private String configType;
-    private boolean customType;
-    private boolean showView;
-    private boolean dynamicData;
 
     private String configKey;
     private String configName;
@@ -25,6 +22,17 @@ public class ConfItemEntity {
 
     private String createTime;
     private String updateTime;
+
+    public ConfItemEntity() {
+    }
+
+    public ConfItemEntity(PropsEnum propsEnum) {
+        this.moduleName = propsEnum.moduleName;
+        this.entityName = propsEnum.entityName;
+        this.sectionName = propsEnum.sectionName;
+        this.configKey = propsEnum.configKey;
+        this.configName = propsEnum.configName;
+    }
 
     /**
      * 校验配置项实体的合法性。
@@ -45,15 +53,6 @@ public class ConfItemEntity {
 
         if (configContent != null && configContent.length() > 256) {
             errors.add("configContent must not exceed 256 characters");
-        }
-
-        if (configType == null) {
-            errors.add("configType is required");
-        } else if (!"String".equals(configType) && !"text".equals(configType) && !"int".equals(configType)
-                && !"double".equals(configType) && !"boolean".equals(configType) && !"list".equals(configType)
-                && !"JSON".equals(configType)) {
-            // 使用字符串比较而不是正则表达式，以避免大小写敏感问题
-            errors.add("Invalid configType. Allowed values are: String, text, int, double, boolean, list, JSON");
         }
 
         return errors;

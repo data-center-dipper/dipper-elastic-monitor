@@ -3,8 +3,10 @@ package com.dipper.monitor.service.config.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.config.ConfItemEntity;
 //import com.dipper.monitor.myibatis.CommonPropsMapper;
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.mapper.CommonPropsMapper;
-import com.dipper.monitor.service.config.CommonPropsService;
+import com.dipper.monitor.service.config.PropsService;
+import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
@@ -14,20 +16,25 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class CommonPropsServiceImpl implements CommonPropsService {
+public class PropsServiceImpl implements PropsService {
 
 
     @Autowired
     private ResourceLoader resourceLoader;
     @Autowired
     private CommonPropsMapper commonPropsMapper;
+    @Autowired
+    private ElasticClusterManagerService elasticClusterManagerService;
 
 
     @Override
     public void addIfNotExist(ConfItemEntity item) {
+        CurrentClusterEntity currentCluster = elasticClusterManagerService.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+
         item.validate();
-        String configName = item.getConfigName(); // 修改为configName
-        ConfItemEntity configByName = getConfigItemByKey(configName);
+        String configKey = item.getConfigKey();
+        ConfItemEntity configByName = getConfigItemByKey(configKey);
         if (configByName != null) {
             return;
         }
@@ -38,6 +45,9 @@ public class CommonPropsServiceImpl implements CommonPropsService {
 
     @Override
     public void save(ConfItemEntity item) {
+        CurrentClusterEntity currentCluster = elasticClusterManagerService.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        item.setClusterCode(clusterCode);
         commonPropsMapper.save(item);
     }
 
@@ -48,14 +58,21 @@ public class CommonPropsServiceImpl implements CommonPropsService {
 
     @Override
     public ConfItemEntity getConfigItemByKey(String key) {
-        ConfItemEntity confByName = commonPropsMapper.getConfByKey(key); // 使用configName查询
+        ConfItemEntity confByName = getConfByKey(key);
+        return confByName;
+    }
+
+    private ConfItemEntity getConfByKey(String key) {
+        CurrentClusterEntity currentCluster = elasticClusterManagerService.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+        ConfItemEntity confByName = commonPropsMapper.getConfByKey(clusterCode,key);
         return confByName;
     }
 
 
     @Override
     public String getConfigByKey(String key) {
-        ConfItemEntity confByKey = commonPropsMapper.getConfByKey(key);
+        ConfItemEntity confByKey = getConfByKey(key);
         if (confByKey == null) {
             return null;
         }
@@ -65,7 +82,7 @@ public class CommonPropsServiceImpl implements CommonPropsService {
 
     @Override
     public Long getValueByKeyToLong(String key, Long aLong) {
-        ConfItemEntity confByKey = commonPropsMapper.getConfByKey(key);
+        ConfItemEntity confByKey = getConfByKey(key);
         if (confByKey == null) {
             return aLong;
         }
@@ -76,7 +93,7 @@ public class CommonPropsServiceImpl implements CommonPropsService {
 
     @Override
     public Integer getValueByKeyToInt(String key) {
-        ConfItemEntity confByKey = commonPropsMapper.getConfByKey(key);
+        ConfItemEntity confByKey = getConfByKey(key);
         if (confByKey == null) {
             return null;
         }
@@ -87,9 +104,10 @@ public class CommonPropsServiceImpl implements CommonPropsService {
     @Override
     public void saveOrUpdate(ConfItemEntity confItemEntity) {
         confItemEntity.validate();
-        String configKey = confItemEntity.getConfigName();
+        String configKey = confItemEntity.getConfigKey();
         ConfItemEntity configByKey = getConfigItemByKey(configKey);
         if (configByKey != null) {
+            confItemEntity.setId(configByKey.getId());
             update(confItemEntity);
             return;
         }
@@ -100,10 +118,6 @@ public class CommonPropsServiceImpl implements CommonPropsService {
     @Override
     public void saveOrUpdate(String key, String value) {
         ConfItemEntity confItemEntity = new ConfItemEntity();
-        confItemEntity.setDynamicData(false);
-        confItemEntity.setCustomType(true);
-        confItemEntity.setShowView(true);
-        confItemEntity.setConfigType("string");
         confItemEntity.setConfigName(key);
         confItemEntity.setConfigValue(value);
         confItemEntity.setConfigName(key);
@@ -117,7 +131,7 @@ public class CommonPropsServiceImpl implements CommonPropsService {
 
     @Override
     public <T> T getConfigToObject(String key, Class<T> clazz) {
-        ConfItemEntity confByKey = commonPropsMapper.getConfByKey(key);
+        ConfItemEntity confByKey = getConfByKey(key);
         if (confByKey == null) {
             return null;
         }

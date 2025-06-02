@@ -11,10 +11,6 @@
         module_name AS moduleName,
         entity_name AS entityName,
         section_name AS sectionName,
-        config_type AS configType,
-        custom_type AS customType,
-        show_view AS showView,
-        dynamic_data AS dynamicData,
         config_key AS configKey,
         config_name AS configName,
         config_value AS configValue,
@@ -23,37 +19,35 @@
         create_time AS createTime,
         update_time AS updateTime
         FROM t_config
-        WHERE config_name = #{configKey}
+        WHERE config_key = #{configKey} and  cluster_code = #{clusterCode}
     </select>
 
     <!-- 插入 -->
     <insert id="save" parameterType="com.dipper.monitor.entity.db.config.ConfItemEntity" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO t_config (
+        cluster_code,
         module_name,
         entity_name,
         section_name,
-        config_type,
-        custom_type,
-        show_view,
-        dynamic_data,
         config_key,
         config_name,
         config_value,
         config_desc,
-        config_content
+        config_content,
+        create_time,
+        update_time
         ) VALUES (
+        #{clusterCode},
         #{moduleName},
         #{entityName},
         #{sectionName},
-        #{configType},
-        #{customType, jdbcType=BOOLEAN},
-        #{showView, jdbcType=BOOLEAN},
-        #{dynamicData, jdbcType=BOOLEAN},
         #{configKey},
         #{configName},
         #{configValue},
         #{configDesc},
-        #{configContent}
+        #{configContent},
+        #{createTime},
+        #{updateTime}
         )
     </insert>
 
@@ -64,10 +58,6 @@
         module_name = #{moduleName},
         entity_name = #{entityName},
         section_name = #{sectionName},
-        config_type = #{configType},
-        custom_type = #{customType, jdbcType=BOOLEAN},
-        show_view = #{showView, jdbcType=BOOLEAN},
-        dynamic_data = #{dynamicData, jdbcType=BOOLEAN},
         config_key = #{configKey},
         config_name = #{configName},
         config_value = #{configValue},
@@ -90,10 +80,6 @@
         module_name AS moduleName,
         entity_name AS entityName,
         section_name AS sectionName,
-        config_type AS configType,
-        custom_type AS customType,
-        show_view AS showView,
-        dynamic_data AS dynamicData,
         config_key AS configKey,
         config_name AS configName,
         config_value AS configValue,

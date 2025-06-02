@@ -143,6 +143,7 @@ public class CheckShardErrorHandler extends AbstractShardErrorHandler {
         }
         builder.append("其他原因，暂未分析\r\n");
     }
+
     private void checkDiskMessage() throws IOException {
         DiskWatermarkInfo diskWatermark = elasticDiskService.getDiskWatermark();
 
