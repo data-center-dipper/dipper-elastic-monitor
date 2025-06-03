@@ -22,9 +22,9 @@ public class InnerTemplateHandler {
     private String configDirPath = null;
     private List<PrefabricateTemplateEntity> esUnconvertedTemplateList = new ArrayList<>();
 
-    public InnerTemplateHandler(TemplateConfig templateConfig) {
+    public InnerTemplateHandler(TemplateConfig templateConfig,String clusterVersion) {
         this.templateConfig = templateConfig;
-        this.configDirPath = templateConfig.getInnerTemplatePath();
+        this.configDirPath = templateConfig.getInnerTemplatePath(clusterVersion);
     }
 
     /**

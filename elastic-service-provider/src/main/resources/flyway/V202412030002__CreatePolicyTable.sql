@@ -206,7 +206,7 @@ CREATE TABLE `t_config` (
 
 ALTER TABLE elastic_monitor.t_config ADD cluster_code varchar(100) NULL;
 
-CREATE TABLE `t_disk_clear` (
+CREATE TABLE `t_elastic_disk_clear` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
   `template_name` VARCHAR(255) NOT NULL COMMENT '模板名称',
   `min_low_threshold` INT NOT NULL DEFAULT 80 COMMENT '磁盘清理最低阈值（百分比）',

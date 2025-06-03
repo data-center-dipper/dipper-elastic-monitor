@@ -90,4 +90,38 @@
         FROM t_config
     </select>
 
+
+    <select id="getConfigItemByEnum" parameterType="map" resultType="com.dipper.monitor.entity.db.config.ConfItemEntity">
+        SELECT
+        id,
+        module_name AS moduleName,
+        entity_name AS entityName,
+        section_name AS sectionName,
+        config_key AS configKey,
+        config_name AS configName,
+        config_value AS configValue,
+        config_desc AS configDesc,
+        config_content AS configContent,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM t_config
+        <where>
+            <if test="moduleName != null and moduleName != ''">
+                AND module_name = #{moduleName}
+            </if>
+            <if test="entityName != null and entityName != ''">
+                AND entity_name = #{entityName}
+            </if>
+            <if test="sectionName != null and sectionName != ''">
+                AND section_name = #{sectionName}
+            </if>
+            <if test="configKey != null and configKey != ''">
+                AND config_key = #{configKey}
+            </if>
+            <if test="clusterCode != null and clusterCode != ''">
+                AND cluster_code = #{clusterCode}
+            </if>
+        </where>
+    </select>
+
 </mapper>

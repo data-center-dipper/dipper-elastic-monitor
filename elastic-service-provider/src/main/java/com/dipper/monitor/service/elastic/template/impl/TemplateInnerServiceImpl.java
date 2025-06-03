@@ -35,7 +35,9 @@ public class TemplateInnerServiceImpl implements TemplateInnerService {
     public void init() {
         log.info("准备初始化模板的模板");
         try {
-            innerTemplateHandler = new InnerTemplateHandler(templateConfig);
+            CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+            String clusterVersion = currentCluster.getClusterVersion();
+            innerTemplateHandler = new InnerTemplateHandler(templateConfig,clusterVersion);
             innerTemplateHandler.initTemplate();
         }catch (Exception e){
             log.error("初始化模板的模板失败",e);

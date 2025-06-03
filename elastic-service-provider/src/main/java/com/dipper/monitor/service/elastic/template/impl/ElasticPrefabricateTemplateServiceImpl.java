@@ -2,11 +2,13 @@ package com.dipper.monitor.service.elastic.template.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.config.template.TemplateConfig;
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.entity.elastic.template.unconverted.PrefabricateTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.unconverted.PrefabricateTemplateNames;
 import com.dipper.monitor.service.elastic.template.ElasticPrefabricateTemplateService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.prefabricate.PrefabricateTemplateInitHandler;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +36,10 @@ public class ElasticPrefabricateTemplateServiceImpl implements ElasticPrefabrica
     public void init() {
         log.info("准备初始化模板的模板");
         try {
-            prefabricateTemplateInitHandler = new PrefabricateTemplateInitHandler(templateConfig);
+            CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+            String clusterVersion = currentCluster.getClusterVersion();
+
+            prefabricateTemplateInitHandler = new PrefabricateTemplateInitHandler(templateConfig,clusterVersion);
             prefabricateTemplateInitHandler.initTemplate();
         }catch (Exception e){
             log.error("初始化模板的模板失败",e);

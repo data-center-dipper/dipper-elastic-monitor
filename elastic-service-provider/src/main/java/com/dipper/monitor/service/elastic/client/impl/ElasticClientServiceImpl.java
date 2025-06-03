@@ -145,7 +145,7 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             }
             return response;
         } catch (Exception e) {
-            log.error("执行异常,api:{} ,entity:{}",api,entity.toString(),  e );
+            log.error("执行异常,api:{}",api,  e );
             return null;
         }
     }

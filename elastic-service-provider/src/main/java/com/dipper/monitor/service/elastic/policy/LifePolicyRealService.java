@@ -9,6 +9,10 @@ import java.util.Map;
  */
 public interface LifePolicyRealService {
     /**
+     * 让所有的策略都生效
+     */
+    void policyAllRefresh();
+    /**
      * 让某个策略实时生效
      * @param id
      */
@@ -18,5 +22,6 @@ public interface LifePolicyRealService {
      * 获取已经生效的策略
      */
     Map<String,String> policyList() throws UnsupportedEncodingException, IOException;
+
 
 }

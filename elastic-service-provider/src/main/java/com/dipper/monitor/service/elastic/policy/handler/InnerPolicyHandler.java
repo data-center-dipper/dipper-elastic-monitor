@@ -24,9 +24,9 @@ public class InnerPolicyHandler {
 
     private List<InnerPolicyEntity> esPolicyList = new ArrayList<>();
 
-    public InnerPolicyHandler(TemplateConfig templateConfig) {
+    public InnerPolicyHandler(TemplateConfig templateConfig,String clusterVersion) {
         this.templateConfig = templateConfig;
-        this.innerPolicyPath = templateConfig.getInnerPolicyPath();
+        this.innerPolicyPath = templateConfig.getInnerPolicyPath(clusterVersion);
     }
 
     /**

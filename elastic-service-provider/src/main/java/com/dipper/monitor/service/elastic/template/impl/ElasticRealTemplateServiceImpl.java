@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.dipper.client.proxy.params.elasticsearch.Response;
+import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateConfigMes;
 import com.dipper.monitor.entity.elastic.template.history.EsTemplateInfo;
 import com.dipper.monitor.entity.elastic.template.history.TemplateDetailView;
@@ -21,7 +22,10 @@ import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.StatTemplateHandler;
+import com.dipper.monitor.service.elastic.template.impl.version.AbstractRealTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
+import com.dipper.monitor.utils.elastic.ClusterVersionUtils;
+import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -45,7 +49,7 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Service
-public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateService {
+public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService implements ElasticRealTemplateService {
 
     @Autowired
     private ElasticClientService elasticClientService;
@@ -89,11 +93,24 @@ public class ElasticRealTemplateServiceImpl implements ElasticRealTemplateServic
             String method = isExistTemplate(name) ? "POST" : "PUT";
             NStringEntity nStringEntity = new NStringEntity(templateJson.toJSONString());
             Response response = null;
-            if("POST".equalsIgnoreCase(method)){
-                response = elasticClientService.executePostApiReturnResponse("/_index_template/" + name, nStringEntity);
+            CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+            String clusterVersion = currentCluster.getClusterVersion();
+            if(ClusterVersionUtils.is7xVersion(clusterVersion)){
+                if("POST".equalsIgnoreCase(method)){
+                    response = elasticClientService.executePostApiReturnResponse("/_template/" + name, nStringEntity);
+                }else {
+                    response = elasticClientService.executePutApiReturnResponse("/_template/" + name, nStringEntity);
+                }
+            }else if(ClusterVersionUtils.is8xVersion(clusterVersion)){
+                if("POST".equalsIgnoreCase(method)){
+                    response = elasticClientService.executePostApiReturnResponse("/_index_template/" + name, nStringEntity);
+                }else {
+                    response = elasticClientService.executePutApiReturnResponse("/_index_template/" + name, nStringEntity);
+                }
             }else {
-                response = elasticClientService.executePutApiReturnResponse("/_index_template/" + name, nStringEntity);
+                throw new IllegalArgumentException("不支持的集群版本");
             }
+
             if (response.getStatusLine().getStatusCode() == 200) {
                 return true;
             }

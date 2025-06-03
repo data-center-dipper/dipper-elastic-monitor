@@ -12,4 +12,10 @@ public interface CommonPropsMapper {
     void deleteByKey(@Param("clusterCode") String clusterCode,@Param("configKey") String configKey);
 
     List<ConfItemEntity> getConfigList();
+
+    ConfItemEntity getConfigItemByEnum(@Param("clusterCode") String clusterCode,
+                                       @Param("moduleName")  String moduleName,
+                                       @Param("entityName") String entityName,
+                                       @Param("sectionName") String sectionName,
+                                       @Param("configKey") String configKey);
 }

@@ -6,6 +6,7 @@ import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.policy.LifePolicyRealService;
 import com.dipper.monitor.service.elastic.policy.LifePolicyStoreService;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.nio.entity.NStringEntity;
 import org.apache.http.util.EntityUtils;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -25,6 +27,32 @@ public class LifePolicyRealServiceImpl implements LifePolicyRealService {
     private LifePolicyStoreService lifePolicyStoreService;
     @Autowired
     private ElasticClientService elasticClientService;
+
+    @PostConstruct
+    public void init() {
+        try {
+            policyAllRefresh();
+        }catch (Exception e){
+            log.error("init error", e);
+        }
+    }
+
+
+    @Override
+    public void policyAllRefresh() {
+        List<LifePolicyResponse> allPolicies = lifePolicyStoreService.getAllPolicies();
+        if(allPolicies == null || allPolicies.isEmpty()){
+            return;
+        }
+        for (LifePolicyResponse lifePolicyResponse : allPolicies) {
+            Integer id = lifePolicyResponse.getId();
+            try {
+                policyEffective(id);
+            } catch (IOException e) {
+                log.error("策略生效失败",e);
+            }
+        }
+    }
 
     /**
      * 让某个策略实时生效

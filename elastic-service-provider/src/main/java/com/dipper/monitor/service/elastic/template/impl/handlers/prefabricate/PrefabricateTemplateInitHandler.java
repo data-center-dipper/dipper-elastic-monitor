@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -22,10 +23,13 @@ import java.util.List;
 public class PrefabricateTemplateInitHandler {
 
     private TemplateConfig templateConfig;
+    private String templatesDirPath;
     private List<PrefabricateTemplateEntity> esUnconvertedTemplateList = new ArrayList<>();
 
-    public PrefabricateTemplateInitHandler(TemplateConfig templateConfig) {
+    public PrefabricateTemplateInitHandler(TemplateConfig templateConfig,String clusterVersion) throws IOException, URISyntaxException {
         this.templateConfig = templateConfig;
+        // 获取 classpath 下的 prefabricate 目录
+        this.templatesDirPath = getTemplatesDirectoryPath(clusterVersion);
     }
 
     /**
@@ -33,8 +37,7 @@ public class PrefabricateTemplateInitHandler {
      */
     public void initTemplate() {
         try {
-            // 获取 classpath 下的 prefabricate 目录
-            String templatesDirPath = getTemplatesDirectoryPath();
+
             File file = new File(templatesDirPath);
             if (FileUtil.exist(file)) {
                 File[] files = file.listFiles();
@@ -62,8 +65,8 @@ public class PrefabricateTemplateInitHandler {
     /**
      * 根据操作系统获取模板目录路径
      */
-    private String getTemplatesDirectoryPath() throws IOException, java.net.URISyntaxException {
-        String configDirPath = templateConfig.getPrefabricateTemplatePath();
+    private String getTemplatesDirectoryPath(String clusterVersion) throws IOException, java.net.URISyntaxException {
+        String configDirPath = templateConfig.getPrefabricateTemplatePath(clusterVersion);
         if (configDirPath == null || configDirPath.isEmpty()) {
             log.error("预制模板配置目录未指定！");
             return null;

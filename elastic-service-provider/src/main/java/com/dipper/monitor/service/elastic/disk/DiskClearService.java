@@ -1,5 +1,6 @@
 package com.dipper.monitor.service.elastic.disk;
 
+import com.dipper.monitor.entity.db.elastic.DiskClearItem;
 import com.dipper.monitor.entity.elastic.disk.clear.DiskClearItemReq;
 import com.dipper.monitor.entity.elastic.disk.clear.DiskClearPageReq;
 import com.dipper.monitor.entity.elastic.disk.clear.DiskClearView;
@@ -15,6 +16,8 @@ public interface DiskClearService {
      * 全局清理设置
      */
     void globalDiskClear(GlobalDiskClearReq globalDiskClearReq);
+
+    GlobalDiskClearReq getGlobalDiskClear();
 
     /**
      * 节点磁盘负载top10
@@ -40,4 +43,8 @@ public interface DiskClearService {
      * @param id
      */
     void templateDiskDelete(Integer id);
+
+    List<DiskClearItem> templateDiskClearAll();
+
+
 }

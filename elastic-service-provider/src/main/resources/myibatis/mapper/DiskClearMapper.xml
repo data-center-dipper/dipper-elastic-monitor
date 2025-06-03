@@ -18,7 +18,7 @@
 
     <!-- 插入 -->
     <insert id="insert" parameterType="com.dipper.monitor.entity.db.elastic.DiskClearItem">
-        INSERT INTO t_disk_clear
+        INSERT INTO t_elastic_disk_clear
         (template_name, min_low_threshold, priority, retention_period, min_index_size)
         VALUES
         (#{templateName}, #{minLowThreshold}, #{priority}, #{retentionPeriod}, #{minIndexSize})
@@ -26,12 +26,12 @@
 
     <!-- 删除 -->
     <delete id="deleteById" parameterType="int">
-        DELETE FROM t_disk_clear WHERE id = #{id}
+        DELETE FROM t_elastic_disk_clear WHERE id = #{id}
     </delete>
 
     <!-- 更新 -->
     <update id="update" parameterType="com.dipper.monitor.entity.db.elastic.DiskClearItem">
-        UPDATE t_disk_clear
+        UPDATE t_elastic_disk_clear
         SET
         template_name = #{templateName},
         min_low_threshold = #{minLowThreshold},
@@ -43,26 +43,26 @@
 
     <!-- 查询单条 -->
     <select id="selectById" parameterType="int" resultMap="BaseResultMap">
-        SELECT * FROM t_disk_clear WHERE id = #{id}
+        SELECT * FROM t_elastic_disk_clear WHERE id = #{id}
     </select>
 
     <!-- 分页查询 -->
     <select id="selectByPage" parameterType="map" resultMap="BaseResultMap">
         SELECT *
-        FROM t_disk_clear
+        FROM t_elastic_disk_clear
         ORDER BY id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 
     <!-- 总数 -->
     <select id="countAll" resultType="int">
-        SELECT COUNT(*) FROM t_disk_clear
+        SELECT COUNT(*) FROM t_elastic_disk_clear
     </select>
 
     <!-- 查询总数 -->
     <select id="countByKeyWord" resultType="int">
         SELECT COUNT(*)
-        FROM t_disk_clear
+        FROM t_elastic_disk_clear
         <where>
             <if test="keyWord != null and keyWord != ''">
                 AND template_name LIKE CONCAT('%', #{keyWord}, '%')
@@ -79,7 +79,7 @@
         priority,
         retention_period AS retentionPeriod,
         min_index_size AS minIndexSize
-        FROM t_disk_clear
+        FROM t_elastic_disk_clear
         <where>
             <if test="keyWord != null and keyWord != ''">
                 AND template_name LIKE CONCAT('%', #{keyWord}, '%')

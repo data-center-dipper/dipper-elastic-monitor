@@ -62,6 +62,24 @@ public class DiskClearServiceImpl implements DiskClearService {
     }
 
     @Override
+    public GlobalDiskClearReq getGlobalDiskClear() {
+        ConfItemEntity item = new ConfItemEntity(PropsEnum.ES_DISK_CLEAR_LOW);
+        ConfItemEntity itemLowValue = propsService.getConfigItemByEnum(item);
+
+        ConfItemEntity itemMiddle = new ConfItemEntity(PropsEnum.ES_DISK_CLEAR_MIDDLE);
+        ConfItemEntity itemMiddleValue = propsService.getConfigItemByEnum(itemMiddle);
+
+        ConfItemEntity itemHigh = new ConfItemEntity(PropsEnum.ES_DISK_CLEAR_HIGH);
+        ConfItemEntity itemHighValue = propsService.getConfigItemByEnum(itemHigh);
+
+        GlobalDiskClearReq globalDiskClearReq = new GlobalDiskClearReq();
+        globalDiskClearReq.setLowThreshold(Integer.parseInt(itemLowValue.getConfigValue()));
+        globalDiskClearReq.setMediumThreshold(Integer.parseInt(itemMiddleValue.getConfigValue()));
+        globalDiskClearReq.setHighThreshold(Integer.parseInt(itemHighValue.getConfigValue()));
+        return globalDiskClearReq;
+    }
+
+    @Override
     public List<ElasticNodeDisk> nodeDiskTop10() throws IOException {
         List<ElasticNodeDisk> elasticNodeDisks = elasticRealNodeService.nodeDiskTop10();
         return elasticNodeDisks;
@@ -135,6 +153,13 @@ public class DiskClearServiceImpl implements DiskClearService {
             throw new IllegalArgumentException("id is not exist");
         }
         diskClearMapper.deleteById(id);
+    }
+
+    @Override
+    public  List<DiskClearItem> templateDiskClearAll() {
+        // 1-1000万
+        List<DiskClearItem> diskClearItems = diskClearMapper.selectByPage(0, 100000);
+        return diskClearItems;
     }
 
 

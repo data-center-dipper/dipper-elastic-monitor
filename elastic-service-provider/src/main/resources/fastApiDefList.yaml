@@ -92,6 +92,11 @@ apis:
     method: GET
     path: /_nodes/stats?pretty
 
+  - name: 查看集群中所有节点的基本信息
+    description: 查看集群中所有节点的基本信息
+    method: GET
+    path: /_cat/nodes?v&s=name:asc&h=hp,hm,load_1m,dup,fm,qcm,sm,sstc,name
+
   # 新增API
   - name: 创建索引
     description: 创建一个新的索引

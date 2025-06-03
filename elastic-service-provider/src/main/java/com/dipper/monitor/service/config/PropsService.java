@@ -16,6 +16,9 @@ public interface PropsService {
 
     ConfItemEntity getConfigItemByKey(String key);
 
+    ConfItemEntity getConfigItemByEnum(ConfItemEntity item);
+
+
     String getConfigByKey(String key);
 
     Integer getValueByKeyToInt(String s);
@@ -31,4 +34,5 @@ public interface PropsService {
     int getValueByKeyInteger(String diskKey, int i);
 
     String getValueByKeyString(String s, String max);
+
 }

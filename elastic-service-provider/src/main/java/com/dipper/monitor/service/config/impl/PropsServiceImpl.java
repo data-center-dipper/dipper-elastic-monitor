@@ -62,6 +62,22 @@ public class PropsServiceImpl implements PropsService {
         return confByName;
     }
 
+    @Override
+    public ConfItemEntity getConfigItemByEnum(ConfItemEntity item) {
+        String moduleName = item.getModuleName();
+        String entityName = item.getEntityName();
+        String sectionName = item.getSectionName();
+        String configKey = item.getConfigKey();
+
+        CurrentClusterEntity currentCluster = elasticClusterManagerService.getCurrentCluster();
+        String clusterCode = currentCluster.getClusterCode();
+
+        ConfItemEntity confByName = commonPropsMapper.getConfigItemByEnum(clusterCode,moduleName,entityName,
+                sectionName,configKey);
+
+        return confByName;
+    }
+
     private ConfItemEntity getConfByKey(String key) {
         CurrentClusterEntity currentCluster = elasticClusterManagerService.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
