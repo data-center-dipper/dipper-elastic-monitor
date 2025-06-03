@@ -40,4 +40,10 @@ public interface TemplateHistoryService {
      * @return
      */
     JSONObject getOneTemplateDetail(TemplateDetailReq templateDetailReq) throws IOException;
+
+    /**
+     * 删除历史模版
+     * @param templateName
+     */
+    void deleteTemplate(String templateName) throws IOException;
 }

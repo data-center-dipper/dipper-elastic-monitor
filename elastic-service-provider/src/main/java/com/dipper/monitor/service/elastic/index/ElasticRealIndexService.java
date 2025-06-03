@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.elastic.index;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.entity.elastic.index.IndexListView;
 import com.dipper.monitor.entity.elastic.index.IndexPageReq;
@@ -61,7 +62,7 @@ public interface ElasticRealIndexService {
      * @param firstIndexName
      * @return
      */
-    String createIndex(String firstIndexName);
+    Response createIndex(String firstIndexName) throws Exception;
     String createIndex(String firstIndexName, JSONObject templateJson) throws UnsupportedEncodingException;
 
     /**

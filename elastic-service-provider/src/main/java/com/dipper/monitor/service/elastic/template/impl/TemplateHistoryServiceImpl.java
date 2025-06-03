@@ -56,4 +56,9 @@ public class TemplateHistoryServiceImpl implements TemplateHistoryService {
         JSONObject oneTemplateDetail = elasticRealTemplateService.getOneTemplateDetail(templateName);
         return oneTemplateDetail;
     }
+
+    @Override
+    public void deleteTemplate(String templateName) throws IOException {
+        elasticRealTemplateService.deleteTemplate(templateName);
+    }
 }

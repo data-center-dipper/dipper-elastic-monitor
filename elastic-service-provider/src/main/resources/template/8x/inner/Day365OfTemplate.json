@@ -1,10 +1,10 @@
 {
   "order": 365,
   "zhName": "365天滚动一次的模板",
-  "enName": "365",
+  "enName": "lcc-log-365day",
   "dicName": "log_dictionary",
-  "indexPatterns": "logs-yyyyMM-*",
-  "aliansPatterns": "logs-yyyyMM",
+  "indexPatterns": "lcc-log-yyyyMM-*",
+  "aliansPatterns": "lcc-log-yyyyMM",
   "numberOfShards": 3,
   "numberOfReplicas": 2,
   "enableAutoShards": true,

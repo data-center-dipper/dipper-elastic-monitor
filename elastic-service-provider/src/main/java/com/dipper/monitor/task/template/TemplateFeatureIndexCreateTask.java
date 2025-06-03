@@ -46,7 +46,7 @@ public class TemplateFeatureIndexCreateTask {
 
 
     // 改成每小时执行一次
-    @QuartzJob(cron = "0 0/10 * * * ?",
+    @QuartzJob(cron = "0 0/1 * * * ?",
             author = "hydra",
             groupName = "hydra",
             jobDesc = "elastic模板信息统计",

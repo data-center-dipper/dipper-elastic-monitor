@@ -1,10 +1,10 @@
 {
   "order": 1,
   "zhName": "1天滚动一次的模板",
-  "enName": "1",
+  "enName": "lcc-log-1day",
   "dicName": "log_dictionary",
-  "indexPatterns": "logs-yyyyMMdd-*",
-  "aliansPatterns": "logs-yyyyMMdd",
+  "indexPatterns": "lcc-log-yyyyMMdd-*",
+  "aliansPatterns": "lcc-log-yyyyMMdd",
   "numberOfShards": 3,
   "numberOfReplicas": 2,
   "enableAutoShards": true,

@@ -117,4 +117,23 @@ public class TemplateHistoryController {
     }
 
 
+    @Operation(summary = "删除字段",
+            description = "Delete a field by ID.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Field deleted successfully"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @DeleteMapping("/delete/{templateName}")
+    public JSONObject deleteTemplate(@PathVariable("templateName") String templateName) {
+        try {
+            templateHistoryService.deleteTemplate(templateName);
+            return ResultUtils.onSuccess();
+        } catch (Exception e) {
+            log.error("Error deleting field", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
+
 }

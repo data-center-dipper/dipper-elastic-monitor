@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.index.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.entity.elastic.index.*;
@@ -38,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -317,7 +319,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
 
-
     @Deprecated
     private List<IndexEntity> filterByFrozen(List<IndexEntity> indexNames) {
         List<IndexEntity> list = new ArrayList<>();
@@ -478,23 +479,16 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     @Override
-    public String createIndex(String indexName) {
+    public Response createIndex(String indexName) throws Exception {
         if (StringUtils.isBlank(indexName)) {
             log.warn("索引名称为空，无法创建索引");
             throw new RuntimeException("索引名称为空");
         }
+        // 调用ES API创建索引
+        Response result = elasticClientService.executePutApiReturnResponseEx(indexName, null);
 
-        try {
-            // 调用ES API创建索引
-            String result = elasticClientService.executePutApi(indexName, null);
-
-
-            log.info("创建索引 {} 成功", indexName);
-            return result;
-        } catch (Exception e) {
-            log.error("创建索引异常：index:{}  ex:{}", indexName, e.getMessage(), e);
-            throw e;
-        }
+        log.info("创建索引 {} 成功", indexName);
+        return result;
     }
 
     @Override
@@ -686,7 +680,6 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
         JSONObject jsonObjectSetting = setting.getJSONObject(index);
         return parseIndexSetting(index, jsonObjectSetting);
     }
-
 
 
     private Boolean isIndexCondition(String index, String prefix, String format, boolean checkFuture) {

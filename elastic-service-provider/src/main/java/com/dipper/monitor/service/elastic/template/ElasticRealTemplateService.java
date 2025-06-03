@@ -57,4 +57,10 @@ public interface ElasticRealTemplateService {
     List<TemplateHistoryView> getTemplateHistoryView();
 
     JSONObject getTemplateByIndexName(String indexName);
+
+   /**
+    * 删除模版
+    * @param templateName
+    */
+   boolean deleteTemplate(String templateName) throws IOException;
 }

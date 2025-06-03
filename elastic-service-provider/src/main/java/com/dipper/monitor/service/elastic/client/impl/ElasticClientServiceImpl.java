@@ -26,7 +26,7 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.apache.http.message.BasicHeader;
-import com.dipper.client.proxy.params.elasticsearch.RequestOptions ;
+import com.dipper.client.proxy.params.elasticsearch.RequestOptions;
 
 import java.io.IOException;
 import java.util.*;
@@ -63,7 +63,7 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             log.info("缓存中没有找到对应集群的client，重新获取");
             elasticClientProxyService = createClient(currentCluster);
         }
-        if(elasticClientProxyService != null){
+        if (elasticClientProxyService != null) {
             clientCache.put(clusterCode, elasticClientProxyService);
         }
         return elasticClientProxyService;
@@ -77,7 +77,7 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         }
         String address = currentCluster.getAddress();
         properties.put(ElasticsearchBaseProxyConfig.ELASTICSEARCH_URL, address);
-        log.info("创建admin配置:{}",properties);
+        log.info("创建admin配置:{}", properties);
 
         PluginConfig pluginConfig = PluginConfigUtils.getElasticConfig(properties);
         ElasticsearchBaseProxyConfig elasticsearchBaseProxyConfig = new ElasticsearchBaseProxyConfig(properties);
@@ -94,7 +94,6 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         String httpResult = EntityUtils.toString(response.getEntity(), "UTF-8");
         return httpResult;
     }
-
 
 
     @Override
@@ -126,7 +125,7 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             String responseData = EntityUtils.toString(response.getEntity());
             return responseData;
         } catch (Exception e) {
-            log.error("执行异常",  e );
+            log.error("执行异常", e);
             return e.getMessage();
         }
     }
@@ -145,9 +144,23 @@ public class ElasticClientServiceImpl implements ElasticClientService {
             }
             return response;
         } catch (Exception e) {
-            log.error("执行异常,api:{}",api,  e );
+            log.error("执行异常,api:{}", api, e);
             return null;
         }
+    }
+
+    @Override
+    public Response executePutApiReturnResponseEx(String api, HttpEntity entity) throws Exception {
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+        Response response;
+        if (entity != null) {
+            response = elasticClientProxyService.performRequest(buildRequest(RequestMethod.PUT.name(),
+                    api, Collections.emptyMap(), entity, this.commonHeaders));
+        } else {
+            response = elasticClientProxyService.performRequest(new Request(RequestMethod.PUT.name(), api));
+        }
+        return response;
     }
 
     @Override
@@ -161,8 +174,8 @@ public class ElasticClientServiceImpl implements ElasticClientService {
 
             Response response = elasticClientProxyService.performRequest(request);
             return (response.getStatusLine().getStatusCode() == 200);
-        }catch (Exception e){
-            log.error("执行异常",  e );
+        } catch (Exception e) {
+            log.error("执行异常", e);
         }
         return false;
     }
@@ -181,9 +194,22 @@ public class ElasticClientServiceImpl implements ElasticClientService {
         return responseData;
     }
 
+    @Override
+    public Response executeDeleteApiReturnResponse(String apiUrl, HttpEntity entity) throws IOException {
+        Response response = null;
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        ElasticClientProxyService elasticClientProxyService = getInstance(currentCluster);
+        if (entity != null) {
+            response = elasticClientProxyService.performRequest(buildRequest(RequestMethod.DELETE.name(), apiUrl, Collections.emptyMap(), entity, this.commonHeaders));
+        } else {
+            response = elasticClientProxyService.performRequest(new Request(RequestMethod.DELETE.name(), apiUrl));
+        }
+        return response;
+    }
+
 
     public Request buildRequest(String method, String endPoint, Map<String, String> paramMap,
-                                 HttpEntity entity, Header... headers) {
+                                HttpEntity entity, Header... headers) {
         Request request = new Request(method, endPoint);
         request.setEntity(entity);
         RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();

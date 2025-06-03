@@ -34,6 +34,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +44,9 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- *    // 可选接口 GET /_cat/templates?format=json
- *         // 获取模版详情 GET /_index_template/ailpha-logs-20250517
- *         // 获取模版，包含详情信息  GET /_index_template
+ * // 可选接口 GET /_cat/templates?format=json
+ * // 获取模版详情 GET /_index_template/ailpha-logs-20250517
+ * // 获取模版，包含详情信息  GET /_index_template
  */
 @Slf4j
 @Service
@@ -88,26 +89,26 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
         return b;
     }
 
-    public boolean saveOrUpdateTemplate(String name,JSONObject templateJson) {
+    public boolean saveOrUpdateTemplate(String name, JSONObject templateJson) {
         try {
             String method = isExistTemplate(name) ? "POST" : "PUT";
             NStringEntity nStringEntity = new NStringEntity(templateJson.toJSONString());
             Response response = null;
             CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
             String clusterVersion = currentCluster.getClusterVersion();
-            if(ClusterVersionUtils.is7xVersion(clusterVersion)){
-                if("POST".equalsIgnoreCase(method)){
+            if (ClusterVersionUtils.is7xVersion(clusterVersion)) {
+                if ("POST".equalsIgnoreCase(method)) {
                     response = elasticClientService.executePostApiReturnResponse("/_template/" + name, nStringEntity);
-                }else {
+                } else {
                     response = elasticClientService.executePutApiReturnResponse("/_template/" + name, nStringEntity);
                 }
-            }else if(ClusterVersionUtils.is8xVersion(clusterVersion)){
-                if("POST".equalsIgnoreCase(method)){
+            } else if (ClusterVersionUtils.is8xVersion(clusterVersion)) {
+                if ("POST".equalsIgnoreCase(method)) {
                     response = elasticClientService.executePostApiReturnResponse("/_index_template/" + name, nStringEntity);
-                }else {
+                } else {
                     response = elasticClientService.executePutApiReturnResponse("/_index_template/" + name, nStringEntity);
                 }
-            }else {
+            } else {
                 throw new IllegalArgumentException("不支持的集群版本");
             }
 
@@ -117,13 +118,14 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
             log.error("索引模板创建失败：{}", response);
             return false;
         } catch (Exception e) {
-            log.error("索引模板创建失败：{}",templateJson, e);
+            log.error("索引模板创建失败：{}", templateJson, e);
             return false;
         }
     }
 
     /**
      * 点开某个模版 查看模版的详情
+     *
      * @param name
      * @return
      * @throws IOException
@@ -131,7 +133,7 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     @Override
     public List<EsTemplateConfigMes> statTemplate(String name) throws IOException {
         StatTemplateHandler statTemplateHandler = new StatTemplateHandler(elasticClientService,
-                elasticRealIndexService,elasticShardService,
+                elasticRealIndexService, elasticShardService,
                 elasticSegmentService, elasticRealLifecyclePoliciesService);
         return statTemplateHandler.statTemplate(name);
     }
@@ -140,30 +142,30 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     @Override
     public List<String> getIndexPatternList(String indexPattern) {
         List<String> indexPatternList = new ArrayList<>();
-            String indexPrefxi = null;
-            if (indexPattern.contains("yyyy")) {
-                indexPrefxi = indexPattern.substring(0, indexPattern.indexOf("yyyy"));
-            } else {
-                int position = indexPattern.indexOf("*");
-                if (position < 1) {
-                    position = indexPattern.length();
-                }
-                indexPrefxi = indexPattern.substring(0, position);
+        String indexPrefxi = null;
+        if (indexPattern.contains("yyyy")) {
+            indexPrefxi = indexPattern.substring(0, indexPattern.indexOf("yyyy"));
+        } else {
+            int position = indexPattern.indexOf("*");
+            if (position < 1) {
+                position = indexPattern.length();
             }
-            indexPatternList.add(indexPrefxi);
-            return indexPatternList;
+            indexPrefxi = indexPattern.substring(0, position);
         }
+        indexPatternList.add(indexPrefxi);
+        return indexPatternList;
+    }
 
     @Override
     public JSONObject rollTemplate(Integer id) throws Exception {
         EsUnconvertedTemplate oneUnconvertedTemplate = elasticStoreTemplateService.getOneUnconvertedTemplate(id);
 //        JSONObject jsonObject = templatePreviewService.previewEffectTemplate(id);
-        if(oneUnconvertedTemplate == null){
+        if (oneUnconvertedTemplate == null) {
             throw new RuntimeException("模板不存在");
         }
 
         RollingIndexByTemplateHandler rollingIndexByTemplateHandler = new RollingIndexByTemplateHandler(elasticHealthService,
-                elasticStoreTemplateService,templatePreviewService);
+                elasticStoreTemplateService, templatePreviewService);
         rollingIndexByTemplateHandler.rollIndexByTemplate(oneUnconvertedTemplate);
         return null;
     }
@@ -177,7 +179,8 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
         // 使用 FastJSON 解析 JSON 字符串到 Java 对象列表
         List<EsTemplateInfo> templateInfoList = JSON.parseObject(
                 responseJson,
-                new TypeReference<List<EsTemplateInfo>>() {}
+                new TypeReference<List<EsTemplateInfo>>() {
+                }
         );
 
         return templateInfoList;
@@ -328,13 +331,13 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     @Override
     public JSONObject getOneTemplateDetail(String templateName) throws IOException {
         try {
-            String api = "/_template/"+templateName;
+            String api = "/_template/" + templateName;
             String response = elasticClientService.executeGetApi(api);
             JSONObject jsonObject = JSONObject.parseObject(response);
             return jsonObject;
-        }catch (Exception e){
-            log.error("获取模型异常,templateName:{}",templateName,e.getMessage());
-            String api = "/_index_template/"+templateName;
+        } catch (Exception e) {
+            log.error("获取模型异常,templateName:{}", templateName, e.getMessage());
+            String api = "/_index_template/" + templateName;
             String response = elasticClientService.executeGetApi(api);
             JSONObject jsonObject = JSONObject.parseObject(response);
             return jsonObject;
@@ -344,9 +347,9 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     @Override
     public List<TemplateHistoryView> getTemplateHistoryViewCache() {
         List<TemplateHistoryView> templateHistoryView = cacheTemplate.getIfPresent(TEMPLATE_KEY);
-        if(templateHistoryView == null){
+        if (templateHistoryView == null) {
             templateHistoryView = getTemplateHistoryView();
-            cacheTemplate.put(TEMPLATE_KEY,templateHistoryView);
+            cacheTemplate.put(TEMPLATE_KEY, templateHistoryView);
         }
         return templateHistoryView;
     }
@@ -443,9 +446,49 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     }
 
     /**
+     * 删除 Elasticsearch 索引模板
+     *
+     * @param templateName 模板名称
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deleteTemplate(String templateName) throws IOException {
+        if (StringUtils.isBlank(templateName)) {
+            log.error("模板名称不能为空");
+            return false;
+        }
+
+        // 获取当前集群信息
+        CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
+        String clusterVersion = currentCluster.getClusterVersion();
+
+        String apiUrl;
+        if (ClusterVersionUtils.is7xVersion(clusterVersion)) {
+            apiUrl = "/_template/" + templateName;
+        } else if (ClusterVersionUtils.is8xVersion(clusterVersion)) {
+            apiUrl = "/_index_template/" + templateName;
+        } else {
+            log.error("不支持的集群版本: {}", clusterVersion);
+            return false;
+        }
+
+        // 执行删除请求（注意：DELETE 请求通常不需要传递 body）
+        Response response = elasticClientService.executeDeleteApiReturnResponse(apiUrl, null);
+        int statusCode = response.getStatusLine().getStatusCode();
+
+        if (statusCode == 200 || statusCode == 201) {
+            log.info("模板 [{}] 删除成功，状态码：{}", templateName, statusCode);
+            return true;
+        } else {
+            log.error("模板 [{}] 删除失败，状态码：{}", templateName, statusCode);
+            return false;
+        }
+    }
+
+    /**
      * 从模板详情中提取更多信息
      *
-     * @param view 模板视图对象
+     * @param view           模板视图对象
      * @param templateDetail 模板详情JSON
      */
     private void extractTemplateDetails(TemplateHistoryView view, JSONObject templateDetail) {
