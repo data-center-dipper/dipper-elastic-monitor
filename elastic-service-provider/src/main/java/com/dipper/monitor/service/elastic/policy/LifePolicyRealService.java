@@ -1,7 +1,12 @@
 package com.dipper.monitor.service.elastic.policy;
 
+import com.dipper.monitor.entity.elastic.policy.PolicyPageRequest;
+import com.dipper.monitor.entity.elastic.policy.response.LifePolicyResponse;
+import com.dipper.monitor.utils.Tuple2;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,4 +29,7 @@ public interface LifePolicyRealService {
     Map<String,String> policyList() throws UnsupportedEncodingException, IOException;
 
 
+    Tuple2<List<LifePolicyResponse>, Long> getRealPolicies(PolicyPageRequest request);
+
+    boolean deletePolicy(String policyName);
 }
