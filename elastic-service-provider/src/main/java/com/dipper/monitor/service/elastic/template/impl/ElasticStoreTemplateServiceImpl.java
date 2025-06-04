@@ -286,6 +286,16 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
     }
 
     @Override
+    public void autoShardTemplate(AutoShardReq autoShardReq) {
+        Integer id = autoShardReq.getId();
+        EsTemplateEntity template = getTemplate(id);
+        if (template == null) {
+            throw new RuntimeException("模板不存在");
+        }
+        esTemplateMapper.autoShardTemplate(autoShardReq);
+    }
+
+    @Override
     public List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) throws IOException {
         TemplateShardHistoryHandler templateShardHistoryHandler = new TemplateShardHistoryHandler(this);
         return templateShardHistoryHandler.getTemplateShardHistory(templateId);

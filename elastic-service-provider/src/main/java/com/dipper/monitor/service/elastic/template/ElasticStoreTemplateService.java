@@ -91,5 +91,13 @@ public interface ElasticStoreTemplateService {
      */
     void updateAutoCreate(AutoCreateReq autoCreateReq);
 
+    /**
+     * 更新模板分片设置
+     * @param autoShardReq
+     */
+    void autoShardTemplate(AutoShardReq autoShardReq);
+
     List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) throws IOException;
+
+
 }

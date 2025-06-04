@@ -99,6 +99,28 @@ public class TemplateStoreController {
         }
     }
 
+    @Operation(summary = "自动创建索引的开关配置",
+            description = "自动创建索引的开关配置",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Templates retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/autoShardTemplate")
+    public JSONObject autoShardTemplate(@RequestBody AutoShardReq autoShardReq) {
+        try {
+            elasticStoreTemplateService.autoShardTemplate(autoShardReq);
+            return ResultUtils.onSuccess();
+        } catch (Exception e) {
+            log.error("自动创建索引的开关配置", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
+
+
     @Operation(summary = "获取模板历史分片走势图",
             description = "获取模板历史分片走势图",
             security = @SecurityRequirement(name = "bearerAuth"),

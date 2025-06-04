@@ -135,4 +135,18 @@
         WHERE id=#{id}
     </update>
 
+
+    <update id="autoShardTemplate">
+        UPDATE t_elastic_template
+        <set>
+            <!-- rollingPeriod 是 Integer -->
+<!--            <if test="shardSize != null">rolling_period=#{shardSize},</if>-->
+            <!-- autoCreate 是 Boolean，只需要判断 null -->
+            <if test="autoShard != null">enable_auto_shards=#{autoShard},</if>
+            <!-- 更新时间 -->
+            update_time=NOW()
+        </set>
+        WHERE id=#{id}
+    </update>
+
 </mapper>
