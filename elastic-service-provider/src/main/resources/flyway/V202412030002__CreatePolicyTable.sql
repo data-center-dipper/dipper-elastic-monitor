@@ -219,3 +219,6 @@ CREATE TABLE `t_elastic_disk_clear` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_template_name` (`template_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='磁盘清理模板配置表';
+
+ALTER TABLE elastic_monitor.t_elastic_template CHANGE enable_auto_shards auto_shards tinyint(1) DEFAULT 0 NULL;
+ALTER TABLE elastic_monitor.t_elastic_template ADD shard_size INT NULL;
