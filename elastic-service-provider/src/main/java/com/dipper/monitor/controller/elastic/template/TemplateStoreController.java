@@ -4,6 +4,7 @@ package com.dipper.monitor.controller.elastic.template;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
+import com.dipper.monitor.entity.elastic.shard.history.ShardHistoryItem;
 import com.dipper.monitor.entity.elastic.template.*;
 import com.dipper.monitor.entity.elastic.template.unconverted.EsUnconvertedTemplate;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;

@@ -88,16 +88,16 @@ public class IndexPatternsUtils {
 
 
     public static String getIndexPrefixNoDate(String indexPatterns) {
-        if(StringUtils.isEmpty(indexPatterns)){
+        if (StringUtils.isEmpty(indexPatterns)) {
             return "";
         }
-        if(indexPatterns.contains("yyyyMMdd")){
-            return getDayIndexPrefixNoDate(indexPatterns,"yyyyMMdd");
-        }else if(indexPatterns.contains("yyyyMM")){
-            return getMonthIndexPrefixNoDate(indexPatterns,"yyyyMM");
-        }else if(indexPatterns.contains("yyyy")){
-            return getYearIndexPrefixNoDate(indexPatterns,"yyyy");
-        }else {
+        if (indexPatterns.contains("yyyyMMdd")) {
+            return getDayIndexPrefixNoDate(indexPatterns, "yyyyMMdd");
+        } else if (indexPatterns.contains("yyyyMM")) {
+            return getMonthIndexPrefixNoDate(indexPatterns, "yyyyMM");
+        } else if (indexPatterns.contains("yyyy")) {
+            return getYearIndexPrefixNoDate(indexPatterns, "yyyy");
+        } else {
             return indexPatterns;
         }
     }
@@ -118,16 +118,16 @@ public class IndexPatternsUtils {
     }
 
     public static String getIndexDatePattern(String indexPatterns) {
-        if(StringUtils.isEmpty(indexPatterns)){
+        if (StringUtils.isEmpty(indexPatterns)) {
             return "";
         }
-        if(indexPatterns.contains("yyyyMMdd")){
+        if (indexPatterns.contains("yyyyMMdd")) {
             return "yyyyMMdd";
-        }else if(indexPatterns.contains("yyyyMM")){
+        } else if (indexPatterns.contains("yyyyMM")) {
             return "yyyyMM";
-        }else if(indexPatterns.contains("yyyy")){
+        } else if (indexPatterns.contains("yyyy")) {
             return "yyyy";
-        }else {
+        } else {
             return "";
         }
     }
@@ -187,59 +187,138 @@ public class IndexPatternsUtils {
     }
 
 
+    // 支持的 datePattern 常量（可选）
+    public static final String PATTERN_YYYYMMDD = "yyyyMMdd";
+    public static final String PATTERN_YYYYMM = "yyyyMM";
+    public static final String PATTERN_YYYY = "yyyy";
+    public static final String PATTERN_YYYY_MM = "yyyy.MM";
+    public static final String PATTERN_YYYY_MM_DD = "yyyy.MM.dd";
+
     /**
      * 从索引名称中提取日期信息并格式化为 "yyyy-MM-dd"
      *
-     * 支持以下格式：
-     * - log-2025.06.01
-     * - log-20250601
-     * - log-2025.06
-     * - log-202506
-     * - log-2025
-     * - log-2025-000001
+     * @param index       索引名称
+     * @param datePattern 日期格式标识符，取值为 yyyyMMdd、yyyyMM、yyyy、yyyy.MM、yyyy.MM.dd
+     * @return 解析后的日期字符串
      */
-    public static String extractDateFromIndexName(String index) {
+    public static String extractDateFromIndexName(String index, String datePattern) {
         if (index == null || index.isEmpty()) {
             return null;
         }
 
-        // 按 '-' 分割索引名
         String[] parts = index.split("-");
-        for (int i = parts.length - 1; i >= 0; i--) {
-            String part = parts[i];
 
+        String part = parts[parts.length - 2];
+
+
+        switch (datePattern) {
+            case PATTERN_YYYYMMDD:
+                return tryParseYYYYMMDD8(part);
+            case PATTERN_YYYY_MM_DD:
+                return tryParseYYYYDotMMDotDD(part);
+            case PATTERN_YYYYMM:
+                return tryParseYYYYMM6(part);
+            case PATTERN_YYYY_MM:
+                return tryParseYYYYDotMM(part);
+            case PATTERN_YYYY:
+                return tryParseYYYY4(part);
+            default:
+                throw new IllegalArgumentException("Unsupported date pattern: " + datePattern);
+        }
+    }
+
+    // 尝试解析 yyyyMMdd 格式（8位）
+    private static String tryParseYYYYMMDD8(String part) {
+        if (isLength(part, 8) && isNumeric(part)) {
             try {
-                // 匹配 yyyy.MM.dd
-                if (part.matches("\\d{4}\\.\\d{2}\\.\\d{2}")) {
-                    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-                    LocalDate date = LocalDate.parse(part, inputFormatter);
-                    return date.format(DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
-                }
-
-                // 匹配 yyyyMMdd
-                if (part.matches("\\d{8}")) {
-                    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-                    LocalDate date = LocalDate.parse(part, inputFormatter);
-                    return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-                }
-
-                // 匹配 yyyyMM
-                if (part.matches("\\d{6}")) {
-                    int year = Integer.parseInt(part.substring(0, 4));
-                    int month = Integer.parseInt(part.substring(4, 6));
-                    return String.format("%04d-%02d-01", year, month); // 默认设置为当月第一天
-                }
-
-                // 匹配 yyyy
-                if (part.matches("\\d{4}")) {
-                    int year = Integer.parseInt(part);
-                    return String.format("%04d-01-01", year); // 默认设置为当年第一天
-                }
-            } catch (Exception e) {
-                continue; // 跳过无法解析的部分
+                LocalDate date = LocalDate.parse(part, DateTimeFormatter.BASIC_ISO_DATE);
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            } catch (DateTimeParseException ignored) {
             }
         }
-
-        return null; // 未找到日期信息
+        return null;
     }
+
+    // 尝试解析 yyyy.MM.dd 格式（10位）
+    private static String tryParseYYYYDotMMDotDD(String part) {
+        if (isLength(part, 10)
+                && part.charAt(4) == '.' && part.charAt(7) == '.') {
+            String y = part.substring(0, 4);
+            String m = part.substring(5, 7);
+            String d = part.substring(8, 10);
+            if (isNumeric(y) && isNumeric(m) && isNumeric(d)) {
+                try {
+                    int year = Integer.parseInt(y);
+                    int month = Integer.parseInt(m);
+                    int day = Integer.parseInt(d);
+                    LocalDate date = LocalDate.of(year, month, day);
+                    return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+                } catch (NumberFormatException | DateTimeParseException ignored) {
+                }
+            }
+        }
+        return null;
+    }
+
+    // 尝试解析 yyyy.MM 格式（7位）
+    private static String tryParseYYYYDotMM(String part) {
+        if (isLength(part, 7)
+                && part.charAt(4) == '.' && isNumeric(part.substring(0, 4))) {
+            String y = part.substring(0, 4);
+            String m = part.substring(5, 7);
+            if (isNumeric(y) && isNumeric(m)) {
+                try {
+                    int year = Integer.parseInt(y);
+                    int month = Integer.parseInt(m);
+                    return String.format("%04d-%02d-01", year, month);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return null;
+    }
+
+    // 尝试解析 yyyyMM 格式（6位）
+    private static String tryParseYYYYMM6(String part) {
+        if (isLength(part, 6) && isNumeric(part)) {
+            String y = part.substring(0, 4);
+            String m = part.substring(4, 6);
+            if (isNumeric(y) && isNumeric(m)) {
+                try {
+                    int year = Integer.parseInt(y);
+                    int month = Integer.parseInt(m);
+                    return String.format("%04d-%02d-01", year, month);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return null;
+    }
+
+    // 尝试解析 yyyy 格式（4位）
+    private static String tryParseYYYY4(String part) {
+        if (isLength(part, 4) && isNumeric(part)) {
+            try {
+                int year = Integer.parseInt(part);
+                return String.format("%04d-01-01", year);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
+
+    // 判断字符串是否是纯数字
+    private static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
+        for (char c : str.toCharArray()) {
+            if (!Character.isDigit(c)) return false;
+        }
+        return true;
+    }
+
+    // 判断字符串长度是否等于指定值
+    private static boolean isLength(String str, int length) {
+        return str != null && str.length() == length;
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.dipper.monitor.entity.elastic.template;
+package com.dipper.monitor.entity.elastic.shard.history;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -5,7 +5,7 @@ import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
 import com.dipper.monitor.entity.elastic.slowsearch.task.SlowQueryTaskEntity;
-import com.dipper.monitor.entity.elastic.template.ShardHistoryItem;
+import com.dipper.monitor.entity.elastic.shard.history.ShardHistoryItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolSuggestion;
