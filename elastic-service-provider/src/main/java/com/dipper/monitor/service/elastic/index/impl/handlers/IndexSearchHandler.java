@@ -23,10 +23,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class IndexSearchHandler extends AbstractIndexHandler {
@@ -50,6 +48,7 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         String aliasName = indexPageReq.getAliasName();
         String indexState = indexPageReq.getStatus();
         Boolean featureIndex = indexPageReq.getFeatureIndex();
+        String searchKeyword = indexPageReq.getSearchKeyword();
         if(featureIndex == null){
             featureIndex = false;
         }
@@ -82,6 +81,12 @@ public class IndexSearchHandler extends AbstractIndexHandler {
             return new Tuple2<>(Collections.emptyList(), 0L);
         }
 
+        if(StringUtils.isNotBlank(searchKeyword)){
+            allIndexes = allIndexes.stream()
+                    .filter(index -> index.getIndex().contains(searchKeyword))
+                    .collect(Collectors.toList());
+        }
+
 
         List<IndexEntity> filteredList =  FeatureIndexUtils.getFeatureIndex(allIndexes,featureIndex);
         if(filteredList == null || filteredList.isEmpty()){
@@ -94,8 +99,10 @@ public class IndexSearchHandler extends AbstractIndexHandler {
         filteredList = setIndexSetting(filteredList);
 
         // 8. 转换为返回视图对象
+
         List<IndexListView> viewList = filteredList.stream()
                 .map(this::convertToView)
+                .sorted(Comparator.comparing(IndexListView::getIndex).reversed())
                 .toList();
 
         // 9. 分页处理

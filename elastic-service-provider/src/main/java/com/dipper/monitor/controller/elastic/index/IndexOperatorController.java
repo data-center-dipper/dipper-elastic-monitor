@@ -105,15 +105,15 @@ public class IndexOperatorController {
     /**
      * 删除索引
      */
-    @PostMapping("/delete")
+    @PostMapping("/deleteIndexBatch")
     @Operation(summary = "删除索引", description = "删除指定的索引",
             responses = {
                     @ApiResponse(responseCode = "200", description = "操作结果", content = @Content(schema = @Schema(implementation = Boolean.class)))
             },
             security = @SecurityRequirement(name = "bearerAuth"))
-    public Object deleteIndex(@Parameter(description = "索引名称列表", example = "[\"index1\", \"index2\"]") @RequestBody List<String> indices) throws Exception {
+    public Object deleteIndexBatch(@Parameter(description = "索引名称列表", example = "[\"index1\", \"index2\"]") @RequestBody List<String> indiceNames) throws Exception {
         try {
-            return ResultUtils.onSuccess(indexBatchOperatorService.delIndexs(indices));
+            return ResultUtils.onSuccess(indexBatchOperatorService.delIndexs(indiceNames));
         }catch (Exception e) {
             log.error("清除索引缓存失败", e);
             return ResultUtils.onFail();

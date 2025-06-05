@@ -17,8 +17,7 @@ public class Preview7xTemplateHandler extends AbstractPreviewHandler {
         JSONObject mappings = templateJson.getJSONObject("mappings");
         JSONObject allreadFields = getAllreadFields(mappings);
         if (mappings == null) {
-            mappings = new JSONObject();
-            mappings.put("_doc", new JSONObject().fluentPut("properties", elasticMapping));
+            mappings =  new JSONObject().fluentPut("properties", elasticMapping);
             templateJson.put("mappings", mappings);
             return;
         }
