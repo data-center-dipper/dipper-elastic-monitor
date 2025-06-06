@@ -68,6 +68,10 @@ public class FindWriterIndexTask {
     }
 
     private void processOneTemplate(EsTemplateEntity template) {
+        Boolean enable = template.getEnable();
+        if(enable == null || !enable){
+            return;
+        }
         String indexPatterns = template.getIndexPatterns();
         String datePattern = IndexPatternsUtils.getIndexDatePattern(indexPatterns);
         String indexPrefixNoDate = IndexPatternsUtils.getIndexPrefixNoDate(indexPatterns);

@@ -66,6 +66,10 @@ public class TemplateFeatureIndexCreateTask {
         List<EsUnconvertedTemplate> dayTemplates = new ArrayList<>();
         
         for (EsTemplateEntity template : allTemplates) {
+            Boolean enable = template.getEnable();
+            if(enable == null || !enable){
+                continue;
+            }
             EsUnconvertedTemplate unconvertedTemplate = elasticStoreTemplateService.getOneUnconvertedTemplate(template.getId());
             if (unconvertedTemplate == null) {
                 continue;

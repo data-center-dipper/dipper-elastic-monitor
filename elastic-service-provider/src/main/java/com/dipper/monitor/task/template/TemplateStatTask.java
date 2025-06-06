@@ -55,7 +55,12 @@ public class TemplateStatTask {
         List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
         if (allTemplates == null || allTemplates.isEmpty()) return;
 
-        List<EsTemplateStatEntity> templateStats = allTemplates.stream()
+        // 过滤出已启用的模板（enable != null 且 enable == true）
+        List<EsTemplateEntity> enabledTemplates = allTemplates.stream()
+                .filter(template -> Boolean.TRUE.equals(template.getEnable()))
+                .collect(Collectors.toList());
+
+        List<EsTemplateStatEntity> templateStats = enabledTemplates.stream()
                 .map(this::processTemplate)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
