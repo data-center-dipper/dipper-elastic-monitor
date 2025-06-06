@@ -32,6 +32,9 @@ public class IndexOverviewServiceImpl implements IndexOverviewService {
 
     @Override
     public List<IndexWriteEntity> featureIndexList() {
+        if(ApplicationUtils.isWindows()){
+            return MockAllData.writeIndexList();
+        }
         List<IndexWriteEntity> all = featureIndexService.featureIndexList();
         return all;
     }
