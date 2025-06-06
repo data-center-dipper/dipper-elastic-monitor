@@ -197,7 +197,7 @@ public class MonthOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
             log.info("生成别名: {}", aliasName);
 
             // 6. 创建索引
-            elasticRealIndexService.createIndex(firstIndexName);
+            elasticRealIndexService.createIndexWithSettingAndMapping(firstIndexName);
 
             // 7. 添加别名
             elasticAliasService.addAlias(firstIndexName, aliasName);

@@ -115,7 +115,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
             
             // 8. 创建新索引并设置别名
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
-            elasticRealIndexService.createIndex(newIndexName, templateJson);
+            elasticRealIndexService.createIndexWithSettingAndMapping(newIndexName, templateJson);
             elasticAliasService.addAlias(newIndexName, aliasName);
             
             // 9. 设置新索引别名为可写
@@ -190,7 +190,7 @@ public class NotRollingIndexHandler extends AbstractRollingIndexByTemplateHandle
 
             // 4. 创建索引
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
-            elasticRealIndexService.createIndex(firstIndexName, templateJson);
+            elasticRealIndexService.createIndexWithSettingAndMapping(firstIndexName, templateJson);
 
             // 5. 添加别名
             elasticAliasService.addAlias(firstIndexName, aliasName);

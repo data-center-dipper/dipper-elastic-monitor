@@ -206,7 +206,7 @@ public class DaysOfFeatureIndexHandler extends AbstractFeatureIndexHandler {
             // 6. 创建索引
 //            JSONObject templateJson = templatePreviewService.previewEffectTemplateByDate(esUnconvertedTemplate.getId(), futureDate);
 //            elasticRealIndexService.createIndex(firstIndexName,templateJson);
-            elasticRealIndexService.createIndex(firstIndexName);
+            elasticRealIndexService.createIndexWithSettingAndMapping(firstIndexName);
 
             // 7. 添加别名
             elasticAliasService.addAlias(firstIndexName, aliasName);

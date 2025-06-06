@@ -238,8 +238,8 @@ public class YearFeatureIndexHandler extends AbstractFeatureIndexHandler {
             log.info("生成别名: {}", aliasName);
 
             // 6. 创建索引
-            JSONObject templateJson = templatePreviewService.previewEffectTemplateByDate(esUnconvertedTemplate.getId(),futureDate);
-            elasticRealIndexService.createIndex(firstIndexName, templateJson);
+//            JSONObject templateJson = templatePreviewService.previewEffectTemplateByDate(esUnconvertedTemplate.getId(),futureDate);
+            elasticRealIndexService.createIndexWithSettingAndMapping(firstIndexName);
 
             // 7. 添加别名
             elasticAliasService.addAlias(firstIndexName, aliasName);

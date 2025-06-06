@@ -173,7 +173,7 @@ public class YearRollingIndexHandler extends AbstractRollingIndexByTemplateHandl
             
             // 8. 创建新的索引 并且指定别名信息
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
-            elasticRealIndexService.createIndex(newIndexName, templateJson);
+            elasticRealIndexService.createIndexWithSettingAndMapping(newIndexName, templateJson);
             elasticAliasService.addAlias(newIndexName, aliasName);
             
             // 9.添加索引可写
@@ -314,7 +314,7 @@ public class YearRollingIndexHandler extends AbstractRollingIndexByTemplateHandl
 
             // 6. 创建索引
             JSONObject templateJson = templatePreviewService.previewEffectTemplate(esUnconvertedTemplate.getId());
-            elasticRealIndexService.createIndex(firstIndexName, templateJson);
+            elasticRealIndexService.createIndexWithSettingAndMapping(firstIndexName, templateJson);
 
             // 7. 添加别名
             elasticAliasService.addAlias(firstIndexName, aliasName);

@@ -479,7 +479,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     @Override
-    public Response createIndex(String indexName) throws Exception {
+    public Response createIndexWithSettingAndMapping(String indexName) throws Exception {
         if (StringUtils.isBlank(indexName)) {
             log.warn("索引名称为空，无法创建索引");
             throw new RuntimeException("索引名称为空");
@@ -492,7 +492,7 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     @Override
-    public String createIndex(String indexName, JSONObject templateJson) throws UnsupportedEncodingException {
+    public String createIndexWithSettingAndMapping(String indexName, JSONObject templateJson) throws UnsupportedEncodingException {
         if (StringUtils.isBlank(indexName)) {
             log.warn("索引名称为空，无法创建索引");
             throw new RuntimeException("索引名称为空");

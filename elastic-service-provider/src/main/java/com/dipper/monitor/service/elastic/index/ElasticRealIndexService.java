@@ -62,8 +62,8 @@ public interface ElasticRealIndexService {
      * @param firstIndexName
      * @return
      */
-    Response createIndex(String firstIndexName) throws Exception;
-    String createIndex(String firstIndexName, JSONObject templateJson) throws UnsupportedEncodingException;
+    Response createIndexWithSettingAndMapping(String firstIndexName) throws Exception;
+    String createIndexWithSettingAndMapping(String firstIndexName, JSONObject templateJson) throws UnsupportedEncodingException;
 
     /**
      * 分页获取索引列表
