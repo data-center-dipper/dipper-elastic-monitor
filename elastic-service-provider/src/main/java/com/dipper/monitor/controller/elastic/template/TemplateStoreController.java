@@ -279,4 +279,25 @@ public class TemplateStoreController {
             return ResultUtils.onFail("Operation error");
         }
     }
+
+    @Operation(summary = "模版的启用与禁用",
+            description = "模版的启用与禁用",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Templates retrieved successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/updateTemplateEnableStatus")
+    public JSONObject updateTemplateEnableStatus(@RequestBody TemplateStatusReq templateStatusReq) {
+        try {
+            elasticStoreTemplateService.updateTemplateEnableStatus(templateStatusReq);
+            return ResultUtils.onSuccess();
+        } catch (Exception e) {
+            log.error("自动创建索引的开关配置", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
 }

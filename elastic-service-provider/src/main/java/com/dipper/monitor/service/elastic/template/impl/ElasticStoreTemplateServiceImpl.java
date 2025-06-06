@@ -301,6 +301,11 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         return templateShardHistoryHandler.getTemplateShardHistory(templateId);
     }
 
+    @Override
+    public void updateTemplateEnableStatus(TemplateStatusReq templateStatusReq) {
+        esTemplateMapper.updateTemplateEnableStatus(templateStatusReq);
+    }
+
 
     @Override
     public List<EsTemplateEntity> getTemplateByPage(TemplatePageInfo templatePageInfo) {

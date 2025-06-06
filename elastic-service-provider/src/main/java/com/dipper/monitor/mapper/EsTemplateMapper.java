@@ -5,6 +5,7 @@ import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.template.AutoCreateReq;
 import com.dipper.monitor.entity.elastic.template.AutoShardReq;
 import com.dipper.monitor.entity.elastic.template.ElasticTemplateListView;
+import com.dipper.monitor.entity.elastic.template.TemplateStatusReq;
 import org.apache.ibatis.annotations.*;
 
         import java.util.List;
@@ -47,4 +48,6 @@ public interface EsTemplateMapper {
     void updateAutoCreate(AutoCreateReq autoCreateReq);
 
     void autoShardTemplate(AutoShardReq autoShardReq);
+
+    void updateTemplateEnableStatus(TemplateStatusReq templateStatusReq);
 }

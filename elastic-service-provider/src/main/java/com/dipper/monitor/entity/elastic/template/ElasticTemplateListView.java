@@ -13,6 +13,8 @@ public class ElasticTemplateListView   {
     private Integer id;
     private String clusterCode;
 
+    private Boolean enable;
+
     // 模版名称
     private String zhName;
     private String enName;

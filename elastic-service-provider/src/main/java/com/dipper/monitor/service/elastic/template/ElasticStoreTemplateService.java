@@ -99,5 +99,9 @@ public interface ElasticStoreTemplateService {
 
     List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) throws IOException;
 
-
+    /**
+     * 设置模版的状态
+     * @param templateStatusReq
+     */
+    void updateTemplateEnableStatus(TemplateStatusReq templateStatusReq);
 }

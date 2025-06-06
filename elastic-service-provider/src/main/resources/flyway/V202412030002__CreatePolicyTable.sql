@@ -222,3 +222,4 @@ CREATE TABLE `t_elastic_disk_clear` (
 
 ALTER TABLE elastic_monitor.t_elastic_template CHANGE enable_auto_shards auto_shards tinyint(1) DEFAULT 0 NULL;
 ALTER TABLE elastic_monitor.t_elastic_template ADD shard_size INT NULL;
+ALTER TABLE elastic_monitor.t_elastic_template ADD enable BOOL NULL;
