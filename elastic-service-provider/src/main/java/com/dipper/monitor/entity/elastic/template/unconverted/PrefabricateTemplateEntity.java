@@ -28,7 +28,7 @@ public class PrefabricateTemplateEntity {
 
     private String refreshInterval;
     // 是否开启自动 shard 计算
-    private Boolean enableAutoShards;
+    private Boolean autoShards;
     // 分片大小
     private Integer shardSize;
     // 滚动周期 最小 天 30 60 90 180 365

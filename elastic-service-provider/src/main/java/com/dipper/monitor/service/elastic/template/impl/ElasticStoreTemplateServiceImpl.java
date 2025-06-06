@@ -104,7 +104,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         esTemplateEntity.setAliansPatterns(esUnconvertedTemplate.getAliansPatterns());
         esTemplateEntity.setNumberOfShards(esUnconvertedTemplate.getNumberOfShards());
         esTemplateEntity.setNumberOfReplicas(esUnconvertedTemplate.getNumberOfReplicas());
-        esTemplateEntity.setEnableAutoShards(esUnconvertedTemplate.getEnableAutoShards());
+        esTemplateEntity.setAutoShards(esUnconvertedTemplate.getAutoShards());
 
         // 设置模板内容
         esTemplateEntity.setTemplateContent(esUnconvertedTemplate.getTemplateContent());
@@ -197,7 +197,7 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         unconvertedTemplate.setNumberOfShards(templateById.getNumberOfShards());
         unconvertedTemplate.setNumberOfReplicas(templateById.getNumberOfReplicas());
         unconvertedTemplate.setRollingPeriod(templateById.getRollingPeriod());
-        unconvertedTemplate.setEnableAutoShards(templateById.getEnableAutoShards());
+        unconvertedTemplate.setAutoShards(templateById.getAutoShards());
         unconvertedTemplate.setLifePolicy(templateById.getLifePolicy());
 
         // 设置模板内容
@@ -238,9 +238,9 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
 
     @Override
     public EsTemplateStatEntity templateStat(Integer id) {
-        if (ApplicationUtils.isWindows()) {
-            return MockAllData.templateStat(id);
-        }
+//        if (ApplicationUtils.isWindows()) {
+//            return MockAllData.templateStat(id);
+//        }
         EsTemplateEntity template = getTemplate(id);
         if (template == null) {
             throw new IllegalArgumentException("template not exist");

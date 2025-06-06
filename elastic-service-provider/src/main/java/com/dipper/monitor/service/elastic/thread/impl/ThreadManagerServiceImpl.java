@@ -104,9 +104,9 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
 
     @Override
     public ThreadCheckResult threadRealTimeCheck() throws IOException {
-        if(ApplicationUtils.isWindows()){
-//            return MockAllData.threadRealTimeCheck();
-        }
+//        if(ApplicationUtils.isWindows()){
+////            return MockAllData.threadRealTimeCheck();
+//        }
         if (cachedThreadList.isEmpty()) {
             cachedThreadList = refreshThreadList();
         }

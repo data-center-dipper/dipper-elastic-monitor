@@ -56,4 +56,28 @@ public class IndexOverviewController {
             return ResultUtils.onFail("Operation error");
         }
     }
+
+    @Operation(summary = "获取未来索引列表",
+            description = "获取未来索引列表",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Template added successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/featureIndexList")
+    public JSONObject featureIndexList() {
+        try {
+            List<IndexWriteEntity> jsonObject = indexOverviewService.featureIndexList();
+            return ResultUtils.onSuccess(jsonObject);
+        } catch (IllegalArgumentException e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 }

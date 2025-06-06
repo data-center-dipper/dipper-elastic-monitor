@@ -18,9 +18,9 @@ public class ThreadPoolParseHandler {
     };
 
     public List<ThreadMetricEntity> parseThreadPoolResponse(String response, String clusterCode) {
-        if(ApplicationUtils.isWindows()){
-            return MockAllData.parseThreadPoolResponse(clusterCode);
-        }
+//        if(ApplicationUtils.isWindows()){
+//            return MockAllData.parseThreadPoolResponse(clusterCode);
+//        }
         JSONObject rootNode = JSONObject.parseObject(response);
         JSONObject nodes = rootNode.getJSONObject("nodes");
 

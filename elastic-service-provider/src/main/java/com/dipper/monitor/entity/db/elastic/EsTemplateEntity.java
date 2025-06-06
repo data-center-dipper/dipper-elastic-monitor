@@ -27,8 +27,10 @@ public class EsTemplateEntity {
     // 副本数
     private Integer numberOfReplicas;
     // 是否开启自动 shard 计算
-    private Boolean enableAutoShards;
+    private Boolean autoShards;
     private Integer shardSize;
+
+    private Boolean autoCreate;
     /**
      * 滚动周期
      */

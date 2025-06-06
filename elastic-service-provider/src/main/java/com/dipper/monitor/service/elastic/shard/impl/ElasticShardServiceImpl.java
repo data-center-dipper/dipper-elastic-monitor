@@ -39,9 +39,9 @@ public class ElasticShardServiceImpl implements ElasticShardService {
 
     @Override
     public List<JSONObject> getShardError() throws IOException {
-        if (ApplicationUtils.isWindows()) {
-            return MockAllData.getShardError();
-        }
+//        if (ApplicationUtils.isWindows()) {
+//            return MockAllData.getShardError();
+//        }
         // 检查分片状态
         String shardsResult = elasticClientService.executeGetApi("/_cat/shards?format=json");
         log.info("分片状态：\n{}", shardsResult);

@@ -33,9 +33,9 @@ public class TemplateShardHistoryHandler {
      * 获取某个模板下的历史分片数据
      */
     public List<ShardHistoryItem> getTemplateShardHistory(Integer templateId) throws IOException {
-        if(ApplicationUtils.isWindows()){
-//            return MockAllData.getTemplateShardHistory(templateId);
-        }
+//        if(ApplicationUtils.isWindows()){
+////            return MockAllData.getTemplateShardHistory(templateId);
+//        }
         // 获取模板信息
         EsTemplateEntity template = elasticStoreTemplateService.getTemplate(templateId);
         String indexPatterns = template.getIndexPatterns();

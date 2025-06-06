@@ -63,9 +63,9 @@ public class OverviewServiceImpl implements OverviewService {
 
     @Override
     public List<EsLifeCycleManagement>  getLifeCycleError(PageReq pageReq) {
-        if(ApplicationUtils.isWindows()){
-            return MockAllData.getLifeCycleError();
-        }
+//        if(ApplicationUtils.isWindows()){
+//            return MockAllData.getLifeCycleError();
+//        }
         // 获取原始的生命周期列表
         List<EsLifeCycleManagement> lifeCycleList = elasticRealLifecyclePoliciesService.getLifeCycleList();
         if(CollectionUtils.isEmpty(lifeCycleList)){

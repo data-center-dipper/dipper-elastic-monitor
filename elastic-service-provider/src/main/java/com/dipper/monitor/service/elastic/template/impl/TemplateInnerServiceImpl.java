@@ -114,7 +114,7 @@ public class TemplateInnerServiceImpl implements TemplateInnerService {
             target.setAliansPatterns(source.getAliansPatterns());
             target.setNumberOfShards(source.getNumberOfShards());
             target.setNumberOfReplicas(source.getNumberOfReplicas());
-            target.setEnableAutoShards(source.getEnableAutoShards());
+            target.setAutoShards(source.getAutoShards());
             target.setRollingPeriod(source.getRollingPeriod());
 
             // 设置信息：Map -> String

@@ -79,11 +79,11 @@ public class ElasticAliasServiceImpl implements ElasticAliasService {
                     JSONObject aliasDetails = (JSONObject) aliasEntry.getValue();
 
                     Boolean isWriteIndex = aliasDetails.getBoolean("is_write_index");
-                    if(ApplicationUtils.isWindows()){
-                        writeAliasIndexMap
-                                .computeIfAbsent(aliasName, k -> new HashSet<>())
-                                .add(indexName);
-                    }
+//                    if(ApplicationUtils.isWindows()){
+//                        writeAliasIndexMap
+//                                .computeIfAbsent(aliasName, k -> new HashSet<>())
+//                                .add(indexName);
+//                    }
                     if (Boolean.TRUE.equals(isWriteIndex)) { // 明确为 true 才计入统计
                         writeAliasIndexMap
                                 .computeIfAbsent(aliasName, k -> new HashSet<>())

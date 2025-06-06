@@ -32,4 +32,19 @@ public class IndexWriteEntity {
 
     // 创建时间
     private Date createTime;
+
+    public IndexWriteEntity() {
+    }
+
+    public IndexWriteEntity(String templateName, String indexName, String alias, boolean canWrite, int fieldCount, boolean hasSpecialChar, double writeRate, long docCount, Date createTime) {
+        this.templateName = templateName;
+        this.indexName = indexName;
+        this.alias = alias;
+        this.canWrite = canWrite;
+        this.fieldCount = fieldCount;
+        this.hasSpecialChar = hasSpecialChar;
+        this.writeRate = writeRate;
+        this.docCount = docCount;
+        this.createTime = createTime;
+    }
 }

@@ -27,7 +27,9 @@ public class ElasticTemplateListView   {
     // 副本数
     private Integer numberOfReplicas;
     // 是否开启自动 shard 计算
-    private Boolean enableAutoShards;
+    private Boolean autoShards;
+
+    private Boolean autoCreate;
 
     private String updateTime;
 }

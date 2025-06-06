@@ -58,9 +58,9 @@ public class RealSlowSearchServiceImpl implements RealSlowSearchService {
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         String clusterCode = currentCluster.getClusterCode();
 
-        if(ApplicationUtils.isWindows()){
-            return MockAllData.getRelaSlowQuery(clusterCode);
-        }
+//        if(ApplicationUtils.isWindows()){
+//            return MockAllData.getRelaSlowQuery(clusterCode);
+//        }
         String response = elasticClientService.executeGetApi(REAL_SLOW_SEARCH_API);
 
         int slowQueryThreshold = slowSearchConfig.getSlowQueryThreshold();

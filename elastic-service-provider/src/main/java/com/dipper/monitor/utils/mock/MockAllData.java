@@ -1,6 +1,7 @@
 package com.dipper.monitor.utils.mock;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.db.elastic.IndexWriteEntity;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
 import com.dipper.monitor.entity.elastic.life.EsTemplateStatEntity;
@@ -296,5 +297,47 @@ public class MockAllData {
         }
 
         return mockData;
+    }
+
+    public static List<IndexWriteEntity> writeIndexList() {
+        List<IndexWriteEntity> list = new ArrayList<>();
+
+        list.add(new IndexWriteEntity(
+                "template_logs",
+                "logs-2025.06.06",
+                "logs_current",
+                true,
+                12,
+                false,
+                1500.5,
+                890000L,
+                new Date()
+        ));
+
+        list.add(new IndexWriteEntity(
+                "template_users",
+                "users-2025.06.06",
+                "users_latest",
+                false,
+                8,
+                true,
+                300.2,
+                123456L,
+                new Date(System.currentTimeMillis() - 86400000) // 昨天的时间
+        ));
+
+        list.add(new IndexWriteEntity(
+                "template_orders",
+                "orders-2025.06.05",
+                "orders_prod",
+                false,
+                15,
+                false,
+                750.0,
+                567890L,
+                new Date(System.currentTimeMillis() - 2 * 86400000) // 前天的时间
+        ));
+
+        return list;
     }
 }

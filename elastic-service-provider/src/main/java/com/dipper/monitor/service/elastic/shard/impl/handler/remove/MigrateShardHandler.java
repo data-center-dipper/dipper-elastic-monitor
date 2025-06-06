@@ -29,11 +29,11 @@ public class MigrateShardHandler {
             throw new IllegalArgumentException("源节点和目标节点不能相同");
         }
 
-        if (ApplicationUtils.isWindows()) {
-            // 在Windows开发环境中模拟成功
-            log.info("模拟分片迁移：{}", JSON.toJSONString(migrationReq));
-            return true;
-        }
+//        if (ApplicationUtils.isWindows()) {
+//            // 在Windows开发环境中模拟成功
+//            log.info("模拟分片迁移：{}", JSON.toJSONString(migrationReq));
+//            return true;
+//        }
 
         String requestBody = String.format(
                 "{\n" +
