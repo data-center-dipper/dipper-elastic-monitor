@@ -25,9 +25,9 @@ import java.util.Calendar;
 import java.util.List;
 
 @Component
-public class TemplateFeatureIndexCreateTask {
+public class FeatureIndexCreateTask {
 
-    private static final Logger log = LoggerFactory.getLogger(TemplateFeatureIndexCreateTask.class);
+    private static final Logger log = LoggerFactory.getLogger(FeatureIndexCreateTask.class);
 
     @Autowired
     protected ElasticStoreTemplateService elasticStoreTemplateService;
@@ -68,6 +68,10 @@ public class TemplateFeatureIndexCreateTask {
         for (EsTemplateEntity template : allTemplates) {
             Boolean enable = template.getEnable();
             if(enable == null || !enable){
+                continue;
+            }
+            Boolean autoCreate = template.getAutoCreate();
+            if(autoCreate == null || !autoCreate){
                 continue;
             }
             EsUnconvertedTemplate unconvertedTemplate = elasticStoreTemplateService.getOneUnconvertedTemplate(template.getId());
@@ -126,7 +130,12 @@ public class TemplateFeatureIndexCreateTask {
                 Calendar calendar = Calendar.getInstance();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
 
-                for (int i = 1; i <= 2; i++) {
+                Integer rollingPeriod = template.getRollingPeriod();
+                if(rollingPeriod == null || rollingPeriod <= 0) {
+                    rollingPeriod = 2;
+                }
+
+                for (int i = 1; i <= rollingPeriod; i++) {
                     Calendar futureCalendar = (Calendar) calendar.clone();
                     futureCalendar.add(Calendar.YEAR, i);  // 修改为按年增加
                     String futureDate = sdf.format(futureCalendar.getTime());
@@ -158,7 +167,12 @@ public class TemplateFeatureIndexCreateTask {
                 Calendar calendar = Calendar.getInstance();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
 
-                for (int i = 1; i <= 3; i++) {
+                Integer rollingPeriod = template.getRollingPeriod();
+                if(rollingPeriod == null || rollingPeriod <= 0) {
+                    rollingPeriod = 3;
+                }
+
+                for (int i = 1; i <= rollingPeriod; i++) {
                     Calendar futureCalendar = (Calendar) calendar.clone();
                     futureCalendar.add(Calendar.MONTH, i);  // 修改为按月增加，而不是按天
                     String futureDate = sdf.format(futureCalendar.getTime());
@@ -227,7 +241,12 @@ public class TemplateFeatureIndexCreateTask {
                 Calendar calendar = Calendar.getInstance();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
-                for (int i = 1; i <= 3; i++) {
+                Integer rollingPeriod = template.getRollingPeriod();
+                if(rollingPeriod == null || rollingPeriod <= 0) {
+                    rollingPeriod = 3;
+                }
+
+                for (int i = 1; i <= rollingPeriod; i++) {
                     Calendar futureCalendar = (Calendar) calendar.clone();
                     futureCalendar.add(Calendar.DAY_OF_MONTH, i);
                     String futureDate = sdf.format(futureCalendar.getTime());

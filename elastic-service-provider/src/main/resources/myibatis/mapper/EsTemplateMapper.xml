@@ -32,7 +32,7 @@
         #{aliansPatterns},
         #{numberOfShards},
         #{numberOfReplicas},
-        #{enableAutoShards},
+        #{autoShards},
         #{rollingPeriod},
         #{lifePolicy},
         #{templateContent},
@@ -59,7 +59,7 @@
             <if test="aliansPatterns != null and aliansPatterns != ''">alians_patterns=#{aliansPatterns},</if>
             <if test="numberOfShards != null">number_of_shards=#{numberOfShards},</if>
             <if test="numberOfReplicas != null">number_of_replicas=#{numberOfReplicas},</if>
-            <if test="enableAutoShards != null">auto_shards=#{enableAutoShards},</if>
+            <if test="autoShards != null">auto_shards=#{autoShards},</if>
             <if test="shardSize != null">shard_size=#{shardSize},</if>
             <if test="rollingPeriod != null ">rolling_period=#{rollingPeriod},</if>
             <if test="lifePolicy != null and lifePolicy != ''">life_policy=#{lifePolicy},</if>
@@ -143,7 +143,7 @@
             <!-- rollingPeriod 是 Integer -->
             <if test="shardSize != null">shard_size=#{shardSize},</if>
             <!-- autoCreate 是 Boolean，只需要判断 null -->
-            <if test="autoShard != null">auto_shards=#{autoShard},</if>
+            <if test="autoShards != null">auto_shards=#{autoShards},</if>
             <if test="numberOfShards != null">number_of_shards=#{numberOfShards},</if>
             <if test="numberOfReplicas != null">number_of_replicas=#{numberOfReplicas},</if>
             <!-- 更新时间 -->
@@ -158,6 +158,13 @@
         SET
         enable=#{enable}
         WHERE id=#{templateId}
+    </update>
+
+    <update id="updateTemplateShardNum">
+        UPDATE t_elastic_template
+        SET
+        number_of_shards=#{numberOfShards}
+        WHERE id=#{id}
     </update>
 
 

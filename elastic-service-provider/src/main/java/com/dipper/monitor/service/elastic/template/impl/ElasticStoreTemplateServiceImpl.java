@@ -306,6 +306,11 @@ public class ElasticStoreTemplateServiceImpl implements ElasticStoreTemplateServ
         esTemplateMapper.updateTemplateEnableStatus(templateStatusReq);
     }
 
+    @Override
+    public void updateTemplateShardNum(Integer id, int shardNum) {
+        esTemplateMapper.updateTemplateShardNum(id,shardNum);
+    }
+
 
     @Override
     public List<EsTemplateEntity> getTemplateByPage(TemplatePageInfo templatePageInfo) {

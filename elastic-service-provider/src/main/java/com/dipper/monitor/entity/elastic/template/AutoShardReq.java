@@ -8,5 +8,5 @@ public class AutoShardReq {
   private Integer  numberOfReplicas;
   private Integer  numberOfShards;
   private Integer  shardSize;
-  private Boolean  autoShard;
+  private Boolean  autoShards;
 }

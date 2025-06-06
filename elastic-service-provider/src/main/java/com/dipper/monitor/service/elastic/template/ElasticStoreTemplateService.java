@@ -104,4 +104,6 @@ public interface ElasticStoreTemplateService {
      * @param templateStatusReq
      */
     void updateTemplateEnableStatus(TemplateStatusReq templateStatusReq);
+
+    void updateTemplateShardNum(Integer id, int shardNum);
 }

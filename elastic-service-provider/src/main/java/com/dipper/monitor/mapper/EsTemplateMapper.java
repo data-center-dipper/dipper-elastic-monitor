@@ -50,4 +50,6 @@ public interface EsTemplateMapper {
     void autoShardTemplate(AutoShardReq autoShardReq);
 
     void updateTemplateEnableStatus(TemplateStatusReq templateStatusReq);
+
+    void updateTemplateShardNum(Integer id, int numberOfShards);
 }
