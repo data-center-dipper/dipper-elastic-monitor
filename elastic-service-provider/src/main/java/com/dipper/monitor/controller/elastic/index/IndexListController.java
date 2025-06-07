@@ -119,8 +119,8 @@ public class IndexListController {
     }
 
 
-    @Operation(summary = "查看索引模版信息",
-            description = "查看索引模版信息",
+    @Operation(summary = "查看索引setting信息",
+            description = "查看索引setting信息",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Template added successfully",
@@ -129,10 +129,10 @@ public class IndexListController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping("/indexTemplate")
+    @GetMapping("/indexSetting")
     public JSONObject indexTemplate(@RequestParam("indexName") String indexName) {
         try {
-            JSONObject jsonObject = elasticRealIndexService.getTemplateByIndexName(indexName);
+            JSONObject jsonObject = elasticRealIndexService.getMappingByIndexName(indexName);
             return ResultUtils.onSuccess(jsonObject);
         } catch (IllegalArgumentException e) {
             log.error("Error adding template", e);
@@ -144,4 +144,27 @@ public class IndexListController {
     }
 
 
+    @Operation(summary = "查看索引setting信息",
+            description = "查看索引setting信息",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Template added successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/getIndexMapping")
+    public JSONObject getIndexMapping(@RequestParam("indexName") String indexName) {
+        try {
+            JSONObject jsonObject = elasticRealIndexService.getMappingByIndexName(indexName);
+            return ResultUtils.onSuccess(jsonObject);
+        } catch (IllegalArgumentException e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
 }

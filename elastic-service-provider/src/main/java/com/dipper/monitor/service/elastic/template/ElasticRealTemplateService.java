@@ -56,7 +56,7 @@ public interface ElasticRealTemplateService {
 
     List<TemplateHistoryView> getTemplateHistoryView();
 
-    JSONObject getTemplateByIndexName(String indexName);
+    JSONObject getSettingByIndexName(String indexName);
 
    /**
     * 删除模版

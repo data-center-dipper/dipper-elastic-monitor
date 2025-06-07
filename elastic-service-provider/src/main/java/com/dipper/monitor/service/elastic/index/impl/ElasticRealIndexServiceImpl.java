@@ -8,7 +8,6 @@ import com.dipper.monitor.beans.SpringUtil;
 import com.dipper.monitor.entity.elastic.alians.IndexAliasRelation;
 import com.dipper.monitor.entity.elastic.index.*;
 import com.dipper.monitor.entity.elastic.life.EsLifeCycleManagement;
-import com.dipper.monitor.enums.elastic.IndexOperatorType;
 import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
@@ -23,7 +22,6 @@ import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.utils.CommonThreadFactory;
 import com.dipper.monitor.utils.ListUtils;
-import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.BytesUtil;
 import com.dipper.monitor.utils.elastic.EsDateUtils;
@@ -39,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -181,9 +178,9 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
     }
 
     @Override
-    public JSONObject getTemplateByIndexName(String indexName) {
+    public JSONObject getSettingByIndexName(String indexName) {
         ElasticRealTemplateService elasticRealTemplateService = SpringUtil.getBean(ElasticRealTemplateService.class);
-        return elasticRealTemplateService.getTemplateByIndexName(indexName);
+        return elasticRealTemplateService.getSettingByIndexName(indexName);
     }
 
     @Override
@@ -647,6 +644,8 @@ public class ElasticRealIndexServiceImpl implements ElasticRealIndexService {
             return null;
         }
     }
+
+
 
     private IndexSetting parseIndexSetting(String index, JSONObject jsonObjectSetting) {
         IndexSetting indexSetting = new IndexSetting();

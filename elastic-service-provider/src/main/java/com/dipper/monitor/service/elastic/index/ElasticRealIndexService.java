@@ -75,7 +75,7 @@ public interface ElasticRealIndexService {
      * @param indexName
      * @return
      */
-    JSONObject getTemplateByIndexName(String indexName);
+    JSONObject getSettingByIndexName(String indexName);
 
     /**
      * 根据别名获取索引列表
@@ -92,9 +92,12 @@ public interface ElasticRealIndexService {
 
     public Map<String, IndexSetting> getGlobalIndexSettingFromEs() throws IOException;
 
-    JSONObject getMappingByIndexName(String indexName);
+
 
     Long getDocumentCount(String indexName);
 
+    JSONObject getMappingByIndexName(String indexName);
+
     JSONObject getIndexSetting(String indexName);
+
 }
