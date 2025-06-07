@@ -9,4 +9,6 @@ public interface QuartzJobService {
     void taskStart(TaskMetadataEntity task) throws ClassNotFoundException, SchedulerException;
 
     void taskExecute(TaskMetadataEntity task);
+
+    void taskPause(TaskMetadataEntity task) throws SchedulerException;
 }

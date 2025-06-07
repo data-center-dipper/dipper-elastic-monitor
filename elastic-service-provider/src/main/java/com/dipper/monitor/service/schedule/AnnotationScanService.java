@@ -1,7 +1,6 @@
-package com.dipper.monitor.comment.service;
+package com.dipper.monitor.service.schedule;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
 
 /**
  * 注解扫描服务接口

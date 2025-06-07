@@ -1,8 +1,12 @@
 package com.dipper.monitor.service.schedule.impl;
 
+import com.dipper.monitor.aware.SpringBeanAwareUtils;
+import com.dipper.monitor.comment.QuartzManager;
+import com.dipper.monitor.comment.TaskSchedulerInitializer;
 import com.dipper.monitor.entity.task.TaskMetadataEntity;
 import com.dipper.monitor.service.schedule.QuartzJobService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
@@ -13,55 +17,66 @@ import org.springframework.stereotype.Service;
 public class QuartzJobServiceImpl implements QuartzJobService {
 
     @Autowired
-    private SchedulerFactoryBean schedulerFactoryBean;
+    private QuartzManager quartzManager;
+
 
     @Override
     public void taskStop(TaskMetadataEntity task) throws SchedulerException {
         String methodName = task.getMethodName();
+        String taskName = task.getTaskName();
+        String author = task.getAuthor();
         String groupName = task.getGroupName();
-        Scheduler scheduler = schedulerFactoryBean.getScheduler();
-        JobKey jobKey = new JobKey(methodName, groupName);
-        if (scheduler.checkExists(jobKey)) {
-            scheduler.pauseJob(jobKey); // 暂停job
-            // 如果需要彻底删除job，可以使用如下代码：
-            // scheduler.deleteJob(jobKey);
-            log.info("Job " + methodName + " in group " + groupName + " has been paused.");
-        } else {
-            log.error("Job " + methodName + " in group " + groupName + " does not exist.");
+        if (StringUtils.isBlank(groupName)){
+            groupName = author;
         }
+
+        quartzManager.pauseJob(taskName,groupName);
     }
 
     @Override
     public void taskStart(TaskMetadataEntity task) throws ClassNotFoundException, SchedulerException {
         String methodName = task.getMethodName();
+        String taskName = task.getTaskName();
+        String author = task.getAuthor();
         String groupName = task.getGroupName();
-        String className = task.getClassName();
-        String cron = task.getCron();
-        Scheduler scheduler = schedulerFactoryBean.getScheduler();
-        JobKey jobKey = new JobKey(methodName, groupName);
-        if (!scheduler.checkExists(jobKey)) {
-            // 如果不存在，则需要先添加JobDetail和Trigger
-            Class<?> aClass = Class.forName(className);
-            JobDetail jobDetail = JobBuilder.newJob((Class<? extends Job>) aClass)
-                    .withIdentity(jobKey)
-                    .build();
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(methodName + "Trigger", groupName)
-                    .startNow()
-                    .withSchedule(CronScheduleBuilder.cronSchedule(cron)) // 根据实际需求调整cron表达式
-                    .build();
-            scheduler.scheduleJob(jobDetail, trigger);
-            System.out.println("Job " + methodName + " in group " + groupName + " has been started.");
-        } else {
-            // 如果任务存在但处于暂停状态，则恢复它
-            scheduler.resumeJob(jobKey);
-            System.out.println("Job " + methodName + " in group " + groupName + " has been resumed.");
+        if (StringUtils.isBlank(groupName)){
+            groupName = author;
         }
+
+        quartzManager.resumeJob(taskName,groupName);
     }
 
     @Override
     public void taskExecute(TaskMetadataEntity task) {
-       throw new IllegalArgumentException("Quartz does not support executing a job once.");
+        String methodName = task.getMethodName();
+        String taskName = task.getTaskName();
+        String author = task.getAuthor();
+        String groupName = task.getGroupName();
+        if (StringUtils.isBlank(groupName)){
+            groupName = author;
+        }
+        if(StringUtils.isBlank(taskName)){
+            throw new IllegalArgumentException("任务名称不能为空");
+        }
+        if(StringUtils.isBlank(groupName)){
+            throw new IllegalArgumentException("任务group不能为空");
+        }
+
+        TaskSchedulerInitializer taskSchedulerInitializer = SpringBeanAwareUtils.getBean(TaskSchedulerInitializer.class);
+        taskSchedulerInitializer.taskExecute(taskName,groupName);
+    }
+
+    @Override
+    public void taskPause(TaskMetadataEntity task) throws SchedulerException {
+        String methodName = task.getMethodName();
+        String taskName = task.getTaskName();
+        String author = task.getAuthor();
+        String groupName = task.getGroupName();
+        if (StringUtils.isBlank(groupName)){
+            groupName = author;
+        }
+
+        quartzManager.pauseJob(taskName,groupName);
     }
 
 }

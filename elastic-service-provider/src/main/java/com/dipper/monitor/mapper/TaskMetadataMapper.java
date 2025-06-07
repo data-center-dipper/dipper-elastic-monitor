@@ -43,9 +43,26 @@ public interface TaskMetadataMapper {
      */
     List<TaskMetadataEntity> findAll();
 
-    Long countTasks(String keyword);
+    Long countTasks(@Param("keyword") String keyword,@Param("status") String status);
 
-    List<TaskMetadataEntity> findTasksByPage(String keyword, Integer pageSize, int offset);
+    List<TaskMetadataEntity> findTasksByPage(@Param("keyword") String keyword,
+                                             @Param("pageSize") Integer pageSize,
+                                             @Param("status") String status,
+                                             @Param("offset") int offset);
 
     TaskMetadataEntity findById(Integer taskId);
+
+    void deleteByUnique(@Param("author") String author,
+                        @Param("annotationType") String annotationType,
+                        @Param("taskName") String taskName,
+                        @Param("groupName") String groupName);
+
+    void updateStatus(@Param("taskId") Integer taskId,
+                      @Param("status")  String status);
+
+    TaskMetadataEntity findByUnique(@Param("author") String author,
+                        @Param("annotationType") String annotationType,
+                        @Param("taskName") String taskName,
+                        @Param("groupName") String groupName);
+
 }

@@ -11,6 +11,8 @@ import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.NodeMetricStoreService;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +35,7 @@ import com.dipper.monitor.service.elastic.nodes.impl.handlers.ListHighMemoryRisk
  */
 @Slf4j
 @Component
-public class NodeMetricTask {
+public class NodeMetricTask  extends AbstractITask  {
     
     @Autowired
     private ElasticClientService elasticClientService;
@@ -52,7 +54,6 @@ public class NodeMetricTask {
     /**
      * 每5分钟执行一次节点指标收集任务
      */
-    @Scheduled(cron = "0 */5 * * * ?")
     public void collectNodeMetrics() {
         log.info("开始收集ES节点指标数据: {}", LocalDateTime.now().format(FORMATTER));
         try {
@@ -253,5 +254,40 @@ public class NodeMetricTask {
     
     private Double getSizeInGB(Long bytes) {
         return bytes != null ? bytes / 1073741824.0 : null;
+    }
+
+    @Override
+    public String getCron() {
+        return "0 */5 * * * ?";
+    }
+
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "节点指标收集器";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        collectNodeMetrics();
+    }
+
+    @Override
+    public String getTaskName() {
+        return "collectNodeMetrics";
     }
 }

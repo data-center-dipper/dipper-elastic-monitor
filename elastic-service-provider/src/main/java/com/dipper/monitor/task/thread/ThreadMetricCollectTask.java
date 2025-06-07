@@ -7,6 +7,8 @@ import com.dipper.monitor.mapper.ElasticThreadMetricMapper;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadPoolParseHandler;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class ThreadMetricCollectTask {
+public class ThreadMetricCollectTask extends AbstractITask  {
 
     // ES API 地址
     private static final String NODES_STATS_API = "/_nodes/stats/thread_pool";
@@ -33,20 +35,8 @@ public class ThreadMetricCollectTask {
     @Autowired
     private ThreadManagerService threadManagerService;
 
-    // 数据保留天数，默认30天
-    @Value("${elastic.monitor.thread.retention-days:30}")
-    private int retentionDays;
 
-    // 模拟集群编码，实际可从配置文件读取
-    @Value("${elastic.monitor.cluster-code:es-cluster-prod}")
-    private String clusterCode;
 
-    // 每隔 10 分钟执行一次
-    @QuartzJob(cron = "0 0/1 * * * ?",
-            author = "hydra",
-            groupName = "hydra",
-            jobDesc = "elastic线程池指标采集",
-            editAble = true)
     public void collectAndSaveThreadPoolMetrics() {
         try {
             log.info("开始采集 ES 线程池监控指标...");
@@ -72,20 +62,39 @@ public class ThreadMetricCollectTask {
         }
     }
 
-    // 每天凌晨2点执行清理历史数据
-    @QuartzJob(cron = "0 0 2 * * ?",
-            author = "hydra",
-            groupName = "hydra",
-            jobDesc = "清理历史线程池指标数据",
-            editAble = true)
-    public void cleanHistoryThreadMetrics() {
-        try {
-            log.info("开始清理历史线程池指标数据，保留 {} 天...", retentionDays);
-            threadManagerService.cleanHistoryData(retentionDays);
-        } catch (Exception e) {
-            log.error("清理历史线程池指标数据失败", e);
-        }
+
+    @Override
+    public String getCron() {
+        return  "0 0/1 * * * ?";
     }
 
+    @Override
+    public void setCron(String cron) {
 
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "elastic线程池指标采集";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        collectAndSaveThreadPoolMetrics();
+    }
+
+    @Override
+    public String getTaskName() {
+        return "elastic线程池指标采集";
+    }
 }

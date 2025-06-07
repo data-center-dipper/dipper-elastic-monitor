@@ -1,24 +1,29 @@
 package com.dipper.monitor.task.index;
 
 import com.dipper.monitor.annotation.quartz.QuartzJob;
+import com.dipper.monitor.comment.QuartzManager;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.index.IndexOneOperatorService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import com.dipper.monitor.utils.elastic.FeatureIndexUtils;
 import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @Slf4j
-public class ClearIndexNoDataTask {
+public class ClearIndexNoDataTask extends AbstractITask  {
 
     @Autowired
     protected ElasticRealIndexService elasticRealIndexService;
@@ -38,11 +43,11 @@ public class ClearIndexNoDataTask {
     public static final String[] MONTHLY_PATTERNS = {PATTERN_YYYYMM, PATTERN_YYYY_MM};
     public static final String[] YEARLY_PATTERNS = {PATTERN_YYYY};
 
-    @QuartzJob(cron = "0 0 2 * * ?", // 每天凌晨2点执行
-            author = "hydra",
-            groupName = "hydra",
-            jobDesc = "清理无数据索引任务",
-            editAble = true)
+    private AtomicLong numRun = new AtomicLong(0);
+
+    @Autowired
+    private QuartzManager quartzManager;
+
     public void clearIndexNoData() {
         List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
         if (allTemplates == null || allTemplates.isEmpty()) return;
@@ -144,5 +149,41 @@ public class ClearIndexNoDataTask {
     // 是否超过 N 年前
     private boolean isOlderThanYears(LocalDate date, int years) {
         return date.isBefore(LocalDate.now().minusYears(years));
+    }
+
+    @Override
+    public String getCron() {
+        return "0 0/1 * * * ?";
+    }
+
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "清空没有数据的索引";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        long andIncrement = numRun.getAndIncrement();
+        clearIndexNoData();
+    }
+
+    @Override
+    public String getTaskName() {
+        return "清空没有数据的索引";
     }
 }

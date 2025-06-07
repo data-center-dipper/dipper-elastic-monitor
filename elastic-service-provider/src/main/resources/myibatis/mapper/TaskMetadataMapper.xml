@@ -9,55 +9,74 @@
         DELETE FROM t_task_metadata
         WHERE annotation_type = #{annotationType}
     </delete>
-    
+
+    <!-- 根据唯一标识符（包括 author, annotationType, taskName, groupName）删除元数据 -->
+    <delete id="deleteByUnique">
+        DELETE FROM t_task_metadata
+        <where>
+            <if test="author != null">
+                AND author = #{author}
+            </if>
+            <if test="annotationType != null">
+                AND annotation_type = #{annotationType}
+            </if>
+            <if test="taskName != null">
+                AND task_name = #{taskName}
+            </if>
+            <if test="groupName != null">
+                AND group_name = #{groupName}
+            </if>
+        </where>
+    </delete>
+
     <!-- 批量插入注解元数据 -->
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO t_task_metadata (
-            annotation_type, class_name, method_name, cron, fixed_rate, fixed_delay,
-            author, group_name, job_desc, edit_able, additional_attributes
-        ) VALUES 
+        annotation_type, task_name, class_name, method_name, cron, fixed_rate, fixed_delay,
+        author, group_name, job_desc, edit_able, additional_attributes,status
+        ) VALUES
         <foreach collection="metadataList" item="item" separator=",">
             (
-                #{item.annotationType}, #{item.className}, #{item.methodName},
-                #{item.cron}, #{item.fixedRate}, #{item.fixedDelay},
-                #{item.author}, #{item.groupName}, #{item.jobDesc},
-                #{item.editAble}, #{item.additionalAttributes}
+            #{item.annotationType}, #{item.taskName}, #{item.className}, #{item.methodName},
+            #{item.cron}, #{item.fixedRate}, #{item.fixedDelay},
+            #{item.author}, #{item.groupName}, #{item.jobDesc},
+            #{item.editAble}, #{item.additionalAttributes}, #{item.status}
             )
         </foreach>
     </insert>
-    
+
     <!-- 根据注解类型查询元数据 -->
     <select id="findByAnnotationType" resultType="com.dipper.monitor.entity.task.TaskMetadataEntity">
-        SELECT 
-            id, annotation_type AS annotationType, class_name AS className, method_name AS methodName,
-            cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
-            job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
-            create_time AS createTime, update_time AS updateTime
+        SELECT
+        id, annotation_type AS annotationType,task_name AS taskName, class_name AS className, method_name AS methodName,
+        cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
+        job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,status,
+        create_time AS createTime, update_time AS updateTime
         FROM t_task_metadata
         WHERE annotation_type = #{annotationType}
     </select>
-    
+
     <!-- 查询所有注解元数据 -->
     <select id="findAll" resultType="com.dipper.monitor.entity.task.TaskMetadataEntity">
-        SELECT 
-            id, annotation_type AS annotationType, class_name AS className, method_name AS methodName,
-            cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
-            job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
-            create_time AS createTime, update_time AS updateTime
+        SELECT
+        id, annotation_type AS annotationType,task_name AS taskName, class_name AS className, method_name AS methodName,
+        cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
+        job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,status,
+        create_time AS createTime, update_time AS updateTime
         FROM t_task_metadata
     </select>
-    
+
     <!-- 根据ID查询任务 -->
     <select id="findById" resultType="com.dipper.monitor.entity.task.TaskMetadataEntity">
-        SELECT 
-            id, annotation_type AS annotationType, class_name AS className, method_name AS methodName,
-            cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
-            job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
-            create_time AS createTime, update_time AS updateTime
+        SELECT
+        id, annotation_type AS annotationType,task_name AS taskName, class_name AS className, method_name AS methodName,
+        cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
+        job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,status,
+        create_time AS createTime, update_time AS updateTime
         FROM t_task_metadata
         WHERE id = #{id}
     </select>
-    
+
     <!-- 统计任务总数 -->
     <select id="countTasks" resultType="long">
         SELECT COUNT(*)
@@ -69,16 +88,20 @@
                 OR job_desc LIKE CONCAT('%', #{keyword}, '%')
                 OR group_name LIKE CONCAT('%', #{keyword}, '%'))
             </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+
         </where>
     </select>
-    
+
     <!-- 分页查询任务 -->
     <select id="findTasksByPage" resultType="com.dipper.monitor.entity.task.TaskMetadataEntity">
-        SELECT 
-            id, annotation_type AS annotationType, class_name AS className, method_name AS methodName,
-            cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
-            job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,
-            create_time AS createTime, update_time AS updateTime
+        SELECT
+        id, annotation_type AS annotationType,task_name AS taskName, class_name AS className, method_name AS methodName,
+        cron, fixed_rate AS fixedRate, fixed_delay AS fixedDelay, author, group_name AS groupName,
+        job_desc AS jobDesc, edit_able AS editAble, additional_attributes AS additionalAttributes,status,
+        create_time AS createTime, update_time AS updateTime
         FROM t_task_metadata
         <where>
             <if test="keyword != null and keyword != ''">
@@ -87,9 +110,34 @@
                 OR job_desc LIKE CONCAT('%', #{keyword}, '%')
                 OR group_name LIKE CONCAT('%', #{keyword}, '%'))
             </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
         </where>
         ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{offset}
     </select>
-    
+
+    <update id="updateStatus" >
+        update t_task_metadata set status = #{status} where id = #{taskId}
+    </update>
+
+
+    <select id="findByUnique" resultType="com.dipper.monitor.entity.task.TaskMetadataEntity">
+        select * FROM t_task_metadata
+        <where>
+            <if test="author != null">
+                AND author = #{author}
+            </if>
+            <if test="annotationType != null">
+                AND annotation_type = #{annotationType}
+            </if>
+            <if test="taskName != null">
+                AND task_name = #{taskName}
+            </if>
+            <if test="groupName != null">
+                AND group_name = #{groupName}
+            </if>
+        </where>
+    </select>
 </mapper>

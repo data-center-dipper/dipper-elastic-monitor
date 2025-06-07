@@ -9,6 +9,8 @@ import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.index.IndexWriteService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import com.dipper.monitor.utils.elastic.IndexPatternsUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +24,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class FindWriterIndexTask {
+public class FindWriterIndexTask extends AbstractITask  {
 
     private static final Logger log = LoggerFactory.getLogger(FindWriterIndexTask.class);
 
@@ -40,12 +42,6 @@ public class FindWriterIndexTask {
 
     private List<IndexWriteEntity> indexWriteEntities = new ArrayList<>();
 
-    // 每小时执行一次
-    @QuartzJob(cron = "0 0 * * * ?",
-            author = "hydra",
-            groupName = "elastic_monitor",
-            jobDesc = "统计Elasticsearch中正在写入的索引信息",
-            editAble = true)
     public void findWriterIndexTask() {
         try {
             List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
@@ -250,5 +246,40 @@ public class FindWriterIndexTask {
         stat.setDocCount(indexEntity.getDocsCount());
         stat.setCreateTime(new Date());
         return stat;
+    }
+
+    @Override
+    public String getCron() {
+        return "0 0 * * * ?";
+    }
+
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "正在写入的索引列表";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        findWriterIndexTask();
+    }
+
+    @Override
+    public String getTaskName() {
+        return "findWriterIndexTask";
     }
 }

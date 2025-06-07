@@ -82,9 +82,28 @@ public class ElasticDicServiceImpl implements ElasticDicService {
             case "double":
                 fieldSetting = getDoubleSetting();
                 break;
+            case "boolean":
+                fieldSetting = getBooleanSetting();
+                break;
             default:
                 throw new IllegalArgumentException("Invalid ES mapping type: " + esMappingType);
         }
+        return fieldSetting;
+    }
+
+    /**
+     * 生成 boolean 类型字段的映射设置
+     *
+     * doc_values: 默认启用，有助于提高排序和聚合效率。
+     * store: 控制是否存储原始字段值，默认不存储。
+     * index: 控制是否对此字段建立索引，默认启用。
+     */
+    private JSONObject getBooleanSetting() {
+        JSONObject fieldSetting = new JSONObject();
+        fieldSetting.put("type", "boolean"); // 定义字段类型为布尔值
+        fieldSetting.put("doc_values", true); // 启用 doc values 用于排序和聚合
+        fieldSetting.put("store", false);     // 不存储原始字段值
+        fieldSetting.put("index", true);      // 对该字段建立索引，允许搜索
         return fieldSetting;
     }
 

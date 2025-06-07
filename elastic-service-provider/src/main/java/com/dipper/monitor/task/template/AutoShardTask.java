@@ -4,6 +4,8 @@ import com.dipper.monitor.annotation.quartz.QuartzJob;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.shard.history.ShardHistoryItem;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,7 @@ import java.util.stream.Collectors;
 
 
 @Component
-public class AutoShardTask {
+public class AutoShardTask  extends AbstractITask  {
 
     private static final Logger log = LoggerFactory.getLogger(FeatureIndexCreateTask.class);
 
@@ -23,11 +25,6 @@ public class AutoShardTask {
 
 
 
-    @QuartzJob(cron = "0 0/30 * * * ?",
-            author = "hydra",
-            groupName = "hydra",
-            jobDesc = "elastic 自动计算分片",
-            editAble = true)
     public void authShardTask() throws Exception {
         List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
         if (allTemplates == null || allTemplates.isEmpty()) return;
@@ -115,4 +112,42 @@ public class AutoShardTask {
             return numerator / denominator;
         }
 
+    @Override
+    public String getCron() {
+        return "0 0/30 * * * ?";
+    }
+
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "elastic 自动计算分片";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        try {
+            authShardTask();
+        } catch (Exception e) {
+            log.error("自动计算分片任务执行失败", e);
+        }
+    }
+
+    @Override
+    public String getTaskName() {
+        return "authShardTask";
+    }
 }

@@ -15,6 +15,8 @@ import com.dipper.monitor.service.elastic.index.IndexOneOperatorService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.nodes.NodeMetricStoreService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class DiskClearTask {
+public class DiskClearTask    extends AbstractITask  {
 
     @Autowired
     private NodeMetricStoreService nodeMetricStoreService;
@@ -46,7 +48,6 @@ public class DiskClearTask {
     @Autowired
     private IndexOneOperatorService indexOneOperatorService;
 
-    @Scheduled(cron = "0 0 * * * ?")
     public void diskClearTask() {
         log.info("开始执行磁盘清理任务");
         try {
@@ -261,5 +262,40 @@ public class DiskClearTask {
         } catch (Exception e) {
             log.error("清理模板 {} 的索引时发生异常", template.getZhName(), e);
         }
+    }
+
+    @Override
+    public String getCron() {
+        return "0 0 * * * ?";
+    }
+
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "磁盘清理任务";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        diskClearTask();
+    }
+
+    @Override
+    public String getTaskName() {
+        return "diskClearTask";
     }
 }

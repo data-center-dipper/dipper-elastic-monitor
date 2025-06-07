@@ -12,6 +12,7 @@ public class TaskMetadataEntity {
     
     private Integer id;
     private String annotationType;       // 注解类型名称
+    private String taskName;            // 任务名称
     private String className;            // 类名
     private String methodName;           // 方法名
     private String cron;                 // cron表达式
@@ -22,6 +23,7 @@ public class TaskMetadataEntity {
     private String jobDesc;              // 任务描述
     private Boolean editAble;            // 是否可编辑
     private String additionalAttributes; // 其他属性（JSON格式）
+    private String status;
     private Date createTime;             // 创建时间
     private Date updateTime;             // 更新时间
 }

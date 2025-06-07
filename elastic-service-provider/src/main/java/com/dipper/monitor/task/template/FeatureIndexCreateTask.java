@@ -14,6 +14,8 @@ import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.feature
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.feature.HafYearFeatureIndexHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.feature.MonthOfFeatureIndexHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.rolling.feature.YearFeatureIndexHandler;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,7 @@ import java.util.Calendar;
 import java.util.List;
 
 @Component
-public class FeatureIndexCreateTask {
+public class FeatureIndexCreateTask  extends AbstractITask  {
 
     private static final Logger log = LoggerFactory.getLogger(FeatureIndexCreateTask.class);
 
@@ -46,11 +48,6 @@ public class FeatureIndexCreateTask {
 
 
     // 改成每小时执行一次
-    @QuartzJob(cron = "0 0/1 * * * ?",
-            author = "hydra",
-            groupName = "hydra",
-            jobDesc = "elastic模板信息统计",
-            editAble = true)
     public void elasticCreateFeatureIndexTask() throws Exception {
         // 1. 获取所有模版信息
         List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
@@ -261,5 +258,42 @@ public class FeatureIndexCreateTask {
     }
 
 
+    @Override
+    public String getCron() {
+        return "0 0/1 * * * ?";
+    }
 
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "elastic模板信息统计";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        try {
+            elasticCreateFeatureIndexTask();
+        } catch (Exception e) {
+            log.error("创建日期索引时发生错误: {}", e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String getTaskName() {
+        return "elasticCreateFeatureIndexTask";
+    }
 }

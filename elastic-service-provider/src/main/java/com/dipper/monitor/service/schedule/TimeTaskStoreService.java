@@ -1,6 +1,7 @@
 package com.dipper.monitor.service.schedule;
 
 import com.dipper.monitor.entity.task.TaskListView;
+import com.dipper.monitor.entity.task.TaskMetadataEntity;
 import com.dipper.monitor.entity.task.TaskPageReq;
 import com.dipper.monitor.utils.Tuple2;
 
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * 定时任务服务接口
  */
-public interface TimeTaskService {
+public interface TimeTaskStoreService {
     
     /**
      * 分页查询任务
@@ -18,25 +19,12 @@ public interface TimeTaskService {
      * @return 任务列表和总数
      */
     Tuple2<List<TaskListView>, Long> taskPage(TaskPageReq taskPageReq);
-    
+
     /**
-     * 停止任务
-     * 
-     * @param taskId 任务ID
+     * 存储任务信息
+     * @param list
      */
-    void taskStop(Integer taskId);
-    
-    /**
-     * 启动任务
-     * 
-     * @param taskId 任务ID
-     */
-    void taskStart(Integer taskId);
-    
-    /**
-     * 执行一次任务
-     * 
-     * @param taskId 任务ID
-     */
-    void taskExecute(Integer taskId);
+    void saveOrUpdateTask(List<TaskMetadataEntity> list);
+
+    TaskMetadataEntity findTaskStatus(TaskMetadataEntity taskMetadataEntity);
 }

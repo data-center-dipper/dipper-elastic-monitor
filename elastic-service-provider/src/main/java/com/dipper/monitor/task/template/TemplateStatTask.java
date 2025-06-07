@@ -14,6 +14,8 @@ import com.dipper.monitor.service.elastic.segment.ElasticSegmentService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticRealTemplateService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.task.AbstractITask;
+import com.dipper.monitor.task.ITask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
-public class TemplateStatTask {
+public class TemplateStatTask  extends AbstractITask  {
 
     @Autowired
     private ElasticStoreTemplateService elasticStoreTemplateService;
@@ -46,11 +48,6 @@ public class TemplateStatTask {
     @Autowired
     private ElasticSegmentService elasticSegmentService;
 
-    @QuartzJob(cron = "0 0/10 * * * ?",
-            author = "hydra",
-            groupName = "hydra",
-            jobDesc = "elastic模板信息统计",
-            editAble = true)
     public void elasticNodesUpdateTask() throws Exception {
         List<EsTemplateEntity> allTemplates = elasticStoreTemplateService.getAllTemplates();
         if (allTemplates == null || allTemplates.isEmpty()) return;
@@ -185,4 +182,42 @@ public class TemplateStatTask {
         return indexPattern.substring(0, indexPattern.length() - pos);
     }
 
+    @Override
+    public String getCron() {
+        return "0 0/10 * * * ?";
+    }
+
+    @Override
+    public void setCron(String cron) {
+
+    }
+
+    @Override
+    public String getAuthor() {
+        return "lcc";
+    }
+
+    @Override
+    public String getJobDesc() {
+        return "模板统计指标";
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
+    }
+
+    @Override
+    public void execute() {
+        try {
+            elasticNodesUpdateTask();
+        } catch (Exception e) {
+            log.error("elasticNodesUpdateTask error", e);
+        }
+    }
+
+    @Override
+    public String getTaskName() {
+        return "elasticNodesUpdateTask";
+    }
 }
