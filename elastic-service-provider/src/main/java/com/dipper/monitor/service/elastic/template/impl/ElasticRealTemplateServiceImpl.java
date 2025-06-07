@@ -23,25 +23,21 @@ import com.dipper.monitor.service.elastic.template.TemplatePreviewService;
 import com.dipper.monitor.service.elastic.template.impl.handlers.RollingIndexByTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.handlers.StatTemplateHandler;
 import com.dipper.monitor.service.elastic.template.impl.version.AbstractRealTemplateService;
-import com.dipper.monitor.utils.CommonThreadFactory;
 import com.dipper.monitor.utils.elastic.ClusterVersionUtils;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.entity.NStringEntity;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * // 可选接口 GET /_cat/templates?format=json
@@ -77,7 +73,7 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     public void init() {
         this.cacheTemplate = CacheBuilder.newBuilder()
                 .maximumSize(7L)
-                .expireAfterWrite(300L, TimeUnit.SECONDS)
+                .expireAfterWrite(10L, TimeUnit.MINUTES)
                 .concurrencyLevel(7)
                 .build();
     }
@@ -188,7 +184,7 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
 
     // 获取模版，包含详情信息  GET /_index_template
     @Override
-    public List<TemplateDetailView> getTemplateDetailList() throws IOException {
+    public List<TemplateDetailView> getTemplateDetailListByNewApi() throws IOException {
         String api = "/_index_template";
         String response = elasticClientService.executeGetApi(api);
         JSONObject jsonObject = JSONObject.parseObject(response);
@@ -358,11 +354,29 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
     public List<TemplateHistoryView> getTemplateHistoryView() {
         try {
             // 获取模板基本信息
-            List<TemplateDetailView> templateInfoList = getTemplateDetailList();
+            List<TemplateDetailView> templateInfoAllList = new ArrayList<>();
+            try {
+                List<TemplateDetailView> templateInfoList = getTemplateDetailListByNewApi();
+                if( templateInfoList != null && templateInfoList.size() > 0){
+                    templateInfoAllList.addAll(templateInfoList);
+                }
+            }catch (Exception e){
+                log.error("获取模型异常", e.getMessage());
+            }
+            try {
+                List<TemplateDetailView> oldInfoList = getTemplateDetailListByOldApi();
+                if( oldInfoList != null && oldInfoList.size() > 0){
+                    templateInfoAllList.addAll(oldInfoList);
+                }
+            }catch (Exception e){
+                log.error("获取模型异常", e);
+            }
+
+
 
             List<TemplateHistoryView> result = new ArrayList<>();
 
-            for (TemplateDetailView info : templateInfoList) {
+            for (TemplateDetailView info : templateInfoAllList) {
                 TemplateHistoryView view = new TemplateHistoryView();
                 view.setName(info.getName());
 
@@ -387,11 +401,65 @@ public class ElasticRealTemplateServiceImpl extends AbstractRealTemplateService 
                 result.add(view);
             }
 
+            // 排序
+            result = result.stream()
+                    .sorted(Comparator.comparing(TemplateHistoryView::getName))
+                    .collect(Collectors.toList());
+
+
             return result;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("获取模板列表失败", e);
             return new ArrayList<>();
         }
+    }
+
+    private List<TemplateDetailView> getTemplateDetailListByOldApi() throws IOException {
+        String api = "/_cat/templates?v=true&format=json";
+        String response = elasticClientService.executeGetApi(api);
+
+        JSONArray jsonArray = JSONArray.parseArray(response);
+        List<TemplateDetailView> detailList = new ArrayList<>();
+
+        for (Object obj : jsonArray) {
+            JSONObject templateObj = (JSONObject) obj;
+            String name = templateObj.getString("name");
+            String patternsStr = templateObj.getString("index_patterns");
+            String orderStr = templateObj.getString("order");
+
+            TemplateDetailView detailView = new TemplateDetailView();
+            detailView.setName(name);
+
+            // 解析 index_patterns 字符串
+            if (patternsStr != null && !patternsStr.isEmpty()) {
+                try {
+                    // 去掉两边的 [ 和 ]
+                    patternsStr = patternsStr.trim().replaceAll("\\[", "");
+                    patternsStr = patternsStr.trim().replaceAll("]", "");
+                    // 分割成多个 pattern
+                    String[] patternsArray = patternsStr.split(",");
+                    List<String> patternList = new ArrayList<>();
+                    for (String pattern : patternsArray) {
+                        patternList.add(pattern.trim());
+                    }
+                    detailView.setIndexPatterns(patternList);
+                } catch (Exception e) {
+                    // 出错时记录日志或忽略
+                    detailView.setIndexPatterns(Collections.singletonList(patternsStr.trim()));
+                }
+            }
+
+            // 设置 priority（由 order 转换）
+            if (orderStr != null && !orderStr.isEmpty()) {
+                try {
+                    detailView.setPriority(Integer.parseInt(orderStr));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            detailList.add(detailView);
+        }
+
+        return detailList;
     }
 
     /**

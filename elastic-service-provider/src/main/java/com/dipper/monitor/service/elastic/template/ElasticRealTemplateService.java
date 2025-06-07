@@ -39,7 +39,7 @@ public interface ElasticRealTemplateService {
      * @return
      * @throws IOException
      */
-    List<TemplateDetailView> getTemplateDetailList() throws IOException;
+    List<TemplateDetailView> getTemplateDetailListByNewApi() throws IOException;
 
     /**
      * 获取单个模版的详情，最原始的详情信息
