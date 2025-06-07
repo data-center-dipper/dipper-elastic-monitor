@@ -6,7 +6,7 @@ import com.dipper.monitor.enums.dic.ElasticFieldTypeEnum;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ElasticFieldMapUtils {
+public class ElasticWordUtils {
 
     /**
      * 检查 fieldType 是否不为空，并且必须是 ComTypeEnum 中的一个。
@@ -126,7 +126,43 @@ public class ElasticFieldMapUtils {
      */
     public static List<ElasticFieldTypeEnum> transToElasticTypes(List<ComTypeEnum> comTypeEnums){
         return comTypeEnums.stream()
-                .map(ElasticFieldMapUtils::transToElasticType)
+                .map(ElasticWordUtils::transToElasticType)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 将 Elasticsearch 的字段类型转换为数据库字段类型
+     *
+     * @param esType ES 字段类型
+     * @return 对应的数据库字段类型
+     */
+    public static String convertEsTypeToDbType(String esType) {
+        if (esType == null) return "VARCHAR";
+
+        switch (esType.toLowerCase()) {
+            case "text":
+            case "keyword":
+                return "VARCHAR";
+            case "long":
+                return "BIGINT";
+            case "integer":
+                return "INTEGER";
+            case "short":
+            case "byte":
+                return "SMALLINT";
+            case "double":
+                return "DOUBLE";
+            case "float":
+                return "FLOAT";
+            case "date":
+                return "DATETIME";
+            case "boolean":
+                return "BOOLEAN";
+            case "nested":
+            case "object":
+                return "TEXT"; // 复杂类型用 TEXT 表示
+            default:
+                return "VARCHAR";
+        }
     }
 }

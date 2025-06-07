@@ -85,7 +85,7 @@ public class WordController {
             return ResultUtils.onSuccess();
         } catch (Exception e) {
             log.error("Error adding field", e);
-            return ResultUtils.onFail("Operation error");
+            return ResultUtils.onFail("Operation error"+e.getMessage());
         }
     }
 
@@ -195,4 +195,28 @@ public class WordController {
             return ResultUtils.onFail("Operation error");
         }
     }
+
+
+    @Operation(summary = "从索引获取字段详情",
+            description = "Retrieve a dictionary by ID.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful operation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Dic.class))),
+                    @ApiResponse(responseCode = "404", description = "Dictionary not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @GetMapping("/fetchFieldsByIndex")
+    public JSONObject fetchFieldsByIndex(@RequestParam("indexName") String indexName) {
+        try {
+            List<Field> fields =  wordService.fetchFieldsByIndex(indexName);
+            return ResultUtils.onSuccess(fields);
+        } catch (Exception e) {
+            log.error("Error retrieving dictionary", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
+
 }

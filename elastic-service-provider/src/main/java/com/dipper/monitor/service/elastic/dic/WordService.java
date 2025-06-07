@@ -41,4 +41,11 @@ public interface WordService {
     List<WodListView> getWordByPage(WordPageInfo wordPageInfo);
 
     void deleteFieldBatch(WordDelFieldBatch wordDelFieldBatch);
+
+    /**
+     * 根据索引名称获取字段列表
+     * @param indexName
+     * @return
+     */
+    List<Field> fetchFieldsByIndex(String indexName);
 }

@@ -4,7 +4,9 @@ import com.dipper.monitor.entity.elastic.dic.*;
 import com.dipper.monitor.mapper.FieldMapper;
 import com.dipper.monitor.service.elastic.dic.DicService;
 import com.dipper.monitor.service.elastic.dic.WordService;
-import com.dipper.monitor.utils.elastic.ElasticFieldMapUtils;
+import com.dipper.monitor.service.elastic.dic.handler.FetchFieldsByIndexHandler;
+import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
+import com.dipper.monitor.utils.elastic.ElasticWordUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -22,6 +24,8 @@ public class WordServiceImpl implements WordService {
     private FieldMapper fieldMapper;
     @Autowired
     private DicService dicService;
+    @Autowired
+    private ElasticRealIndexService elasticRealIndexService;
 
     @Override
     public Field addField(Field field) {
@@ -30,13 +34,13 @@ public class WordServiceImpl implements WordService {
         validateDicId(field.getDicId());
 
         String fieldType = field.getFieldType();
-        ElasticFieldMapUtils.checkFieldType(fieldType);
+        ElasticWordUtils.checkFieldType(fieldType);
 
         String esMappingType = field.getEsMappingType();
         if (StringUtils.isBlank(esMappingType)) {
-            esMappingType = ElasticFieldMapUtils.autoEsTypeMap(fieldType);
+            esMappingType = ElasticWordUtils.autoEsTypeMap(fieldType);
         } else {
-            ElasticFieldMapUtils.checkEsFiledType(esMappingType);
+            ElasticWordUtils.checkEsFiledType(esMappingType);
         }
         field.setEsMappingType(esMappingType);
 
@@ -66,13 +70,13 @@ public class WordServiceImpl implements WordService {
 
         for (Field field : fields) {
             String fieldType = field.getFieldType();
-            ElasticFieldMapUtils.checkFieldType(fieldType);
+            ElasticWordUtils.checkFieldType(fieldType);
 
             String esMappingType = field.getEsMappingType();
             if (StringUtils.isBlank(esMappingType)) {
-                esMappingType = ElasticFieldMapUtils.autoEsTypeMap(fieldType);
+                esMappingType = ElasticWordUtils.autoEsTypeMap(fieldType);
             } else {
-                ElasticFieldMapUtils.checkEsFiledType(esMappingType);
+                ElasticWordUtils.checkEsFiledType(esMappingType);
             }
             field.setEsMappingType(esMappingType);
 
@@ -139,6 +143,12 @@ public class WordServiceImpl implements WordService {
             throw new IllegalArgumentException("Ids cannot be empty.");
         }
         fieldMapper.deleteFieldBatch(ids);
+    }
+
+    @Override
+    public List<Field> fetchFieldsByIndex(String indexName) {
+        FetchFieldsByIndexHandler fetchFieldsByIndex = new FetchFieldsByIndexHandler(elasticRealIndexService);
+        return fetchFieldsByIndex.fetchFieldsByIndex(indexName);
     }
 
     private void checkField(Field field) {

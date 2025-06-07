@@ -96,6 +96,12 @@ public interface ElasticRealIndexService {
 
     Long getDocumentCount(String indexName);
 
+    /**
+     * 获取索引的mapping
+     *
+     * @param indexName
+     * @return
+     */
     JSONObject getMappingByIndexName(String indexName);
 
     JSONObject getIndexSetting(String indexName);
