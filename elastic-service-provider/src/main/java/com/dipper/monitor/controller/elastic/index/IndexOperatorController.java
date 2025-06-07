@@ -69,13 +69,13 @@ public class IndexOperatorController {
     /**
      * 关闭索引
      */
-    @PostMapping("/close")
+    @PostMapping("/closeIndexBatch")
     @Operation(summary = "关闭索引", description = "关闭指定的索引",
             responses = {
                     @ApiResponse(responseCode = "200", description = "操作结果", content = @Content(schema = @Schema(implementation = Boolean.class)))
             },
             security = @SecurityRequirement(name = "bearerAuth"))
-    public Object closeIndex(@Parameter(description = "索引名称列表", example = "[\"index1\", \"index2\"]") @RequestBody List<String> indices) throws Exception {
+    public Object closeIndexBatch(@Parameter(description = "索引名称列表", example = "[\"index1\", \"index2\"]") @RequestBody List<String> indices) throws Exception {
         try {
             return ResultUtils.onSuccess(indexBatchOperatorService.closeIndexs(indices));
         }catch (Exception e) {
@@ -87,13 +87,13 @@ public class IndexOperatorController {
     /**
      * 打开索引
      */
-    @PostMapping("/open")
+    @PostMapping("/openIndexBatch")
     @Operation(summary = "打开索引", description = "打开已关闭的索引",
             responses = {
                     @ApiResponse(responseCode = "200", description = "操作结果", content = @Content(schema = @Schema(implementation = Boolean.class)))
             },
             security = @SecurityRequirement(name = "bearerAuth"))
-    public Object openIndex(@Parameter(description = "索引名称列表", example = "[\"index1\", \"index2\"]") @RequestBody List<String> indices) throws Exception {
+    public Object openIndexBatch(@Parameter(description = "索引名称列表", example = "[\"index1\", \"index2\"]") @RequestBody List<String> indices) throws Exception {
         try {
             return ResultUtils.onSuccess(indexBatchOperatorService.openIndexs(indices));
         }catch (Exception e) {
