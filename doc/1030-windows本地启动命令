@@ -1,3 +1,78 @@
  cd /Users/lcc/IdeaProjects/lcc_project/project-data-center-monitor/dist && tar -zxvf monitor-service-v1.0-SNAPSHOT.tgz  && cd monitor-service-v1.0-SNAPSHOT && cd monitor-service-v1.0-SNAPSHOT
 
 # 1.项目打包
+  首先修改前端的配置
+  \dipper-elastic-monitor-web\.env.production
+ ```
+    VITE_API_URL=
+	VITE_APP_TITLE=Elastic监控平台
+	VITE_APP_API_URL=http://dipper.monitor.com:9750
+	VITE_APP_WEBSOCKET_URL=ws://dipper.monitor.com:9750
+	VITE_APP_API_URL_PREFIX=
+ ```
+ 这里我们查看我们使用的域名和端口，如果需要修改，请进行修改
+ 然后我们执行打包
+ ```
+ dipper-elastic-monitor-web> pnpm run build --mode production
+ ```
+ 打包后前端出现一个dist目录，D:\lcc\IdeaProject\dipper-elastic-monitor-web\dist
+
+# 2.拷贝到后端
+  \dipper-elastic-monitor\elastic-service-provider\src\main\resources\static
+  这里必须是static目录
+  
+# 3. 后端打包
+  然后执行后端打包命令
+  dipper-elastic-monitor> mvn clean package -DskipTest
+  打包完成后，我们有个安装包
+  D:\lcc\IdeaProject\dipper-elastic-monitor\dist\monitor-service-v1.0-SNAPSHOT.tgz
+  
+# 4. 部署
+   我们找个固定目录解压 D:\lcc\workspace\elastic
+   然后结构如下
+	MLTZ@xjj MINGW32 /d/lcc/workspace/elastic
+	$ ll
+	total 5
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:57 LOG_PATH_IS_UNDEFINED/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:51 bin/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:51 conf/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:51 dist/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:51 doc/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:51 jars/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:54 logs/
+	drwxr-xr-x 1 MLTZ 197121 0 Jun  8 13:51 plugins/
+	-rw-r--r-- 1 MLTZ 197121 6 Apr 12 09:29 version.txt
+# 5.修改配置
+  D:\lcc\workspace\elastic\conf
+	plugins:
+	  config:
+		dir: D:\lcc\workspace\elastic\conf\plugins
+	  jar:
+		dir: D:\lcc\workspace\elastic\plugins
+	template:
+	  base:
+		path: D:\lcc\workspace\elastic\conf\template
+
+	prefabricate:
+	  template:
+		path: D:\lcc\workspace\elastic\conf\template\7x\prefabricate
+   这几个路径修改为绝对路径
+  然后修改数据库配置
+      url: jdbc:mysql://192.168.56.33:3306/elastic_monitor
+    username: root
+    password: 123456
+	
+# 6. 数据库初始化
+  这里可以打开flyway,也可以执行命令 D:\lcc\workspace\elastic\conf\flyway
+  
+# 7. 修改域名映射
+  C:\Windows\System32\drivers\etc\hosts
+  如果是本地运行那么设置 localhost   dipper.monitor.com
+  如果是远程服务器运行，那么要配置成服务器地址 192.168.56.33   dipper.monitor.com
+  
+  
+# 7.运行
+  windows下这样运行即可
+  java -Xms512m -Xmx512m  -jar D:\\lcc\\workspace\\elastic\\jars\\elastic-service-provider-1.0-SNAPSHOT.jar com.dipper.monitor.ElasticApplication --spring.config.location=D:\\lcc\\workspace\\elastic\\conf\\application.yml
+  
+
