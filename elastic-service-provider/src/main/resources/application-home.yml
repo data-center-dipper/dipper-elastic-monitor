@@ -36,7 +36,9 @@ plugins:
     dir: D:\lcc\IdeaProject\dipper-elastic-monitor\elastic-service-provider\src\main\resources\plugins
   jar:
     dir: plugins
-
+template:
+  base:
+    path: D:\lcc\IdeaProject\dipper-elastic-monitor\dist\monitor-service-v1.0-SNAPSHOT\monitor-service-v1.0-SNAPSHOT\conf\template
 
 prefabricate:
   template:

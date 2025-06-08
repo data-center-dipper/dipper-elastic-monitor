@@ -31,3 +31,4 @@ replay_pid*
 /elastic-assembly/target/
 /.idea/
 /elastic-service-provider/LOG_PATH_IS_UNDEFINED/
+/elastic-service-provider/src/main/resources/static/

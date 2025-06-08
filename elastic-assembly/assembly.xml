@@ -41,7 +41,7 @@
         </fileSet>
 
         <fileSet>
-            <directory>${project.parent.basedir}/monitor-service-provider/src/main/resources/</directory>
+            <directory>${project.parent.basedir}/elastic-service-provider/src/main/resources/</directory>
             <outputDirectory>${assembly.name}/conf</outputDirectory>
             <includes>
                 <include>*</include>
@@ -52,7 +52,7 @@
         </fileSet>
 
         <fileSet>
-            <directory>${project.parent.basedir}/monitor-service-provider/src/main/resources/</directory>
+            <directory>${project.parent.basedir}/elastic-service-provider/src/main/resources/</directory>
             <outputDirectory>${assembly.name}/conf</outputDirectory>
             <includes>
                 <include>logback.xml</include>
@@ -61,7 +61,7 @@
 
         <!-- 主程序JAR -->
         <fileSet>
-            <directory>${project.parent.basedir}/monitor-service-provider/target</directory>
+            <directory>${project.parent.basedir}/elastic-service-provider/target</directory>
             <outputDirectory>${assembly.name}/jars</outputDirectory>
             <includes>
                 <include>*.jar</include>
@@ -81,7 +81,7 @@
 
         <!-- 第三方依赖（从target/lib收集） -->
         <fileSet>
-            <directory>${project.parent.basedir}/monitor-service-provider/target/lib</directory>
+            <directory>${project.parent.basedir}/elastic-service-provider/target/lib</directory>
             <outputDirectory>${assembly.name}/jars</outputDirectory>
             <includes>
                 <include>*.jar</include>
@@ -95,6 +95,18 @@
                 <include>*</include>
             </includes>
         </fileSet>
+
+        <fileSet>
+            <directory>D:\lcc\IdeaProject\dipper-elastic-monitor-web\dist</directory>
+            <outputDirectory>${assembly.name}/dist</outputDirectory>
+            <includes>
+                <include>*</include>
+                <include>*/*</include>
+                <include>*/*/*</include>
+                <include>*/*/*/*</include>
+            </includes>
+        </fileSet>
+
 
 
     </fileSets>

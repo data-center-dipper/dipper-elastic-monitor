@@ -14,7 +14,7 @@ environment=$2
 # 版本号
 version="1.0-SNAPSHOT"
 # 配置文件相对路径（相对于当前脚本所在目录）
-conf_relative_path="conf/application.properties"
+conf_relative_path="conf/application.yml"
 
 # 默认jvm参数
 jvm_xms="256m"
@@ -23,9 +23,9 @@ jvm_xmx="256m"
 debug_port=7780
 
 # app相关信息
-appName="monitor-service-provider" # 确保与你的artifactId一致
+appName="elastic-service-provider" # 确保与你的artifactId一致
 runJar="${appName}-${version}.jar"
-mainClass="com.dipper.monitor.MonitorApplication" # 确保这是你的主类全限定名
+mainClass="com.dipper.monitor.ElasticApplication" # 确保这是你的主类全限定名
 
 # jar文件所在目录绝对路径
 JAR_FOLDER="${BASE_DIR}/jars"
