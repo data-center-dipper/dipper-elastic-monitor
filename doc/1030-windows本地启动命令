@@ -1,0 +1,3 @@
+ cd /Users/lcc/IdeaProjects/lcc_project/project-data-center-monitor/dist && tar -zxvf monitor-service-v1.0-SNAPSHOT.tgz  && cd monitor-service-v1.0-SNAPSHOT && cd monitor-service-v1.0-SNAPSHOT
+
+# 1.项目打包

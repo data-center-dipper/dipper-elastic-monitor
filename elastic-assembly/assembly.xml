@@ -96,17 +96,6 @@
             </includes>
         </fileSet>
 
-        <fileSet>
-            <directory>D:\lcc\IdeaProject\dipper-elastic-monitor-web\dist</directory>
-            <outputDirectory>${assembly.name}/dist</outputDirectory>
-            <includes>
-                <include>*</include>
-                <include>*/*</include>
-                <include>*/*/*</include>
-                <include>*/*/*/*</include>
-            </includes>
-        </fileSet>
-
 
 
     </fileSets>
