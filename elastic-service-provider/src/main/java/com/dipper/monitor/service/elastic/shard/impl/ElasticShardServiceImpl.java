@@ -3,9 +3,11 @@ package com.dipper.monitor.service.elastic.shard.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.shard.*;
 import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
+import com.dipper.monitor.entity.elastic.shard.recovery.AllocationEnableReq;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
@@ -19,6 +21,8 @@ import com.dipper.monitor.service.elastic.shard.impl.handler.views.ShardIndexDis
 import com.dipper.monitor.service.elastic.shard.impl.handler.views.ShardNodeDistributeViewHandler;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -181,5 +185,77 @@ public class ElasticShardServiceImpl implements ElasticShardService {
         ShardIsRemoveHandler shardIsRemoveHandler = new ShardIsRemoveHandler(this,elasticClientService,elasticRealNodeService);
         return shardIsRemoveHandler.shardIsRemove(pageReq);
     }
+
+    /**
+     * PUT /_cluster/settings
+     * {
+     *   "persistent": {
+     *     "cluster.routing.allocation.enable": "none"
+     *   }
+     * }
+     * PUT /_cluster/settings
+     * {
+     *   "persistent": {
+     *     "cluster.routing.allocation.enable": "all"
+     *   }
+     * }
+     * @param allocationEnableReq
+     */
+    @Override
+    public void enableOrCloseShardAllocation(AllocationEnableReq allocationEnableReq) {
+        String enable = allocationEnableReq.getEnable();
+
+        if (!"all".equals(enable) && !"none".equals(enable)) {
+            throw new IllegalArgumentException("参数 enable 必须为 'all' 或 'none'");
+        }
+
+        try {
+            // ✅ 正确的格式：只包含必要的层级
+            JSONObject requestBody = new JSONObject();
+            JSONObject persistent = new JSONObject();
+            persistent.put("cluster.routing.allocation.enable", enable);
+            requestBody.put("persistent", persistent);
+
+            log.info("执行参数:{}", requestBody.toJSONString());
+
+            StringEntity entity = new StringEntity(
+                    requestBody.toJSONString(),
+                    ContentType.APPLICATION_JSON
+            );
+
+            String response = elasticClientService.executePutApi("/_cluster/settings", entity);
+            log.info("操作成功响应: {}", response);
+
+        } catch (Exception e) {
+            log.error("更新集群设置失败", e);
+            throw new RuntimeException("更新集群设置失败: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String getShardAllocation() {
+        try {
+            // 调用封装好的 GET 接口
+            String response = elasticClientService.executeGetApi("/_cluster/settings");
+
+            // 解析 JSON 响应
+            JSONObject settings = JSONObject.parseObject(response);
+            JSONObject persistent = settings.getJSONObject("persistent");
+
+            if (persistent != null) {
+                String enableValue = persistent.getString("cluster.routing.allocation.enable");
+                log.info("获取集群设置成功: {}", enableValue);
+                return enableValue != null ? enableValue : "all";
+            } else {
+                log.warn("获取集群设置成功: all");
+                return "all";
+            }
+
+        } catch (Exception e) {
+            log.error("获取集群设置失败", e);
+            throw new RuntimeException("获取集群设置失败: " + e.getMessage(), e);
+        }
+    }
+
 
 }

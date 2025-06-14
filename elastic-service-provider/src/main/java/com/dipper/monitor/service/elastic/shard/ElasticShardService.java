@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.shard.*;
 import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
+import com.dipper.monitor.entity.elastic.shard.recovery.AllocationEnableReq;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -83,4 +84,8 @@ public interface ElasticShardService {
      * @return
      */
     Tuple2<Integer, List<ShardRemoveView>> shardIsRemove(PageReq pageReq) throws IOException;
+
+    void enableOrCloseShardAllocation(AllocationEnableReq allocationEnableReq);
+
+    String getShardAllocation();
 }
