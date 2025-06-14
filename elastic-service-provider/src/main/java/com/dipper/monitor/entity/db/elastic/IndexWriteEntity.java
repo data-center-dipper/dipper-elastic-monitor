@@ -23,6 +23,10 @@ public class IndexWriteEntity {
 
     // 是否包含特殊字符
     private boolean hasSpecialChar;
+    // 是否有嵌套结构
+    private boolean hasNesting;
+    // 索引是否倾斜
+    private boolean indexTilt;
 
     // 写入速率（条/秒）
     private double writeRate;
@@ -43,6 +47,33 @@ public class IndexWriteEntity {
         this.canWrite = canWrite;
         this.fieldCount = fieldCount;
         this.hasSpecialChar = hasSpecialChar;
+        this.writeRate = writeRate;
+        this.docCount = docCount;
+        this.createTime = createTime;
+    }
+
+    public IndexWriteEntity(String templateName, String indexName, String alias, boolean canWrite, int fieldCount, boolean hasSpecialChar, boolean hasNesting, double writeRate, long docCount, Date createTime) {
+        this.templateName = templateName;
+        this.indexName = indexName;
+        this.alias = alias;
+        this.canWrite = canWrite;
+        this.fieldCount = fieldCount;
+        this.hasSpecialChar = hasSpecialChar;
+        this.hasNesting = hasNesting;
+        this.writeRate = writeRate;
+        this.docCount = docCount;
+        this.createTime = createTime;
+    }
+
+    public IndexWriteEntity(String templateName, String indexName, String alias, boolean canWrite, int fieldCount, boolean hasSpecialChar, boolean hasNesting, boolean indexTilt, double writeRate, long docCount, Date createTime) {
+        this.templateName = templateName;
+        this.indexName = indexName;
+        this.alias = alias;
+        this.canWrite = canWrite;
+        this.fieldCount = fieldCount;
+        this.hasSpecialChar = hasSpecialChar;
+        this.hasNesting = hasNesting;
+        this.indexTilt = indexTilt;
         this.writeRate = writeRate;
         this.docCount = docCount;
         this.createTime = createTime;

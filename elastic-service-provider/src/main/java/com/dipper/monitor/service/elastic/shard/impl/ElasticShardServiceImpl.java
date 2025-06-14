@@ -18,6 +18,7 @@ import com.dipper.monitor.service.elastic.overview.OverviewService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.shard.impl.handler.ListShardMapHandler;
 import com.dipper.monitor.service.elastic.shard.impl.handler.check.CheckShardErrorHandler;
+import com.dipper.monitor.service.elastic.shard.impl.handler.index.IndexShardIsTiltHandler;
 import com.dipper.monitor.service.elastic.shard.impl.handler.overview.ShardIsRemoveHandler;
 import com.dipper.monitor.service.elastic.shard.impl.handler.remove.MigrateShardHandler;
 import com.dipper.monitor.service.elastic.shard.impl.handler.repair.RepairAllShardErrorHandler;
@@ -238,6 +239,12 @@ public class ElasticShardServiceImpl implements ElasticShardService {
             log.error("获取分片限制信息失败", e);
             throw new RuntimeException("获取分片限制信息失败: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public boolean isIndexTilt(String indexName) throws IOException {
+        IndexShardIsTiltHandler shardIsRemoveHandler = new IndexShardIsTiltHandler(this);
+        return shardIsRemoveHandler.isIndexTilt(indexName);
     }
 
 

@@ -41,7 +41,7 @@ CREATE TABLE `t_task_metadata` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='注解元数据表';
 
 
-CREATE TABLE index_write_stat (
+CREATE TABLE elastic_index_write (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     template_name VARCHAR(255) NOT NULL COMMENT '模板名称',
     index_name VARCHAR(255) NOT NULL COMMENT '索引名称',
@@ -49,6 +49,7 @@ CREATE TABLE index_write_stat (
     can_write TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否可写（0否，1是）',
     field_count INT NOT NULL COMMENT '字段数量',
     has_special_char TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否包含特殊字符（0否，1是）',
+    has_nesting TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否有嵌套结构（0否，1是）',
     write_rate DOUBLE NOT NULL COMMENT '写入速率（条/秒）',
     doc_count BIGINT NOT NULL COMMENT '文档总数',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'

@@ -8,6 +8,7 @@ import com.dipper.monitor.entity.elastic.index.IndexEntity;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
 import com.dipper.monitor.service.elastic.index.IndexWriteService;
+import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
 import com.dipper.monitor.task.AbstractITask;
 import com.dipper.monitor.task.ITask;
@@ -36,6 +37,8 @@ public class FindWriterIndexTask extends AbstractITask  {
 
     @Autowired
     private ElasticRealIndexService elasticRealIndexService;
+    @Autowired
+    private ElasticShardService elasticShardService;
 
     @Autowired
     private IndexWriteService indexWriteService;
@@ -187,16 +190,66 @@ public class FindWriterIndexTask extends AbstractITask  {
             int fieldCount = getFieldCount(mappingJson);
 
             // 特殊字符检查
-            boolean hasSpecialChar = hasSpecialChar(indexName);
+            boolean hasSpecialChar = hasSpecialChar(mappingJson);
+            boolean hasNesting = hasNesting(mappingJson);
+            // 判断索引是否倾斜
+            boolean isIndexTilt = false;
+            try {
+                isIndexTilt = elasticShardService.isIndexTilt(indexName);
+            } catch (IOException e) {
+                log.error("Failed to check if index is tilted", e);
+            }
 
             // 计算写入速率（每秒平均）
             double writeRate = calculateWriteRate(counts);
 
             // 存入数据库
-            IndexWriteEntity indexWriteEntity = transToEntity(template, indexEntity, fieldCount, hasSpecialChar, writeRate);
+            IndexWriteEntity indexWriteEntity = transToEntity(template, indexEntity, fieldCount,
+                    hasSpecialChar, writeRate);
+            indexWriteEntity.setHasNesting(hasNesting);
+            indexWriteEntity.setIndexTilt(isIndexTilt);
+
             result.add(indexWriteEntity);
         }
         return result;
+    }
+
+    /**
+     * 判断字段是否有嵌套结构（考虑第一层和第二层）
+     * @param mappingJson Elasticsearch mapping 的 JSON 对象
+     * @return 如果存在嵌套结构字段，返回 true；否则返回 false
+     */
+    private boolean hasNesting(JSONObject mappingJson) {
+        JSONObject mappings = mappingJson.getJSONObject("mappings");
+        JSONObject properties = mappings.getJSONObject("properties");
+
+        if (properties == null || properties.isEmpty()) {
+            return false;
+        }
+
+        for (Object keyObj : properties.keySet()) {
+            String fieldName = (String) keyObj;
+            Object fieldDef = properties.get(fieldName);
+
+            // 第一层必须是 JSONObject 才可能有嵌套结构
+            if (!(fieldDef instanceof JSONObject)) {
+                continue;
+            }
+
+            JSONObject fieldObj = (JSONObject) fieldDef;
+
+            // 检查第一层是否为 object 或 nested 类型
+            String type = fieldObj.getString("type");
+            if ("object".equalsIgnoreCase(type) || "nested".equalsIgnoreCase(type)) {
+                // 检查第二层是否有 properties
+                if (fieldObj.containsKey("properties")) {
+                    System.out.println("发现嵌套结构字段: " + fieldName);
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -229,8 +282,28 @@ public class FindWriterIndexTask extends AbstractITask  {
         return properties != null ? properties.keySet().size() : 0;
     }
 
-    private boolean hasSpecialChar(String indexName) {
-        return !indexName.matches("^[a-zA-Z0-9\\-_\\.]*$");
+    /**
+     * 判断第一层字段名称是否有特殊字符
+     * @param mappingJson
+     * @return 如果存在含特殊字符的字段名，返回 true；否则返回 false
+     */
+    private boolean hasSpecialChar(JSONObject mappingJson) {
+        JSONObject properties = mappingJson.getJSONObject("mappings").getJSONObject("properties");
+        if (properties == null || properties.isEmpty()) {
+            return false;
+        }
+
+        // 正则表达式：合法字段名只能以字母、下划线开头，后续可跟字母、数字、下划线
+        String regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
+
+        for (Object keyObj : properties.keySet()) {
+            String fieldName = (String) keyObj;
+            if (!fieldName.matches(regex)) {
+                System.out.println("非法字段名: " + fieldName);
+                return true; // 发现非法字段名立即返回 true
+            }
+        }
+        return false;
     }
 
     private IndexWriteEntity transToEntity(EsTemplateEntity template, IndexEntity indexEntity,

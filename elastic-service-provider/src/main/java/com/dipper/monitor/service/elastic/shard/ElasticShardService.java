@@ -88,4 +88,11 @@ public interface ElasticShardService {
 
 
     ShardLimitInfo getClusterShardLimitInfo();
+
+    /**
+     * 判断索引是否分片倾斜
+     * @param indexName
+     * @return
+     */
+    boolean isIndexTilt(String indexName) throws IOException;
 }

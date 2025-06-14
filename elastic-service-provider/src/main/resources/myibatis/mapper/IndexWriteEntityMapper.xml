@@ -6,7 +6,7 @@
 
     <!-- 插入一条记录 -->
     <insert id="insert">
-        INSERT INTO index_write_stat (
+        INSERT INTO elastic_index_write (
         template_name,
         index_name,
         alias,
@@ -38,20 +38,22 @@
         can_write AS canWrite,
         field_count AS fieldCount,
         has_special_char AS hasSpecialChar,
+        has_nesting AS hasNesting,
+        index_tilt AS indexTilt,
         write_rate AS writeRate,
         doc_count AS docCount,
         create_time AS createTime
-        FROM index_write_stat
+        FROM elastic_index_write
     </select>
 
     <!-- 根据索引名称删除 -->
     <delete id="deleteByIndexName">
-        DELETE FROM index_write_stat WHERE index_name = #{indexName}
+        DELETE FROM elastic_index_write WHERE index_name = #{indexName}
     </delete>
 
     <!-- 批量删除（根据索引名称列表） -->
     <delete id="batchDeleteByIndexNames">
-        DELETE FROM index_write_stat WHERE index_name IN
+        DELETE FROM elastic_index_write WHERE index_name IN
         <foreach item="item" collection="list" open="(" separator="," close=")">
             #{item}
         </foreach>
@@ -59,18 +61,20 @@
 
     <!-- 删除所有记录 -->
     <delete id="deleteAll">
-        DELETE FROM index_write_stat
+        DELETE FROM elastic_index_write
     </delete>
 
     <!-- 批量插入 -->
     <insert id="batchInsert">
-        INSERT INTO index_write_stat (
+        INSERT INTO elastic_index_write (
         template_name,
         index_name,
         alias,
         can_write,
         field_count,
         has_special_char,
+        has_nesting,
+        index_tilt,
         write_rate,
         doc_count,
         create_time
@@ -83,6 +87,8 @@
             #{entity.canWrite},
             #{entity.fieldCount},
             #{entity.hasSpecialChar},
+            #{entity.hasNesting},
+            #{entity.indexTilt},
             #{entity.writeRate},
             #{entity.docCount},
             #{entity.createTime}

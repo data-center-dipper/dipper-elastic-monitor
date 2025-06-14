@@ -311,6 +311,8 @@ public class MockAllData {
                 true,
                 12,
                 false,
+                false,
+                false,
                 1500.5,
                 890000L,
                 new Date()
@@ -323,6 +325,8 @@ public class MockAllData {
                 false,
                 8,
                 true,
+                true,
+                true,
                 300.2,
                 123456L,
                 new Date(System.currentTimeMillis() - 86400000) // 昨天的时间
@@ -334,6 +338,8 @@ public class MockAllData {
                 "orders_prod",
                 false,
                 15,
+                false,
+                false,
                 false,
                 750.0,
                 567890L,
