@@ -2,6 +2,7 @@ package com.dipper.monitor.service.elastic.thread.impl;
 
 import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
+import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
@@ -9,6 +10,7 @@ import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.yanshi.ThreadPoolItem;
 import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
+import com.dipper.monitor.entity.elastic.thread.pengding.PendingTaskView;
 import com.dipper.monitor.mapper.ElasticThreadMetricMapper;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
@@ -16,6 +18,7 @@ import com.dipper.monitor.service.elastic.thread.ThreadPoolService;
 import com.dipper.monitor.service.elastic.thread.handlers.HotThreadHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.ThreadChartSummaryHandler;
 import com.dipper.monitor.service.elastic.thread.handlers.realcheck.ThreadHistoryCheckHandler;
+import com.dipper.monitor.utils.Tuple2;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -128,5 +131,12 @@ public class ThreadManagerServiceImpl implements ThreadManagerService {
         List<ThreadMetricEntity> threadMetrics = getThreadMetrics(threadCharReq);
         ThreadChartSummaryHandler handler = new ThreadChartSummaryHandler(threadMetrics);
         return handler.threadChartSummary();
+    }
+
+    @Override
+    public Tuple2<Integer, List<PendingTaskView>> pendingTasks(PageReq pageReq) throws IOException {
+        com.dipper.monitor.service.elastic.thread.handlers.pending.PendingTaskHandler handler = new com.dipper.monitor.service.elastic.thread.handlers.pending.PendingTaskHandler(this,elasticClientService);
+        return handler.pendingTasks(pageReq);
+
     }
 }

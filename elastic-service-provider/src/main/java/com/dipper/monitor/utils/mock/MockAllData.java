@@ -10,6 +10,8 @@ import com.dipper.monitor.entity.elastic.shard.history.ShardHistoryItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckItem;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadPoolSuggestion;
+import com.dipper.monitor.entity.elastic.thread.pengding.PendingTaskView;
+import com.dipper.monitor.utils.Tuple2;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -339,5 +341,57 @@ public class MockAllData {
         ));
 
         return list;
+    }
+
+    public static Tuple2<Integer, List<PendingTaskView>> pendingTasks() {
+        List<PendingTaskView> mockTasks = new ArrayList<>();
+
+        // 模拟任务 1
+        PendingTaskView task1 = new PendingTaskView();
+        task1.setInsertOrder(123456L);
+        task1.setPriority("URGENT");
+        task1.setSource("create-index [logs-2025.06]");
+        task1.setTimeInQueueMillis(120000L);
+        task1.setExecuting(true);
+        mockTasks.add(task1);
+
+        // 模拟任务 2
+        PendingTaskView task2 = new PendingTaskView();
+        task2.setInsertOrder(123457L);
+        task2.setPriority("HIGH");
+        task2.setSource("update-mapping [users]");
+        task2.setTimeInQueueMillis(80000L);
+        task2.setExecuting(false);
+        mockTasks.add(task2);
+
+        // 模拟任务 3
+        PendingTaskView task3 = new PendingTaskView();
+        task3.setInsertOrder(123458L);
+        task3.setPriority("NORMAL");
+        task3.setSource("cluster_update_settings");
+        task3.setTimeInQueueMillis(5000L);
+        task3.setExecuting(false);
+        mockTasks.add(task3);
+
+        // 模拟任务 4
+        PendingTaskView task4 = new PendingTaskView();
+        task4.setInsertOrder(123459L);
+        task4.setPriority("URGENT");
+        task4.setSource("delete-index [old_logs]");
+        task4.setTimeInQueueMillis(300000L);
+        task4.setExecuting(false);
+        mockTasks.add(task4);
+
+        // 模拟任务 5
+        PendingTaskView task5 = new PendingTaskView();
+        task5.setInsertOrder(123460L);
+        task5.setPriority("HIGH");
+        task5.setSource("create-index [device_data_20250614]");
+        task5.setTimeInQueueMillis(60000L);
+        task5.setExecuting(true);
+        mockTasks.add(task5);
+
+        // 返回 Tuple2: 总数 + 当前页数据
+        return new Tuple2<>(mockTasks.size(), mockTasks);
     }
 }

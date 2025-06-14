@@ -1,11 +1,14 @@
 package com.dipper.monitor.service.elastic.thread;
 
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
+import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
+import com.dipper.monitor.entity.elastic.thread.pengding.PendingTaskView;
+import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -59,4 +62,5 @@ public interface ThreadManagerService {
     List<ThreadChartSummary> threadChartSummary(ThreadCharReq threadCharReq);
 
 
+    Tuple2<Integer, List<PendingTaskView>> pendingTasks(PageReq pageReq) throws IOException;
 }

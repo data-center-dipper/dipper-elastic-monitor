@@ -2,13 +2,17 @@ package com.dipper.monitor.controller.elastic.thread;
 
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.ThreadMetricEntity;
+import com.dipper.monitor.entity.elastic.PageReq;
+import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.entity.elastic.thread.check.pool.ThreadPoolTrendResult;
 import com.dipper.monitor.entity.elastic.thread.check.realtime.ThreadCheckResult;
 import com.dipper.monitor.entity.elastic.thread.hot.ThreadHotView;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadCharReq;
 import com.dipper.monitor.entity.elastic.thread.chart.ThreadChartSummary;
+import com.dipper.monitor.entity.elastic.thread.pengding.PendingTaskView;
 import com.dipper.monitor.service.elastic.thread.ThreadManagerService;
 import com.dipper.monitor.utils.ResultUtils;
+import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -107,6 +111,23 @@ public class ThreadManagerController {
         } catch (Exception e) {
             log.error("线程环境检测失败", e);
             return ResultUtils.onFail(500, "线程环境检测失败: " + e.getMessage());
+        }
+    }
+
+    /********************* pengding task ************************************/
+
+    @PostMapping("/pendingTasks")
+    @Operation(summary = "查看pendingTasks", description = "查看pendingTasks")
+    public JSONObject pendingTasks(@RequestBody PageReq pageReq) {
+        try {
+            Tuple2<Integer, List<PendingTaskView>> pendingTasks = threadManagerService.pendingTasks(pageReq);
+            return  ResultUtils.onSuccessWithPageTotal(pendingTasks.getK(), pendingTasks.getV());
+        } catch (IllegalArgumentException e) {
+            log.warn("查看shard迁移情况: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("查看shard迁移情况", e);
+            return ResultUtils.onFail(500, "查看shard迁移情况: " + e.getMessage());
         }
     }
 }
