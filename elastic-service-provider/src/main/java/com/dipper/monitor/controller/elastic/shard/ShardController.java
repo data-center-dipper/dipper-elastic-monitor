@@ -4,6 +4,7 @@ package com.dipper.monitor.controller.elastic.shard;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.shard.*;
+import com.dipper.monitor.entity.elastic.shard.limit.ShardLimitInfo;
 import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.entity.elastic.shard.recovery.AllocationEnableReq;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
@@ -199,7 +200,7 @@ public class ShardController {
         }
     }
 
-    @PostMapping("/getShardAllocation")
+    @GetMapping("/getShardAllocation")
     @Operation(summary = "获取分片迁移的开启与禁止状态", description = "获取分片迁移的开启与禁止状态")
     public JSONObject getShardAllocation() {
         try {
@@ -213,5 +214,22 @@ public class ShardController {
             return ResultUtils.onFail(500, "分片迁移的开启与禁止: " + e.getMessage());
         }
     }
+
+    @GetMapping("/getClusterShardLimitInfo")
+    @Operation(summary = "获取分片限制与当前分片总数", description = "获取分片限制与当前分片总数")
+    public JSONObject getClusterShardLimitInfo() {
+        try {
+            ShardLimitInfo shardLimitInfo = elasticShardService.getClusterShardLimitInfo();
+            return  ResultUtils.onSuccess(shardLimitInfo);
+        } catch (IllegalArgumentException e) {
+            log.warn("获取分片限制与当前分片总数: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("获取分片限制与当前分片总数", e);
+            return ResultUtils.onFail(500, "获取分片限制与当前分片总数: " + e.getMessage());
+        }
+    }
+
+
 
 }

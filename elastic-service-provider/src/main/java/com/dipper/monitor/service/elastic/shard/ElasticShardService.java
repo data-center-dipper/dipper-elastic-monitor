@@ -3,6 +3,7 @@ package com.dipper.monitor.service.elastic.shard;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.shard.*;
+import com.dipper.monitor.entity.elastic.shard.limit.ShardLimitInfo;
 import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.entity.elastic.shard.recovery.AllocationEnableReq;
 import com.dipper.monitor.utils.Tuple2;
@@ -88,4 +89,6 @@ public interface ElasticShardService {
     void enableOrCloseShardAllocation(AllocationEnableReq allocationEnableReq);
 
     String getShardAllocation();
+
+    ShardLimitInfo getClusterShardLimitInfo();
 }

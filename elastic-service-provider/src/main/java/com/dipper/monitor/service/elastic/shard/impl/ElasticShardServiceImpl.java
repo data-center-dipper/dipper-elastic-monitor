@@ -5,11 +5,16 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.params.elasticsearch.Response;
 import com.dipper.monitor.entity.elastic.PageReq;
+import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
+import com.dipper.monitor.entity.elastic.cluster.ClusterStatusView;
 import com.dipper.monitor.entity.elastic.shard.*;
+import com.dipper.monitor.entity.elastic.shard.limit.ShardLimitInfo;
 import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.entity.elastic.shard.recovery.AllocationEnableReq;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.nodes.ElasticRealNodeService;
+import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
+import com.dipper.monitor.service.elastic.overview.OverviewService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.service.elastic.shard.impl.handler.ListShardMapHandler;
 import com.dipper.monitor.service.elastic.shard.impl.handler.check.CheckShardErrorHandler;
@@ -40,6 +45,8 @@ public class ElasticShardServiceImpl implements ElasticShardService {
     private ElasticClientService elasticClientService;
     @Autowired
     private ElasticRealNodeService elasticRealNodeService;
+    @Autowired
+    private ElasticHealthService elasticHealthService;
 
     @Override
     public List<JSONObject> getShardError() throws IOException {
@@ -254,6 +261,52 @@ public class ElasticShardServiceImpl implements ElasticShardService {
         } catch (Exception e) {
             log.error("获取集群设置失败", e);
             throw new RuntimeException("获取集群设置失败: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public ShardLimitInfo getClusterShardLimitInfo() {
+        try {
+            // Step 1: 获取集群健康状态，从中获取当前分片总数
+            ClusterHealth clusterHealth = elasticHealthService.getHealthData();
+            if (clusterHealth == null) {
+                throw new RuntimeException("无法获取集群健康状态");
+            }
+
+            int currentShards = Integer.parseInt(clusterHealth.getShards());
+
+            // Step 2: 获取集群设置，查找 cluster.max_shards_per_node
+            String settingsJson = elasticClientService.executeGetApi("/_cluster/settings");
+            JSONObject settings = JSON.parseObject(settingsJson);
+
+            JSONObject persistentSettings = settings.getJSONObject("persistent");
+            JSONObject transientSettings = settings.getJSONObject("transient");
+
+            Integer shardLimit = null;
+
+            // 优先取 transient 设置，否则取 persistent 设置
+            if (transientSettings != null && transientSettings.containsKey("cluster.max_shards_per_node")) {
+                shardLimit = transientSettings.getInteger("cluster.max_shards_per_node");
+            } else if (persistentSettings != null && persistentSettings.containsKey("cluster.max_shards_per_node")) {
+                shardLimit = persistentSettings.getInteger("cluster.max_shards_per_node");
+            }
+
+            // 如果都没有，默认值为 1000
+            if (shardLimit == null) {
+                shardLimit = 1000;
+                log.warn("未找到 cluster.max_shards_per_node 配置，使用默认值: {}", shardLimit);
+            }
+
+            // Step 3: 返回结果
+            ShardLimitInfo info = new ShardLimitInfo();
+            info.setShardLimit(shardLimit);
+            info.setCurrentShards(currentShards);
+
+            return info;
+
+        } catch (Exception e) {
+            log.error("获取分片限制信息失败", e);
+            throw new RuntimeException("获取分片限制信息失败: " + e.getMessage(), e);
         }
     }
 

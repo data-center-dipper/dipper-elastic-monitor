@@ -93,9 +93,9 @@ public class ShardIsRemoveHandler extends AbstractShardHandler {
             JSONObject recovery = (JSONObject) obj;
 
             // 只处理正在进行中的迁移（排除 stage=done）
-//            if ("done".equalsIgnoreCase(recovery.getString("stage"))) {
-//                continue;
-//            }
+            if ("done".equalsIgnoreCase(recovery.getString("stage"))) {
+                continue;
+            }
 
             // source_node 为 n/a 表示不是迁移任务（可能是初始化等）
             String sourceNode = recovery.getString("source_node");
