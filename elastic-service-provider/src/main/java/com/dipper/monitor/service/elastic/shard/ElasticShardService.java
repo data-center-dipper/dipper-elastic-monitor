@@ -86,9 +86,6 @@ public interface ElasticShardService {
      */
     Tuple2<Integer, List<ShardRemoveView>> shardIsRemove(PageReq pageReq) throws IOException;
 
-    void enableOrCloseShardAllocation(AllocationEnableReq allocationEnableReq);
-
-    String getShardAllocation();
 
     ShardLimitInfo getClusterShardLimitInfo();
 }

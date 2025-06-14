@@ -7,6 +7,7 @@ import com.dipper.monitor.entity.elastic.shard.*;
 import com.dipper.monitor.entity.elastic.shard.limit.ShardLimitInfo;
 import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.entity.elastic.shard.recovery.AllocationEnableReq;
+import com.dipper.monitor.service.elastic.setting.ClusterSettingService;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -27,6 +28,8 @@ public class ShardController {
 
     @Autowired
     private ElasticShardService elasticShardService;
+    @Autowired
+    private ClusterSettingService clusterSettingService;
 
     @PostMapping("/shardNodeDistribute")
     @Operation(summary = "查看shard分布情况", description = "查看shard分布情况")
@@ -189,8 +192,7 @@ public class ShardController {
     @Operation(summary = "分片迁移的开启与禁止", description = "分片迁移的开启与禁止")
     public JSONObject enableOrCloseShardAllocation(@RequestBody AllocationEnableReq allocationEnableReq) {
         try {
-             elasticShardService.enableOrCloseShardAllocation(allocationEnableReq);
-            return  ResultUtils.onSuccess();
+            clusterSettingService.enableOrCloseShardAllocation(allocationEnableReq);            return  ResultUtils.onSuccess();
         } catch (IllegalArgumentException e) {
             log.warn("分片迁移的开启与禁止: {}", e.getMessage());
             return ResultUtils.onFail(400, e.getMessage());
@@ -204,7 +206,7 @@ public class ShardController {
     @Operation(summary = "获取分片迁移的开启与禁止状态", description = "获取分片迁移的开启与禁止状态")
     public JSONObject getShardAllocation() {
         try {
-            String shardAllocation = elasticShardService.getShardAllocation();
+            String shardAllocation = clusterSettingService.getShardAllocation();
             return  ResultUtils.onSuccess(shardAllocation);
         } catch (IllegalArgumentException e) {
             log.warn("获取分片迁移的开启与禁止状态: {}", e.getMessage());
