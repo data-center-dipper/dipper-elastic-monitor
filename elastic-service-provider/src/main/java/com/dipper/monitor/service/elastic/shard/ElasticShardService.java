@@ -1,7 +1,9 @@
 package com.dipper.monitor.service.elastic.shard;
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.shard.*;
+import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.utils.Tuple2;
 
 import java.io.IOException;
@@ -75,4 +77,10 @@ public interface ElasticShardService {
 
     boolean rebalanceNode(String nodeName);
 
+    /**
+     * 查看 shard 迁移情况
+     * @param pageReq
+     * @return
+     */
+    Tuple2<Integer, List<ShardRemoveView>> shardIsRemove(PageReq pageReq) throws IOException;
 }

@@ -2,7 +2,9 @@ package com.dipper.monitor.controller.elastic.shard;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.dipper.monitor.entity.elastic.PageReq;
 import com.dipper.monitor.entity.elastic.shard.*;
+import com.dipper.monitor.entity.elastic.shard.overview.ShardRemoveView;
 import com.dipper.monitor.service.elastic.shard.ElasticShardService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
@@ -163,6 +165,21 @@ public class ShardController {
         } catch (Exception e) {
             log.error("节点重平衡失败", e);
             return ResultUtils.onFail(500, "节点重平衡失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/shardIsRemove")
+    @Operation(summary = "查看shard迁移情况", description = "查看shard迁移情况")
+    public JSONObject shardIsRemove(@RequestBody PageReq pageReq) {
+        try {
+            Tuple2<Integer, List<ShardRemoveView>> shardDistributeView = elasticShardService.shardIsRemove(pageReq);
+            return  ResultUtils.onSuccessWithPageTotal(shardDistributeView.getK(), shardDistributeView.getV());
+        } catch (IllegalArgumentException e) {
+            log.warn("查看shard迁移情况: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("查看shard迁移情况", e);
+            return ResultUtils.onFail(500, "查看shard迁移情况: " + e.getMessage());
         }
     }
 }

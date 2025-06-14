@@ -5,13 +5,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.common.lib.utils.ApplicationUtils;
 import com.dipper.monitor.entity.elastic.shard.ShardMigrationReq;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
+import com.dipper.monitor.service.elastic.shard.impl.handler.AbstractShardHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.nio.entity.NStringEntity;
 
 import java.io.IOException;
 
 @Slf4j
-public class MigrateShardHandler {
+public class MigrateShardHandler extends AbstractShardHandler {
 
     private ElasticClientService elasticClientService;
 
