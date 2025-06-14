@@ -215,21 +215,6 @@ public class ShardController {
         }
     }
 
-    @GetMapping("/getClusterShardLimitInfo")
-    @Operation(summary = "获取分片限制与当前分片总数", description = "获取分片限制与当前分片总数")
-    public JSONObject getClusterShardLimitInfo() {
-        try {
-            ShardLimitInfo shardLimitInfo = elasticShardService.getClusterShardLimitInfo();
-            return  ResultUtils.onSuccess(shardLimitInfo);
-        } catch (IllegalArgumentException e) {
-            log.warn("获取分片限制与当前分片总数: {}", e.getMessage());
-            return ResultUtils.onFail(400, e.getMessage());
-        } catch (Exception e) {
-            log.error("获取分片限制与当前分片总数", e);
-            return ResultUtils.onFail(500, "获取分片限制与当前分片总数: " + e.getMessage());
-        }
-    }
-
 
 
 }

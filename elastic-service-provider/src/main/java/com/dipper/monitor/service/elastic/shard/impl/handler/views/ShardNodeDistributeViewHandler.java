@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.elastic.shard.ShardNodeDistributeReq;
 import com.dipper.monitor.entity.elastic.shard.ShardNodeDistributeView;
 import com.dipper.monitor.entity.elastic.shard.ShardNodeView;
+import com.dipper.monitor.entity.elastic.shard.limit.ShardLimitInfo;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
 import com.dipper.monitor.service.elastic.shard.impl.ElasticShardServiceImpl;
 import com.dipper.monitor.utils.Tuple2;
@@ -66,12 +67,16 @@ public class ShardNodeDistributeViewHandler {
                 }
             }
 
+            ShardLimitInfo clusterShardLimitInfo = elasticShardService.getClusterShardLimitInfo();
+
             // 3. 组装最终视图对象
             ShardNodeDistributeView shardNodeDistributeView = new ShardNodeDistributeView();
             shardNodeDistributeView.setNodeNum(String.valueOf(nodeMap.size()));
             shardNodeDistributeView.setShardNum(String.valueOf(totalShardCount));
             shardNodeDistributeView.setPrimaryShardNum(String.valueOf(primaryShardCount));
             shardNodeDistributeView.setReplicaShardNum(String.valueOf(replicaShardCount));
+            shardNodeDistributeView.setShardLimit(clusterShardLimitInfo.getShardLimit());
+            shardNodeDistributeView.setCurrentShards(clusterShardLimitInfo.getCurrentShards());
             shardNodeDistributeView.setShardNodeViews(new ArrayList<>(nodeMap.values()));
 
             return new Tuple2<>(200, shardNodeDistributeView);
