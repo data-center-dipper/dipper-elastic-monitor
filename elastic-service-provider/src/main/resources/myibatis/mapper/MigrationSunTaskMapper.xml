@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.MigrationSunTaskMapper">
+
+    <!-- 插入子任务 -->
+    <insert id="insertSubtask">
+        INSERT INTO t_elastic_migration_subtasks (
+        parent_task_id,
+        index_name,
+        start_time,
+        end_time,
+        query_content,
+        status,
+        retry_count,
+        error_log,
+        created_at,
+        updated_at
+        ) VALUES (
+        #{subtask.parentTaskId},
+        #{subtask.indexName},
+        #{subtask.startTime},
+        #{subtask.endTime},
+        #{subtask.queryContent},
+        #{subtask.status},
+        #{subtask.retryCount},
+        #{subtask.errorLog},
+        #{subtask.createdAt},
+        #{subtask.updatedAt}
+        )
+    </insert>
+
+    <!-- 分页查询子任务 -->
+    <select id="selectSubtasksByPage" resultType="com.dipper.monitor.entity.db.elastic.SunTaskEntity">
+        SELECT *
+        FROM t_elastic_migration_subtasks
+        ORDER BY id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <!-- 统计总记录数 -->
+    <select id="countAllSubtasks" resultType="int">
+        SELECT COUNT(*) FROM t_elastic_migration_subtasks
+    </select>
+
+    <!-- 根据 ID 查询子任务 -->
+    <select id="selectSubtaskById" parameterType="long" resultType="com.dipper.monitor.entity.db.elastic.SunTaskEntity">
+        SELECT * FROM t_elastic_migration_subtasks WHERE id = #{id}
+    </select>
+
+    <!-- 更新子任务状态 -->
+    <update id="updateSubtaskStatus">
+        UPDATE t_elastic_migration_subtasks
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新子任务错误信息和重试次数 -->
+    <update id="updateSubtaskErrorInfo">
+        UPDATE t_elastic_migration_subtasks
+        SET error_log = #{errorLog}, retry_count = #{retryCount}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

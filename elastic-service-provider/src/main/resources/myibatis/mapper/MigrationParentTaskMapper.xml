@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dipper.monitor.mapper.MigrationParentTaskMapper">
+
+    <!-- 插入新任务 -->
+    <insert id="insertTask">
+        INSERT INTO t_elastic_migration_tasks (
+        source_cluster_id,
+        target_cluster_id,
+        index_pattern,
+        query_condition,
+        granularity,
+        n_hours_granularity,
+        is_once_execution,
+        target_index_prefix,
+        execute_policy,
+        concurrency_limit
+        ) VALUES (
+        #{sourceClusterId},
+        #{targetClusterId},
+        #{indexPattern},
+        #{queryCondition},
+        #{granularity},
+        #{nHoursGranularity},
+        #{isOnceExecution},
+        #{targetIndexPrefix},
+        #{executePolicy},
+        #{concurrencyLimit}
+        )
+    </insert>
+
+    <!-- 更新任务 -->
+    <update id="updateTask">
+        UPDATE t_elastic_migration_tasks SET
+        source_cluster_id = #{sourceClusterId},
+        target_cluster_id = #{targetClusterId},
+        index_pattern = #{indexPattern},
+        query_condition = #{queryCondition},
+        granularity = #{granularity},
+        n_hours_granularity = #{nHoursGranularity},
+        is_once_execution = #{isOnceExecution},
+        target_index_prefix = #{targetIndexPrefix},
+        execute_policy = #{executePolicy},
+        concurrency_limit = #{concurrencyLimit}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除任务 -->
+    <delete id="deleteTaskById">
+        DELETE FROM t_elastic_migration_tasks WHERE id = #{id}
+    </delete>
+
+    <!-- 查询单个任务 -->
+    <select id="selectTaskById" resultType="com.dipper.monitor.entity.elastic.data.migration.MigrationTaskView">
+        SELECT * FROM t_elastic_migration_tasks WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询任务列表 -->
+    <select id="selectTasksByPage" resultType="com.dipper.monitor.entity.elastic.data.migration.MigrationTaskView">
+        SELECT *
+        FROM t_elastic_migration_tasks
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计总数 -->
+    <select id="countAllTasks" resultType="int">
+        SELECT COUNT(*) FROM t_elastic_migration_tasks
+    </select>
+
+</mapper>

@@ -39,4 +39,6 @@ public interface ElasticClusterManagerService {
      * @return
      */
     void updateClusterVersion();
+
+    ElasticClusterEntity getClusterById(String id);
 }

@@ -1,6 +1,8 @@
 package com.dipper.monitor.service.elastic.overview;
 
+import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
+import com.dipper.monitor.entity.elastic.cluster.ElasticClusterView;
 
 import java.util.Map;
 
@@ -11,4 +13,5 @@ public interface ElasticHealthService {
      */
     ClusterHealth getHealthData();
 
+    ClusterHealth getClusterHealthData(ElasticClusterEntity elasticClusterEntity);
 }

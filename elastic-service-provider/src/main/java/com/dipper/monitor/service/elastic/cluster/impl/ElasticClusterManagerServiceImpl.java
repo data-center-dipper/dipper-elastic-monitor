@@ -253,6 +253,12 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
         elasticClusterManagerMapper.updateClusterVersion(clusterCode,versionNum);
     }
 
+    @Override
+    public ElasticClusterEntity getClusterById(String id) {
+        ElasticClusterEntity elasticClusterEntity = elasticClusterManagerMapper.getClusterById(id);
+        return elasticClusterEntity;
+    }
+
     /**
      * {
      *   "name" : "e1a61cdc0dac",
@@ -365,31 +371,7 @@ public class ElasticClusterManagerServiceImpl implements ElasticClusterManagerSe
         return address;
     }
 
-//    @Override
-//    public void updateMonitoringPolicy(MonitoringPolicyUpdateDTO policy) {
-//        String clusterCode = policy.getClusterCode();
-//        KafkaClusterEntity clusterByCode = kafkaClusterManagerMapper.getClusterByCode(clusterCode);
-//        if (clusterByCode == null) {
-//            throw new IllegalArgumentException("唯一识别码对应的集群不存在");
-//        }
-//        MonitoringPolicy monitoringPolicy = MonitoringPolicy.fromValue(policy.getMonitoringPolicy());
-//
-//        if (MonitoringPolicy.NONE == monitoringPolicy) {
-//            // 清除所有监控设置
-//            kafkaClusterManagerMapper.clearMonitoringPolicy(policy.getClusterCode());
-//        } else if (MonitoringPolicy.FROM_NOW == monitoringPolicy) {
-//            // 设置监控策略为从现在开始
-//            kafkaClusterManagerMapper.setMonitoringFromNow(policy.getClusterCode());
-//        } else if (MonitoringPolicy.TIME_RANGE == monitoringPolicy) {
-//            // 检查并设置时间范围
-//            if (policy.getMonitorStartTime() == null || policy.getMonitorEndTime() == null) {
-//                throw new IllegalArgumentException("Time range is required for 'range' policy");
-//            }
-//            kafkaClusterManagerMapper.setMonitoringTimeRange(policy);
-//        } else {
-//            throw new IllegalArgumentException("Unsupported monitoring policy");
-//        }
-//    }
+
 
 
 }

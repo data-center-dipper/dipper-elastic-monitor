@@ -33,4 +33,6 @@ public interface ElasticClusterManagerMapper {
 
     void updateClusterVersion(@Param("clusterCode") String clusterCode,
                               @Param("clusterVersion")  String clusterVersion);
+
+    ElasticClusterEntity getClusterById(@Param("id") String id);
 }

@@ -226,3 +226,35 @@ ALTER TABLE elastic_monitor.t_elastic_template ADD shard_size INT NULL;
 ALTER TABLE elastic_monitor.t_elastic_template ADD enable BOOL NULL;
 ALTER TABLE elastic_monitor.t_task_metadata ADD task_name varchar(100) NULL;
 ALTER TABLE elastic_monitor.t_task_metadata ADD status varchar(20) NULL;
+
+CREATE TABLE t_elastic_migration_tasks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    source_cluster_id VARCHAR(255) NOT NULL COMMENT '源集群ID',
+    target_cluster_id VARCHAR(255) NOT NULL COMMENT '目标集群ID',
+    index_pattern VARCHAR(255) NOT NULL COMMENT '索引匹配模式',
+    query_condition TEXT NOT NULL COMMENT '查询条件(JSON)',
+    granularity ENUM('day', 'hour', 'n_hours') NOT NULL COMMENT '迁移粒度',
+    n_hours_granularity INT DEFAULT NULL COMMENT '每N小时(当granularity为n_hours时有效)',
+    is_once_execution BOOLEAN NOT NULL COMMENT '是否精准执行一次',
+    target_index_prefix VARCHAR(255) NOT NULL COMMENT '目标索引前缀',
+    execute_policy ENUM('abort_on_error', 'continue_on_error') NOT NULL COMMENT '执行策略',
+    concurrency_limit INT NOT NULL COMMENT '并发限制',
+    status VARCHAR(255) DEFAULT 'pending' COMMENT '任务状态',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+);
+
+CREATE TABLE `t_elastic_migration_subtasks` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `parent_task_id` BIGINT NOT NULL COMMENT '父任务ID',
+  `index_name` VARCHAR(255) NOT NULL COMMENT '索引名称',
+  `start_time` DATETIME NOT NULL COMMENT '任务迁移数据的开始时间',
+  `end_time` DATETIME NOT NULL COMMENT '任务迁移数据的结束时间',
+  `query_content` TEXT NOT NULL COMMENT 'ES查询条件JSON字符串',
+  `status` VARCHAR(50) NOT NULL DEFAULT 'PENDING' COMMENT '子任务状态: PENDING, RUNNING, SUCCESS, FAILED',
+  `retry_count` INT NOT NULL DEFAULT 0 COMMENT '重试次数',
+  `error_log` TEXT  ,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='子任务表';

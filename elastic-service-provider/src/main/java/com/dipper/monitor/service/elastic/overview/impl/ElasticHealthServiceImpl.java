@@ -6,22 +6,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.client.proxy.api.elasticsearch.ElasticClientProxyService;
 import com.dipper.client.proxy.params.elasticsearch.Request;
 import com.dipper.client.proxy.params.elasticsearch.Response;
+import com.dipper.monitor.entity.db.elastic.ElasticClusterEntity;
 import com.dipper.monitor.entity.elastic.cluster.ClusterHealth;
 import com.dipper.monitor.entity.elastic.cluster.CurrentClusterEntity;
 import com.dipper.monitor.enums.elastic.ElasticRestApi;
 import com.dipper.monitor.service.elastic.client.ElasticClientService;
-import com.dipper.monitor.service.elastic.cluster.ElasticClusterManagerService;
 import com.dipper.monitor.service.elastic.overview.ElasticHealthService;
 import com.dipper.monitor.utils.elastic.ElasticBeanUtils;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ElasticHealthServiceImpl implements ElasticHealthService {
@@ -37,6 +33,24 @@ public class ElasticHealthServiceImpl implements ElasticHealthService {
     public ClusterHealth getHealthData() {
         CurrentClusterEntity currentCluster = ElasticBeanUtils.getCurrentCluster();
         ElasticClientProxyService elasticClientProxyService = elasticClientService.getInstance(currentCluster);
+        ClusterHealth healthData = getHealthData(elasticClientProxyService);
+        return healthData;
+    }
+
+    @Override
+    public ClusterHealth getClusterHealthData(ElasticClusterEntity elasticClusterEntity) {
+        CurrentClusterEntity currentCluster = new CurrentClusterEntity();
+        currentCluster.setClusterCode(elasticClusterEntity.getClusterCode());
+        currentCluster.setClusterName(elasticClusterEntity.getClusterName());
+        currentCluster.setId(elasticClusterEntity.getId());
+        currentCluster.setAddress(elasticClusterEntity.getAddress());
+
+        ElasticClientProxyService elasticClientProxyService = elasticClientService.getInstance(currentCluster);
+        ClusterHealth healthData = getHealthData(elasticClientProxyService);
+        return healthData;
+    }
+
+    private ClusterHealth getHealthData(ElasticClientProxyService elasticClientProxyService) {
         String apiPath = ElasticRestApi.CLUSTER_HEALTH.getApiPath();
         Request request = new Request("GET", apiPath);
 
