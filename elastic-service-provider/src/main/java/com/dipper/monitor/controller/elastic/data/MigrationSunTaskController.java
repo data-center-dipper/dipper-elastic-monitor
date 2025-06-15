@@ -41,11 +41,11 @@ public class MigrationSunTaskController {
     }
 
 
-    @PostMapping("/run_task")
-    @Operation(summary = "运行任务", description = "运行任务")
-    public JSONObject runTask(@RequestBody SunRunTaskReq sunRunTaskReq) {
+    @PostMapping("/startAllSubtasks")
+    @Operation(summary = "启动所有的子任务", description = "启动所有的子任务")
+    public JSONObject startAllSubtasks(@RequestBody SunRunTaskReq sunRunTaskReq) {
         try {
-            migrationSunTaskService.runTask(sunRunTaskReq);
+            migrationSunTaskService.startAllSubtasks(sunRunTaskReq);
             return  ResultUtils.onSuccess();
         } catch (IllegalArgumentException e) {
             log.warn("运行任务错误: {}", e.getMessage());
@@ -53,6 +53,51 @@ public class MigrationSunTaskController {
         } catch (Exception e) {
             log.error("运行任务失败", e);
             return ResultUtils.onFail(500, "运行任务失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/stopAllSubtasks")
+    @Operation(summary = "停止所有的子任务", description = "停止所有的子任务")
+    public JSONObject stopAllSubtasks(@RequestBody SunRunTaskReq sunRunTaskReq) {
+        try {
+            migrationSunTaskService.stopAllSubtasks(sunRunTaskReq);
+            return  ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.warn("停止所有的子任务错误: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("停止所有的子任务失败", e);
+            return ResultUtils.onFail(500, "运行任务失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/retryFailedSubtasks")
+    @Operation(summary = "重试所有失败的子任务", description = "重试所有失败的子任务")
+    public JSONObject retryFailedSubtasks(@RequestBody SunRunTaskReq sunRunTaskReq) {
+        try {
+            migrationSunTaskService.retryFailedSubtasks(sunRunTaskReq);
+            return  ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.warn("重试所有失败的子任务错误: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("重试所有失败的子任务失败", e);
+            return ResultUtils.onFail(500, "重试所有失败的子任务失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/runOneSubtask")
+    @Operation(summary = "重试单个任务", description = "重试单个任务")
+    public JSONObject runOneSubtask(@RequestBody SunRunTaskReq sunRunTaskReq) {
+        try {
+            migrationSunTaskService.runOneSubtask(sunRunTaskReq);
+            return  ResultUtils.onSuccess();
+        } catch (IllegalArgumentException e) {
+            log.warn("重试单个任务错误: {}", e.getMessage());
+            return ResultUtils.onFail(400, e.getMessage());
+        } catch (Exception e) {
+            log.error("重试单个任务失败", e);
+            return ResultUtils.onFail(500, "重试单个任务失败: " + e.getMessage());
         }
     }
 

@@ -7,23 +7,23 @@
     <!-- 插入新任务 -->
     <insert id="insertTask">
         INSERT INTO t_elastic_migration_tasks (
+        task_id,
         source_cluster_id,
         target_cluster_id,
         index_pattern,
         query_condition,
         granularity,
-        n_hours_granularity,
         is_once_execution,
         target_index_prefix,
         execute_policy,
         concurrency_limit
         ) VALUES (
+        #{taskId},
         #{sourceClusterId},
         #{targetClusterId},
         #{indexPattern},
         #{queryCondition},
         #{granularity},
-        #{nHoursGranularity},
         #{isOnceExecution},
         #{targetIndexPrefix},
         #{executePolicy},
@@ -39,7 +39,6 @@
         index_pattern = #{indexPattern},
         query_condition = #{queryCondition},
         granularity = #{granularity},
-        n_hours_granularity = #{nHoursGranularity},
         is_once_execution = #{isOnceExecution},
         target_index_prefix = #{targetIndexPrefix},
         execute_policy = #{executePolicy},
@@ -69,5 +68,10 @@
     <select id="countAllTasks" resultType="int">
         SELECT COUNT(*) FROM t_elastic_migration_tasks
     </select>
+
+    <select id="getOneTaskByTaskId" resultType="com.dipper.monitor.entity.elastic.data.migration.MigrationTaskView">
+        SELECT * FROM t_elastic_migration_tasks WHERE task_id = #{taskId}
+    </select>
+
 
 </mapper>

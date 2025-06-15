@@ -16,7 +16,9 @@ public interface MigrationParentTaskMapper {
 
     MigrationTaskView selectTaskById(Long id);
 
-    List<MigrationTaskView> selectTasksByPage(@Param("pageNum") int pageNum, @Param("pageSize") int pageSize);
+    List<MigrationTaskView> selectTasksByPage(@Param("offset") int offset, @Param("limit") int limit);
 
     int countAllTasks();
+
+    MigrationTaskView getOneTaskByTaskId(@Param("taskId") String taskId);
 }

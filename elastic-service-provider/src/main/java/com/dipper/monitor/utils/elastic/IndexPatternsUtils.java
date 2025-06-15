@@ -223,7 +223,7 @@ public class IndexPatternsUtils {
             case PATTERN_YYYY:
                 return tryParseYYYY4(part);
             default:
-                throw new IllegalArgumentException("Unsupported date pattern: " + datePattern);
+               return null;
         }
     }
 

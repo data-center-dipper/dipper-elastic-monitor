@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class MigrationTaskView {
     private Long id;
+    private String taskId;
     private String sourceClusterId;
     private String targetClusterId;
     private String indexPattern;

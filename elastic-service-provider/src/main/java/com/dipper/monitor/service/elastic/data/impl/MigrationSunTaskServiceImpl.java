@@ -6,6 +6,11 @@ import com.dipper.monitor.entity.elastic.data.migration.sun.SunRunTaskReq;
 import com.dipper.monitor.entity.elastic.data.migration.sun.SunTaskView;
 import com.dipper.monitor.mapper.MigrationSunTaskMapper;
 import com.dipper.monitor.service.elastic.data.MigrationSunTaskService;
+import com.dipper.monitor.service.elastic.data.SunTaskExecutorService;
+import com.dipper.monitor.service.elastic.data.migration.SubTaskAllRunHandler;
+import com.dipper.monitor.service.elastic.data.migration.SubTaskAllStopHandler;
+import com.dipper.monitor.service.elastic.data.migration.SubTaskFailedRetryRunHandler;
+import com.dipper.monitor.service.elastic.data.migration.SubTaskRunHandler;
 import com.dipper.monitor.utils.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +25,8 @@ public class MigrationSunTaskServiceImpl implements MigrationSunTaskService {
 
     @Autowired
     private MigrationSunTaskMapper migrationSunTaskMapper;
+    @Autowired
+    private SunTaskExecutorService sunTaskExecutorService;
 
     /**
      * 分页查询子任务
@@ -73,18 +80,35 @@ public class MigrationSunTaskServiceImpl implements MigrationSunTaskService {
         }
     }
 
+    @Override
+    public void startAllSubtasks(SunRunTaskReq sunRunTaskReq) {
+        SubTaskAllRunHandler subTaskAllRunHandler = new SubTaskAllRunHandler(this,sunTaskExecutorService);
+        subTaskAllRunHandler.startAllSubtasks(sunRunTaskReq);
+    }
+
+    @Override
+    public void stopAllSubtasks(SunRunTaskReq sunRunTaskReq) {
+        SubTaskAllStopHandler subTaskAllStopHandler = new SubTaskAllStopHandler(this);
+        subTaskAllStopHandler.stopAllSubtasks(sunRunTaskReq);
+    }
+
+    @Override
+    public void retryFailedSubtasks(SunRunTaskReq sunRunTaskReq) {
+        SubTaskFailedRetryRunHandler subTaskFailedRetryRunHandler = new SubTaskFailedRetryRunHandler(this);
+        subTaskFailedRetryRunHandler.retryFailedSubtasks(sunRunTaskReq);
+    }
+
     /**
      * 运行子任务（插入一条记录）
      */
     @Override
-    public void runTask(SunRunTaskReq sunRunTaskReq) {
-        Assert.notNull(sunRunTaskReq, "子任务参数不能为空");
-        Assert.notNull(sunRunTaskReq.getParentTaskId(), "父任务ID不能为空");
-        Assert.hasText(sunRunTaskReq.getIndexName(), "索引名称不能为空");
-        Assert.hasText(sunRunTaskReq.getStartTime(), "开始时间不能为空");
-        Assert.hasText(sunRunTaskReq.getEndTime(), "结束时间不能为空");
+    public void runOneSubtask(SunRunTaskReq sunRunTaskReq) {
+        SubTaskRunHandler subTaskRunHandler = new SubTaskRunHandler(this);
+        subTaskRunHandler.runOneSubtask(sunRunTaskReq);
+    }
 
-        log.info("运行子任务: {}", sunRunTaskReq);
-
+    @Override
+    public List<SunTaskEntity> getSunTaskByParentTaskId(String parentTaskId) {
+        return migrationSunTaskMapper.getSunTaskByParentTaskId(parentTaskId);
     }
 }

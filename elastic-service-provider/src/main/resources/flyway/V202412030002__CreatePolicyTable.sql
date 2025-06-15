@@ -229,6 +229,7 @@ ALTER TABLE elastic_monitor.t_task_metadata ADD status varchar(20) NULL;
 
 CREATE TABLE t_elastic_migration_tasks (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    task_id VARCHAR(255) NOT NULL COMMENT '任务id',
     source_cluster_id VARCHAR(255) NOT NULL COMMENT '源集群ID',
     target_cluster_id VARCHAR(255) NOT NULL COMMENT '目标集群ID',
     index_pattern VARCHAR(255) NOT NULL COMMENT '索引匹配模式',
@@ -246,7 +247,7 @@ CREATE TABLE t_elastic_migration_tasks (
 
 CREATE TABLE `t_elastic_migration_subtasks` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `parent_task_id` BIGINT NOT NULL COMMENT '父任务ID',
+  `parent_task_id`  VARCHAR(255)  NOT NULL COMMENT '父任务ID',
   `index_name` VARCHAR(255) NOT NULL COMMENT '索引名称',
   `start_time` DATETIME NOT NULL COMMENT '任务迁移数据的开始时间',
   `end_time` DATETIME NOT NULL COMMENT '任务迁移数据的结束时间',

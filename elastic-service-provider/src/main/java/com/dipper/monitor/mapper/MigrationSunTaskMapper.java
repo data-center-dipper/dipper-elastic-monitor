@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface MigrationSunTaskMapper {
 
-    void insertSubtask(SunTaskEntity subtask);
+    void insertSubtask(@Param("subtask") SunTaskEntity subtask);
 
     List<SunTaskEntity> selectSubtasksByPage(@Param("pageNum") int pageNum,
                                              @Param("pageSize") int pageSize);
@@ -21,4 +21,6 @@ public interface MigrationSunTaskMapper {
 
     int updateSubtaskErrorInfo(@Param("id") Long id, @Param("errorLog") String errorLog,
                                @Param("retryCount") int retryCount);
+
+    List<SunTaskEntity> getSunTaskByParentTaskId(@Param("parentTaskId") String parentTaskId);
 }

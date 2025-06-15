@@ -35,7 +35,7 @@
     <select id="selectSubtasksByPage" resultType="com.dipper.monitor.entity.db.elastic.SunTaskEntity">
         SELECT *
         FROM t_elastic_migration_subtasks
-        ORDER BY id DESC
+        ORDER BY index_name ASC
         LIMIT #{pageNum}, #{pageSize}
     </select>
 
@@ -62,5 +62,10 @@
         SET error_log = #{errorLog}, retry_count = #{retryCount}, updated_at = NOW()
         WHERE id = #{id}
     </update>
+
+    <select id="getSunTaskByParentTaskId"  resultType="com.dipper.monitor.entity.db.elastic.SunTaskEntity">
+        SELECT * FROM t_elastic_migration_subtasks WHERE parent_task_id = #{parentTaskId}
+    </select>
+
 
 </mapper>

@@ -4,8 +4,6 @@ import lombok.Data;
 
 @Data
 public class SunRunTaskReq {
-    private Long parentTaskId;
-    private String indexName;
-    private String startTime;
-    private String endTime;
+    private String parentTaskId;
+    private String subTaskId;
 }

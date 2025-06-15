@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class SunTaskEntity {
     private Long id;
-    private Long parentTaskId;
+    private String parentTaskId;
     private String indexName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;

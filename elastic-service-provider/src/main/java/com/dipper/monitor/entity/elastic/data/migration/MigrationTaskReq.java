@@ -15,6 +15,9 @@ public class MigrationTaskReq {
      */
     private Integer id;
 
+    // 任务唯一ID
+    private String taskId;
+
     /**
      * 源集群 ID
      * 表示要从哪个 Elasticsearch 集群中迁移数据
@@ -46,12 +49,6 @@ public class MigrationTaskReq {
      * 对应页面下拉选择框的值
      */
     private String granularity;
-
-    /**
-     * 自定义迁移粒度的小时数
-     * 当 granularity = custom 时，该字段表示每 N 小时拆分一个子任务
-     */
-    private Integer nHoursGranularity;
 
     /**
      * 是否为一次性任务

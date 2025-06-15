@@ -48,7 +48,8 @@ public class ParentTaskSplitHandler {
     public List<SunTaskEntity> splitTask(MigrationTaskReq taskReq) throws IOException {
         // 1. 获取匹配索引列表
         String indexPattern = taskReq.getIndexPattern();
-        List<IndexEntity> indexEntities = elasticRealIndexService.listIndexNameByPrefix(null, indexPattern);
+        String indexPrefix = indexPattern.replace("*", "");
+        List<IndexEntity> indexEntities = elasticRealIndexService.listIndexNameByPrefix(indexPrefix, indexPattern);
         if (CollectionUtils.isEmpty(indexEntities)) {
             log.warn("未找到匹配的索引: {}", indexPattern);
             return Collections.emptyList();
@@ -60,16 +61,19 @@ public class ParentTaskSplitHandler {
         // 3. 解析用户查询条件
         JSONObject originalQuery = parseUserQuery(taskReq.getQueryCondition());
 
-
+        String taskId = taskReq.getTaskId();
         // 4. 遍历每个索引 + 时间段组合，生成子任务
         List<SunTaskEntity> subTasks = new ArrayList<>();
         for (IndexEntity index : indexEntities) {
                 // 构建子任务
                 SunTaskEntity subTask = new SunTaskEntity();
+                subTask.setParentTaskId(taskId);
                 subTask.setIndexName(index.getIndex());
                 subTask.setQueryContent(originalQuery.toJSONString());
                 subTask.setStatus("PENDING");
                 subTask.setRetryCount(0);
+                subTask.setStartTime(LocalDateTime.now());
+                subTask.setEndTime(LocalDateTime.now());
                 subTask.setCreatedAt(LocalDateTime.now());
                 subTask.setUpdatedAt(LocalDateTime.now());
 
@@ -111,6 +115,9 @@ public class ParentTaskSplitHandler {
      */
     public void checkParams(MigrationTaskReq taskReq) throws IllegalArgumentException {
         // 1. 校验源集群和目标集群 ID 是否为空
+        if (StringUtils.isBlank(taskReq.getTaskId())) {
+            throw new IllegalArgumentException("任务 ID 不能为空");
+        }
         if (StringUtils.isBlank(taskReq.getSourceClusterId())) {
             throw new IllegalArgumentException("源集群 ID 不能为空");
         }
@@ -139,9 +146,9 @@ public class ParentTaskSplitHandler {
         }
 
         // 4. 源集群不能等于目标集群
-        if (sourceCluster.getClusterCode().equals(targetCluster.getClusterCode())) {
-            throw new IllegalArgumentException("源集群和目标集群不能相同");
-        }
+//        if (sourceCluster.getClusterCode().equals(targetCluster.getClusterCode())) {
+//            throw new IllegalArgumentException("源集群和目标集群不能相同");
+//        }
 
         // 5. 校验索引模式是否为空
         if (StringUtils.isBlank(taskReq.getIndexPattern())) {
@@ -150,17 +157,12 @@ public class ParentTaskSplitHandler {
 
         // 6. 校验粒度字段是否合法
         String granularity = taskReq.getGranularity();
-        Integer nHoursGranularity = taskReq.getNHoursGranularity();
-        if (!Arrays.asList("hourly", "daily", "custom").contains(granularity)) {
+        if (!Arrays.asList("hourly", "daily","day", "custom").contains(granularity)) {
             throw new IllegalArgumentException("迁移粒度必须是 hourly/daily/custom 中的一种");
         }
-        if ("custom".equalsIgnoreCase(granularity) && (nHoursGranularity == null || nHoursGranularity <= 0)) {
-            throw new IllegalArgumentException("自定义粒度时，必须指定大于 0 的小时数");
-        }
-
         // 7. 校验执行策略是否合法
         String executePolicy = taskReq.getExecutePolicy();
-        if (!Arrays.asList("abort", "continue").contains(executePolicy)) {
+        if (!Arrays.asList("abort", "continue","continue_on_error").contains(executePolicy)) {
             throw new IllegalArgumentException("执行策略必须为 abort 或 continue");
         }
 
@@ -230,18 +232,18 @@ public class ParentTaskSplitHandler {
         if (sourceHealth == null) {
             throw new RuntimeException("无法连接源集群：" + sourceCluster.getClusterName());
         }
-        if (!"green".equalsIgnoreCase(sourceHealth.getStatus())) {
-            throw new RuntimeException("源集群 [" + sourceCluster.getClusterName() + "] 状态不正常，当前状态：" + sourceHealth.getStatus());
-        }
+//        if (!"green".equalsIgnoreCase(sourceHealth.getStatus())) {
+//            throw new RuntimeException("源集群 [" + sourceCluster.getClusterName() + "] 状态不正常，当前状态：" + sourceHealth.getStatus());
+//        }
 
         // 检查目标集群健康状态
         ClusterHealth targetHealth = elasticHealthService.getClusterHealthData(targetCluster);
         if (targetHealth == null) {
             throw new RuntimeException("无法连接目标集群：" + targetCluster.getClusterName());
         }
-        if (!"green".equalsIgnoreCase(targetHealth.getStatus())) {
-            throw new RuntimeException("目标集群 [" + targetCluster.getClusterName() + "] 状态不正常，当前状态：" + targetHealth.getStatus());
-        }
+//        if (!"green".equalsIgnoreCase(targetHealth.getStatus())) {
+//            throw new RuntimeException("目标集群 [" + targetCluster.getClusterName() + "] 状态不正常，当前状态：" + targetHealth.getStatus());
+//        }
     }
 
 

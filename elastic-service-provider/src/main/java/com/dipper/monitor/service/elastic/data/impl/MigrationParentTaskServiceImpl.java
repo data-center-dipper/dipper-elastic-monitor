@@ -82,8 +82,12 @@ public class MigrationParentTaskServiceImpl implements MigrationParentTaskServic
         parentTaskSplitHandler.checkRunParams(taskReq);
         List<SunTaskEntity> subTask = parentTaskSplitHandler.splitTask(taskReq);
         log.info("拆分后的子任务数量: {}", subTask.size());
+        if(subTask.isEmpty()){
+            throw new RuntimeException("拆分后的子任务数量为0");
+        }
 
         migrationParentTaskMapper.insertTask(taskReq);
+
 
         migrationSunTaskService.insertTask(subTask);
     }
@@ -134,6 +138,21 @@ public class MigrationParentTaskServiceImpl implements MigrationParentTaskServic
         log.info("查询任务详情: ID={}", id);
 
         MigrationTaskView task = migrationParentTaskMapper.selectTaskById(id.longValue());
+
+        if (task == null) {
+            throw new RuntimeException("未找到对应的任务");
+        }
+
+        return task;
+    }
+
+    @Override
+    public MigrationTaskView getOneTaskByTaskId(String taskId) {
+        Assert.notNull(taskId, "任务taskId不能为空");
+
+        log.info("查询任务详情: taskId={}", taskId);
+
+        MigrationTaskView task = migrationParentTaskMapper.getOneTaskByTaskId(taskId);
 
         if (task == null) {
             throw new RuntimeException("未找到对应的任务");

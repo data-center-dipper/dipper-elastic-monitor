@@ -18,4 +18,6 @@ public interface MigrationParentTaskService {
     void deleteTask(Integer id);
 
     MigrationTaskView getOneTask(Integer id);
+
+    MigrationTaskView getOneTaskByTaskId(String parentTaskId);
 }
