@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.dipper.monitor.entity.db.elastic.EsTemplateEntity;
 import com.dipper.monitor.entity.elastic.index.IndexListView;
 import com.dipper.monitor.entity.elastic.index.IndexPageReq;
-import com.dipper.monitor.service.elastic.alians.ElasticAliasService;
+import com.dipper.monitor.entity.elastic.index.IndexSettingReq;
 import com.dipper.monitor.service.elastic.index.ElasticRealIndexService;
-import com.dipper.monitor.service.elastic.template.ElasticStoreTemplateService;
+import com.dipper.monitor.service.elastic.setting.IndexSettingService;
 import com.dipper.monitor.utils.ResultUtils;
 import com.dipper.monitor.utils.Tuple2;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,22 +23,17 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/dipper/monitor/api/v1/elastic/index_manager")
+@RequestMapping("/dipper/monitor/api/v1/elastic/index_setting")
 @Tag(name = "索引管理", description = "索引管理")
-public class IndexListController {
+public class IndexSettingController {
 
     @Autowired
-    private ElasticRealIndexService elasticRealIndexService;
-    @Autowired
-    private ElasticStoreTemplateService elasticStoreTemplateService;
-    @Autowired
-    private ElasticAliasService elasticAliasService;
+    private IndexSettingService indexSettingService;
 
-    /**
-     * 获取所有的模版信息
-     */
-    @Operation(summary = "获取所有的模版信息",
-            description = "获取所有的模版信息",
+
+
+    @Operation(summary = "查看索引setting信息",
+            description = "查看索引setting信息",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Template added successfully",
@@ -47,37 +42,10 @@ public class IndexListController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @GetMapping("/templateNames")
-    public JSONObject templateNames(@RequestParam("nameLike") String nameLike) {
+    @GetMapping("/indexSetting")
+    public JSONObject indexTemplate(@RequestParam("indexName") String indexName) {
         try {
-            List<String> jsonObject = elasticStoreTemplateService.templateNames(nameLike);
-            return ResultUtils.onSuccess(jsonObject);
-        } catch (IllegalArgumentException e) {
-            log.error("Error adding template", e);
-            return ResultUtils.onFail(e.getMessage());
-        } catch (Exception e) {
-            log.error("Error adding template", e);
-            return ResultUtils.onFail("Operation error");
-        }
-    }
-
-    /**
-     * 获取所有的模版信息
-     */
-    @Operation(summary = "获取所有的模版信息",
-            description = "获取所有的模版信息",
-            security = @SecurityRequirement(name = "bearerAuth"),
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Template added successfully",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = EsTemplateEntity.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request"),
-                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
-            })
-    @GetMapping("/aliasNames")
-    public JSONObject aliasNames(@RequestParam("nameLike") String nameLike) {
-        try {
-            List<String> jsonObject = elasticAliasService.aliasNames(nameLike);
+            JSONObject jsonObject = indexSettingService.getIndexSetting(indexName);
             return ResultUtils.onSuccess(jsonObject);
         } catch (IllegalArgumentException e) {
             log.error("Error adding template", e);
@@ -89,11 +57,8 @@ public class IndexListController {
     }
 
 
-    /**
-     * 获取所有的模版信息
-     */
-    @Operation(summary = "获取所有的模版信息",
-            description = "获取所有的模版信息",
+    @Operation(summary = "查看索引setting信息",
+            description = "查看索引setting信息",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Template added successfully",
@@ -102,13 +67,39 @@ public class IndexListController {
                     @ApiResponse(responseCode = "400", description = "Bad request"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             })
-    @PostMapping("/indexPageList")
-    public JSONObject indexPageList(@RequestBody IndexPageReq indexPageReq) {
+    @GetMapping("/getIndexMapping")
+    public JSONObject getIndexMapping(@RequestParam("indexName") String indexName) {
         try {
-            Tuple2<List<IndexListView>, Long> pageResult = elasticRealIndexService.indexPageList(indexPageReq);
-            List<IndexListView> k = pageResult.getK();
-            Long v = pageResult.getV();
-            return ResultUtils.onSuccessWithPageTotal(v, k);
+            JSONObject jsonObject = indexSettingService.getMappingByIndexName(indexName);
+            return ResultUtils.onSuccess(jsonObject);
+        } catch (IllegalArgumentException e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error adding template", e);
+            return ResultUtils.onFail("Operation error");
+        }
+    }
+
+
+    /**
+     * 更新索引的设置信息
+     */
+    @Operation(summary = "更新索引的设置信息",
+            description = "更新索引的设置信息",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Template added successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = EsTemplateEntity.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            })
+    @PostMapping("/updateIndexSetting")
+    public JSONObject updateIndexSetting(@RequestBody IndexSettingReq indexSettingReqn) {
+        try {
+            indexSettingService.updateIndexSetting(indexSettingReqn);
+            return ResultUtils.onSuccess();
         } catch (IllegalArgumentException e) {
             log.error("Error adding template", e);
             return ResultUtils.onFail(e.getMessage());
