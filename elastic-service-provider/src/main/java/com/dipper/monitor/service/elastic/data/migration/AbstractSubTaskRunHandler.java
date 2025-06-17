@@ -7,7 +7,7 @@ import com.dipper.monitor.service.elastic.data.SunTaskExecutorService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AbstractSubTaskRunHandler {
+public class AbstractSubTaskRunHandler extends Thread {
 
     protected MigrationSunTaskService migrationSunTaskService;
     protected MigrationParentTaskService migrationParentTaskService ;

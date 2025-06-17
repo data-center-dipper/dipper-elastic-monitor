@@ -23,4 +23,8 @@ public interface MigrationSunTaskService {
     void runOneSubtask(SunRunTaskReq sunRunTaskReq);
 
     List<SunTaskEntity> getSunTaskByParentTaskId(String parentTaskId);
+
+    void updateTask(SunTaskEntity task);
+
+    SunTaskEntity getSunTaskById(Long aLong);
 }

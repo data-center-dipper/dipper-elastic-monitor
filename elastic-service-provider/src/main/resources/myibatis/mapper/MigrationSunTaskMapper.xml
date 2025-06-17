@@ -64,8 +64,46 @@
     </update>
 
     <select id="getSunTaskByParentTaskId"  resultType="com.dipper.monitor.entity.db.elastic.SunTaskEntity">
-        SELECT * FROM t_elastic_migration_subtasks WHERE parent_task_id = #{parentTaskId}
+        SELECT * FROM t_elastic_migration_subtasks WHERE parent_task_id = #{parentTaskId}  ORDER BY index_name ASC
     </select>
 
+    <update id="updateTask">
+        UPDATE t_elastic_migration_subtasks
+        <set>
+            <if test="task.parentTaskId != null">
+                parent_task_id = #{task.parentTaskId},
+            </if>
+            <if test="task.indexName != null">
+                index_name = #{task.indexName},
+            </if>
+            <if test="task.startTime != null">
+                start_time = #{task.startTime},
+            </if>
+            <if test="task.endTime != null">
+                end_time = #{task.endTime},
+            </if>
+            <if test="task.queryContent != null">
+                query_content = #{task.queryContent},
+            </if>
+            <if test="task.status != null">
+                status = #{task.status},
+            </if>
+            <if test="task.retryCount != null">
+                retry_count = #{task.retryCount},
+            </if>
+            <if test="task.errorLog != null">
+                error_log = #{task.errorLog},
+            </if>
+            <if test="task.createdAt != null">
+                created_at = #{task.createdAt},
+            </if>
+            <if test="task.updatedAt != null">
+                updated_at = #{task.updatedAt},
+            </if>
+            <!-- 总是更新 updated_at -->
+            updated_at = NOW()
+        </set>
+        WHERE id = #{task.id}
+    </update>
 
 </mapper>

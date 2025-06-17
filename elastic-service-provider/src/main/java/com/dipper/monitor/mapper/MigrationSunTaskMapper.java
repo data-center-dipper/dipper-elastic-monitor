@@ -23,4 +23,6 @@ public interface MigrationSunTaskMapper {
                                @Param("retryCount") int retryCount);
 
     List<SunTaskEntity> getSunTaskByParentTaskId(@Param("parentTaskId") String parentTaskId);
+
+    void updateTask(@Param("task") SunTaskEntity task);
 }

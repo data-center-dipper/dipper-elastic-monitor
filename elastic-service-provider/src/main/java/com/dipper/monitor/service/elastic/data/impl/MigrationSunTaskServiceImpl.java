@@ -17,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -27,6 +29,9 @@ public class MigrationSunTaskServiceImpl implements MigrationSunTaskService {
     private MigrationSunTaskMapper migrationSunTaskMapper;
     @Autowired
     private SunTaskExecutorService sunTaskExecutorService;
+
+    // 所有任务
+    private Map<String, SubTaskAllRunHandler> subTaskRunHandlerMap = new HashMap<>();
 
     /**
      * 分页查询子任务
@@ -82,8 +87,15 @@ public class MigrationSunTaskServiceImpl implements MigrationSunTaskService {
 
     @Override
     public void startAllSubtasks(SunRunTaskReq sunRunTaskReq) {
-        SubTaskAllRunHandler subTaskAllRunHandler = new SubTaskAllRunHandler(this,sunTaskExecutorService);
+        SubTaskAllRunHandler subTaskAllRunHandler = subTaskRunHandlerMap.get(sunRunTaskReq.getParentTaskId());
+        if(subTaskAllRunHandler != null) {
+            throw new RuntimeException("任务正在运行中，请勿重复提交");
+        }
+        subTaskAllRunHandler = new SubTaskAllRunHandler(this,sunTaskExecutorService);
         subTaskAllRunHandler.startAllSubtasks(sunRunTaskReq);
+        subTaskAllRunHandler.start();
+
+        subTaskRunHandlerMap.put(sunRunTaskReq.getParentTaskId(),subTaskAllRunHandler);
     }
 
     @Override
@@ -110,5 +122,15 @@ public class MigrationSunTaskServiceImpl implements MigrationSunTaskService {
     @Override
     public List<SunTaskEntity> getSunTaskByParentTaskId(String parentTaskId) {
         return migrationSunTaskMapper.getSunTaskByParentTaskId(parentTaskId);
+    }
+
+    @Override
+    public void updateTask(SunTaskEntity task) {
+        migrationSunTaskMapper.updateTask(task);
+    }
+
+    @Override
+    public SunTaskEntity getSunTaskById(Long aLong) {
+        return migrationSunTaskMapper.selectSubtaskById(aLong);
     }
 }
