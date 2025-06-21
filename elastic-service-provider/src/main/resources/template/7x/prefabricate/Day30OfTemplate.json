@@ -7,7 +7,7 @@
   "aliansPatterns": "lcc-log-yyyyMM",
   "numberOfShards": 3,
   "numberOfReplicas": 2,
-  "enableAutoShards": true,
+  "autoShards": true,
   "refreshInterval": "30s",
   "shardSize": 50,
   "rollingPeriod": 30,
